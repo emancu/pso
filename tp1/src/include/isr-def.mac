@@ -1,0 +1,16 @@
+;
+;	ISR_ENTORNO
+;
+;	Establece un entorno para el segmento de datos del kernel
+;	utilizando el registro especificado.
+;
+%macro ISR_ENTORNO 1 ;	registro-a-utilizar
+	mov %1, 0x10 ; SEG_DATA_0
+	mov ds, %1
+%endmacro
+
+%macro FIN_DE_INTERRUPCION 0
+	mov	al, 20h
+	out 20h, al
+%endmacro
+
