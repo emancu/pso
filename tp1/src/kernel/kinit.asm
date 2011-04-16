@@ -32,7 +32,6 @@ modo_protegido:
 	mov 	esp, 0xA0000
 	mov 	ebp, 0xA0000
 
-	xchg 	bx, bx
 	call 	kernel_init
 	jmp $
 

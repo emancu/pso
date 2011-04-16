@@ -1,5 +1,6 @@
 #include <tipos.h>
 #include <gdt.h>
+#include <tss.h>
 
 /* Macro para crear una entrada de la GDT dando base(32), limit(20) y attr(12). */
 #define make_gdt_entry(base, limit, attr) \
@@ -19,14 +20,17 @@
 #define GDT_ATTR_SEG_DATA GDT_ATTR_W
 
 gdt_entry gdt[GDT_COUNT] = {
-	make_gdt_entry(0, 0, 0),
-	make_gdt_entry(0, 0xFFFFF, GDT_ATTR_SEG | GDT_ATTR_SEG_CODE | GDT_ATTR_DPL0), // SEG_CODE_0
-	make_gdt_entry(0, 0xFFFFF, GDT_ATTR_SEG | GDT_ATTR_SEG_DATA | GDT_ATTR_DPL0), // SEG_DATA_0
-	// El resto no está inicializado ;)
+  make_gdt_entry(0, 0, 0),
+  make_gdt_entry(0, 0xFFFFF, GDT_ATTR_SEG | GDT_ATTR_SEG_CODE | GDT_ATTR_DPL0), // SEG_CODE_0
+  make_gdt_entry(0, 0xFFFFF, GDT_ATTR_SEG | GDT_ATTR_SEG_DATA | GDT_ATTR_DPL0), // SEG_DATA_0
+  make_gdt_entry(0, 0xFFFFF, GDT_ATTR_SEG | GDT_ATTR_SEG_CODE | GDT_ATTR_DPL3), // SEG_CODE_3
+  make_gdt_entry(0, 0xFFFFF, GDT_ATTR_SEG | GDT_ATTR_SEG_DATA | GDT_ATTR_DPL3), // SEG_DATA_3
+  // El resto no está inicializado ;)
 };
 
 gdt_descriptor GDT_DESC = {sizeof(gdt)-1, (uint_32)&gdt};
 
 void gdt_init(void) {
+  gdt[5] = make_gdt_entry(&tss_entry, sizeof(tss), GDT_ATTR_P | GDT_ATTR_DPL0 | GDT_ATTR_TYPE_TSS); // TSS
 
 }

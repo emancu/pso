@@ -4,35 +4,35 @@
 #include <tipos.h>
 
 typedef struct str_gdt_descriptor {
-	unsigned short gdt_length;
-	unsigned int gdt_addr;
+  unsigned short gdt_length;
+  unsigned int gdt_addr;
 } __attribute__((__packed__)) gdt_descriptor;
 
 
 typedef union str_gdt_entry {
-	struct str_gdt_entry_fld {
-		unsigned short limit_0;
-		unsigned short base_01;
-		unsigned char base_2;
-		unsigned char type:4;
-		unsigned char s:1;
-		unsigned char dpl:2;
-		unsigned char p:1;
-		unsigned char limit_1:4;
-		unsigned char avl:1;
-		unsigned char l:1;
-		unsigned char db:1;
-		unsigned char g:1;
-		unsigned char base_3;
-	} fld;
-	struct str_gdt_entry_vl {
-		unsigned int vl0, vl1;
-	} vl;
+  struct str_gdt_entry_fld {
+    unsigned short limit_0;
+    unsigned short base_01;
+    unsigned char base_2;
+    unsigned char type:4;
+    unsigned char s:1;
+    unsigned char dpl:2;
+    unsigned char p:1;
+    unsigned char limit_1:4;
+    unsigned char avl:1;
+    unsigned char l:1;
+    unsigned char db:1;
+    unsigned char g:1;
+    unsigned char base_3;
+  } fld;
+  struct str_gdt_entry_vl {
+    unsigned int vl0, vl1;
+  } vl;
 } __attribute__((__packed__, aligned (8))) gdt_entry;
 
 /** Tabla GDT **/
 extern gdt_entry gdt[];
-#define GDT_COUNT 256
+#define GDT_COUNT 8
 
 void gdt_init(void);
 
