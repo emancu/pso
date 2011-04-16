@@ -8,6 +8,7 @@
 #define VIDEO_ADDR 0xB8000
 
 void fill_screen(char color, char bright);
+void clear_screen();
 
 /*printf like function that supports the follwing format parameters: %s %c %d %x %i */
 void printk(char* fmt, ...);
