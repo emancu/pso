@@ -21,10 +21,13 @@ void fill_screen(char color, char bright) {
   char* video = (char*)VIDEO_ADDR;
   char fmt = make_format(0x0, 0x0, color, bright);
   while((int)video < VIDEO_ADDR + SCR_W*SCR_H) {
-    *(video) = 0x00;
-    *(video+1) = fmt;
-    video+=2;
+    *video++ = 0x00;
+    *video++ = fmt;
   }
+}
+
+void clear_screen() {
+  fill_screen(0,0);
 }
 
 void move_scr_up() {
