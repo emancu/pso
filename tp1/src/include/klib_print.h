@@ -1,21 +1,13 @@
 #ifndef __KLIB_PRINT_H__
 #define __KLIB_PRINT_H__
 
-
-#define SCR_W 160
-#define SCR_H 25
-
-#define VIDEO_ADDR 0xB8000
-
 void fill_screen(char color, char bright);
 void clear_screen();
 
 /*printf like function that supports the follwing format parameters: %s %c %d %x %i */
 void printk(char* fmt, ...);
 
-//int printk_resolver(int amount, char* fmt, ...);
-
-void printk_raw(char* str, char blink, char front, char back, char bright);
+int printf_resolver(uint_16 f, uint_16 c, uint_8 attr, int amount, char* fmt, va_list argp)
 
 /* Converts 'num' to decimal string of numbers in 'str' , 
  * 'str' is filled starting in 'index' and moving it forward.

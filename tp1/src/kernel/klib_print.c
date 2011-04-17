@@ -3,11 +3,6 @@
 
 #include "klib_print.h"
 
-//#include <stdio.h>
-#include <stdarg.h>
-
-static char line = 0;
-
 char make_format(char blink, char front, char back, char bright) {
   char fmt = (char)0;
   fmt |= ((front & 0x7) << 0);
@@ -18,9 +13,9 @@ char make_format(char blink, char front, char back, char bright) {
 }
 
 void fill_screen(char color, char bright) {
-  char* video = (char*)VIDEO_ADDR;
+  uint_8* video = vga_addr;
   char fmt = make_format(0x0, 0x0, color, bright);
-  while((int)video < VIDEO_ADDR + SCR_W*SCR_H) {
+  while(video < vga_addr + vga_cols*2*vga_rows) {
     *video++ = 0x00;
     *video++ = fmt;
   }
@@ -30,6 +25,7 @@ void clear_screen() {
   fill_screen(0,0);
 }
 
+/*
 void move_scr_up() {
   char* video = (char*)VIDEO_ADDR;
   while ((int)video < (VIDEO_ADDR + (SCR_H-1)*(SCR_W))) {
@@ -42,15 +38,13 @@ void move_scr_up() {
     *(video+1) = bkg;
     video+=2;
   }
-}
+}*/
 
-int printk_resolver(int amount, char* fmt, va_list argp) {
+int printf_resolver(uint_16 f, uint_16 c, uint_8 attr, int amount, char* fmt, va_list argp) {
   char buff[amount];
   char ch;
   char* str;
   int x, i = 0, c = 0, len = strlen(fmt), arg = 0;
-//  va_list argp;
-//  va_start(argp, fmt);
   while(i < len) {
     if (fmt[i] == '%') { //Special action needed
       i++;
@@ -92,40 +86,9 @@ int printk_resolver(int amount, char* fmt, va_list argp) {
     }
   }
   buff[c] = '\0';
-  printk_raw(buff, 0, 0xF, 0x0, 1);
+  vga_write(f, c, buff, attr);
   va_end(argp);
   return 0;
-}
-
-void printk(char* fmt, ...) {
-  va_list argp;
-  int amount = 8;
-  va_start(argp, fmt);
-  while(printk_resolver(amount, fmt, argp) < 0) {
-    va_start(argp, fmt);
-    amount *= 2;
-  }
-}
-
-void printk_raw(char* str, char blink, char front, char back, char bright) {
-  char* video = (char*)(VIDEO_ADDR + SCR_W * line);
-  char fmt = make_format(blink, front, back, bright);
-  while(*str != '\0') {
-    if (*str == '\n') {
-      if (line < SCR_H-1) {
-        video = (char*)(((int)video) + (SCR_W - ((int)video - VIDEO_ADDR)));
-        line++;
-      } else {
-        move_scr_up();
-        video = (char*)(VIDEO_ADDR + (SCR_H-1)*SCR_W);
-      }
-    } else {
-      *(video) = *str;
-      *(video+1) = fmt;
-      video += 2;
-    }
-    str++;
-  }
 }
 
 int strlen(char* str) {

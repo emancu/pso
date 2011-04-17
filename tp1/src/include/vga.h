@@ -2,10 +2,13 @@
 #define __VGA_H__
 
 #include <tipos.h>
+#include <stdarg.h>
+#include <klib_print.h>
 
 extern uint_8* vga_addr;
 extern const uint_16 vga_cols;
 extern const uint_16 vga_rows;
+extern uint_8* vga_limit;
 
 void vga_init(void);
 
