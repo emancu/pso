@@ -19,6 +19,9 @@ void kernel_init(void) {
   gdt_init();
   clear_screen();
   printk_machine_stat();
+  pic_reset(0x20,0x2A);
+  pic_enable();
+  idt_init();
   breakpoint();
   return;
 }
