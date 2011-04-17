@@ -32,5 +32,4 @@ gdt_descriptor GDT_DESC = {sizeof(gdt)-1, (uint_32)&gdt};
 
 void gdt_init(void) {
   gdt[5] = make_gdt_entry(&tss_entry, sizeof(tss), GDT_ATTR_P | GDT_ATTR_DPL0 | GDT_ATTR_TYPE_TSS); // TSS
-
 }
