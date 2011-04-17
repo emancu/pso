@@ -22,21 +22,14 @@ idt_entry idt[128] = {};
 idt_descriptor IDT_DESC = {sizeof(idt)-1, (uint_32)&idt};
 
 void idt_init(void) {
-    IDT_DESC.idt_length = sizeof(idt)-1;
-    IDT_DESC.idt_addr = (uint_32)&idt;
+    //Rellenar la IDT
     int i;
-    for(i = 0; i <= 128; i++){
+    for(i = 0; i < 128; i++){
         idt[i] = idt_entry_null;
     }
-	//Rellenar la IDT
 
-//	__asm__ __volatile__("lidt %0"::"m"(IDT_DESC));
-    printk("idt desc: lim: %d addr: %x  idt: %x \n" , IDT_DESC.idt_length , IDT_DESC.idt_addr, &idt);
-
-    breakpoint();
+    // Carga el IDTR
     lidt(&IDT_DESC);
-
-	// Carga el IDTR
 	return;
 }
 
