@@ -4,7 +4,7 @@
 #include <i386.h>
 #include <tipos.h>
 #include <stdarg.h>
-#include <klib_print.h>
+#include <lib_str.h>
 
 extern uint_8* vga_addr;
 extern const uint_16 vga_cols;
