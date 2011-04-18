@@ -3,15 +3,15 @@
 
 #include "klib_machine.h"
 
-void printk_machine_stat() {
-  printk("Machine status\n");
-  printk("    cr0: %x | cr2: %x | cr3: %x | cr4: %x \n", rcr0, rcr2, rcr3, rcr4);
-  /*printk("    gdtr: %x\n", rgdt);
-  printk("    ldtr: %x\n", rldt);
-  printk("    idtr: %x\n", ridt);*/
-  printk("    tr: %x\n", rtr());
-  printk("\n");
-  printk("    cs: %x | ds: %x | es: %x | fs: %x | gs: %x | ss: %x \n", rcs, rds, res, rfs, rgs, rss);
+void print_machine_stat() {
+  printf("Machine status\n");
+  printf("    cr0: %x | cr2: %x | cr3: %x | cr4: %x \n", rcr0, rcr2, rcr3, rcr4);
+  //printf("    gdtr: %x\n", rgdt);
+  //printf("    ldtr: %x\n", rldt);
+  //printf("    idtr: %x\n", ridt);
+  printf("    tr: %x\n", rtr());
+  printf("\n");
+  printf("    cs: %x | ds: %x | es: %x | fs: %x | gs: %x | ss: %x \n", rcs, rds, res, rfs, rgs, rss);
 }
 
 #endif

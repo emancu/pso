@@ -1,6 +1,7 @@
 #ifndef __VGA_H__
 #define __VGA_H__
 
+#include <i386.h>
 #include <tipos.h>
 #include <stdarg.h>
 #include <klib_print.h>
@@ -10,10 +11,25 @@ extern const uint_16 vga_cols;
 extern const uint_16 vga_rows;
 extern uint_8* vga_limit;
 
+extern uint_16 fila;
+
 void vga_init(void);
 
 void vga_write(uint_16 f, uint_16 c, const char* msg, uint_8 attr);
 void vga_printf(uint_16 f, uint_16 c, const char* format, uint_8 attr, ...) __attribute__ ((format (printf, 3, 5)));
+
+void fill_screen(char color, char bright);
+void clear_screen();
+
+/* printf like function that supports the follwing format parameters: %s %c %d %x %i.
+ * If \n is inside fmt, next line will be overwritten by next printf. */
+void printf(const char* fmt, ...);
+
+
+int printf_resolver(uint_16 f, uint_16 c, uint_8 attr, int amount, const char* fmt, va_list argp);
+
+/*Creates a format byte with the given options.*/
+uint_8 make_format(char blink, char front, char back, char bright);
 
 /* Paleta de 16 colores */
 #define VGA_FC_BLACK   0x00
