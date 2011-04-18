@@ -8,3 +8,8 @@ Integrantes
  * Emiliano  Mancuso
  * Martin     Miguel
 
+
+Links Interesantes
+------------------
+
+ * Debugging: http://wiki.osdev.org/Troubleshooting
