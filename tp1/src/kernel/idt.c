@@ -4,7 +4,7 @@
 #include <isr.h>
 #include <idt.h>
 #include <pic.h>
-#include <klib_print.h>
+#include <vga.h>
 
 static const uint_32 IDT_ATTR_DPL_[4] = { IDT_ATTR_DPL0, IDT_ATTR_DPL1, IDT_ATTR_DPL2, IDT_ATTR_DPL3 };
 
@@ -19,7 +19,6 @@ static const uint_32 IDT_ATTR_DPL_[4] = { IDT_ATTR_DPL0, IDT_ATTR_DPL1, IDT_ATTR
 #define IDT_EXP IDT_ATTR_P | IDT_ATTR_S_ON | IDT_ATTR_D_32 | IDT_ATTR_TYPE_EXP
 
 idt_entry idt[128] = {};
-
 
 idt_descriptor IDT_DESC = {sizeof(idt)-1, (uint_32)&idt};
 
@@ -40,7 +39,7 @@ void idt_init(void) {
     for(i = 0; i < 128; i++){
         idt_register(32, &timerTick, 0);
     }
-            idt_register(33, &keyboard, 0);
+    idt_register(33, &keyboard, 0);
 
     //    idt_register(33, &isr_keyboard, 0);
 	return;
@@ -53,17 +52,15 @@ void idt_register(int intr, void (*isr)(void), int pl ) {
 }
 
 void isr_timer_tick() {
-    printk("Tick! %d \n", ale++);
+    printf("Tick! %d \n", ale++);
     outb(0x20,0x20);
 }
 
 void isr_keyboard() {
     char tecla=0;
-    printk("Tecladooo!!! \n");
+    printf("Tecladooo!!! \n");
     __asm__ __volatile__("inb $0x60, %%al" : "=a" (tecla));
     outb(0x20,0x20);
 
 }
-
-
 

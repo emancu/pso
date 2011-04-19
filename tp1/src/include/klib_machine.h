@@ -2,9 +2,9 @@
 #define __KLIB_MACHINE_H__
 
 #include <i386.h>
-#include "klib_print.h"
+#include <vga.h>
 
 /* Prints status registers of the machine */
-void printk_machine_stat();
+void print_machine_stat();
 
 #endif

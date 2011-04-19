@@ -1,22 +1,6 @@
 #ifndef __KLIB_PRINT_H__
 #define __KLIB_PRINT_H__
 
-
-#define SCR_W 160
-#define SCR_H 25
-
-#define VIDEO_ADDR 0xB8000
-
-void fill_screen(char color, char bright);
-void clear_screen();
-
-/*printf like function that supports the follwing format parameters: %s %c %d %x %i */
-void printk(char* fmt, ...);
-
-//int printk_resolver(int amount, char* fmt, ...);
-
-void printk_raw(char* str, char blink, char front, char back, char bright);
-
 /* Converts 'num' to decimal string of numbers in 'str' , 
  * 'str' is filled starting in 'index' and moving it forward.
  * It does not move 'index' beyond 'lim'. The function returns 0 if the conversion
@@ -52,6 +36,6 @@ int str_into_string(char* str, int* index, int lim, char* str2);
 
 /* Returns the length of 'str'. Lenght is the number of characters
  * from str[0] until the first '\0'. */
-int strlen(char* str);
+int strlen(const char* str);
 
 #endif

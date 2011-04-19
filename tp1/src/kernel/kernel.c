@@ -9,7 +9,6 @@
 #include <syscalls.h>
 #include <i386.h>
 
-#include "klib_print.h"
 #include "klib_machine.h"
 
 extern void* _end;
@@ -18,14 +17,9 @@ extern void* _end;
 void kernel_init(void) {
   gdt_init();
   clear_screen();
-  printk_machine_stat();
+  vga_write(vga_rows-1, vga_cols/4-1, " OS by: E. Marcusso, A. Mataloni, M. Miguel ", VGA_FC_BLUE | VGA_FC_LIGHT | VGA_BC_WHITE);
+  print_machine_stat();
   idt_init();
-
-
   sti();
- // int a = 0x0;
-  //int b = 0x20 / a;
-//printk("%x", b);
-
   return;
 }
