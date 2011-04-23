@@ -12,7 +12,7 @@ Integrantes
 Punteo para el desarrollo
 -------------------------
 
-###mm_init
+###mm
 
 * **inicializar estructuras**: la memoria solo cuenta con dos estructuras de manejo de *page frames* libres. Una maneja los page frames del kernel (solo los ultimos 3mb del espacio de kernel) y los del usuario (el resto de la memoria). Para el kernel nos alcanza con un arreglo de bits con suficientes bits para las paginas en 3 mb. Para el usuario necesitamos bits para frames para un total de 4gb - 4mb. No obstante, cuantas paginas de estas son realmente usables depende del total de memoria fisica. La inicializacion de estructuras debe conocer esto y guadar la informacion en un valor que limite hasta que bit del arreglo debe leerse. Un bit en 0 indica que la pagina esta libre, el bit 1 significa que esta ocupada.
 
@@ -24,3 +24,10 @@ Punteo para el desarrollo
 
 * **syscall palloc**: busca un bit en 0 en la estructura de page frames de usuario (puede fallar si no hay), luego usa el cr3 para seguir el arbol de paginas y mapearla en la primera posicion disponible. Llena los atributos de la manera standard (read/write, excecutable, usuario, presente). Puede fallar si no hay mas paginas virtuales para mapear o si el kernel no tiene mas page frames libres y se necesita uno nuevo para una nueva tabla de paginas. Si todo esto funciona pone en 1 el bit en la estrucutra de page frames de usuario y devuelve la direccion virtual a la que fue mapeada la pagina.
 
+###sched
+
+* **estructuras**: posee dos listas circulares de pids para representar los estados. Se manejan dos estados: *running* y *blocked*. Debe saber cual es el pid de ejecucion actual. Estas estructuras mantienen otra informacion util para el scheduler como la cantidad de quantums consumidos por la tarea actual. 
+
+* **funciones de cambio de estado**: *sched_load()* y *sched_unblock()* son funciones cuyo unico proposito es actualizar el estado de las tareas en las extrucutras internas del scheduler. 
+
+* **funciones de siguiente tarea**: *sched_tick()*, *sched_block()* y *sched_exit()* actualizan las estructuras internas para repersentar el evento y ademas deben devolver el pid de la tarea a ejecutar a continuacion. 
