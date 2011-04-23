@@ -97,10 +97,4 @@ extern idt_descriptor IDT_DESC;
 #define IDT_ATTR_TYPE_INT 0x0600
 #define IDT_ATTR_TYPE_EXP 0x0700
 
-void isr_timer_tick();
-void isr_keyboard();
-
-extern void timerTick();
-extern void keyboard();
-
 #endif

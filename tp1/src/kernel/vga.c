@@ -20,7 +20,7 @@ void vga_write(uint_16 f, uint_16 c, const char* msg, uint_8 attr) {
   int str = 0;
   while(msg[str] != '\0' && video < vga_limit) {
     if (msg[str] == '\n') { //Avanzo una línea el puntero
-		video = (uint_8*)(video + (vga_cols * 2));
+    video = (uint_8*)(video + (vga_cols * 2));
     } else { //Escribo en pantalla
       *video++ = msg[str];
       *video++ = attr;
@@ -53,18 +53,18 @@ void move_scr_up() {
 }
 
 void printf(const char* fmt, ...) {
-	va_list argp;
-	int amount = 256;
-	va_start(argp, fmt);
-	if (fila == vga_rows) 
-		move_scr_up();
-	
-	while(printf_resolver(fila, 0, VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, amount, fmt, argp) < 0) {
-		va_start(argp, fmt);
-		amount *= 2;
-	}
-	
-	if (fila < vga_rows) fila++;
+  va_list argp;
+  int amount = 256;
+  va_start(argp, fmt);
+  if (fila == vga_rows)
+    move_scr_up();
+
+  while(printf_resolver(fila, 0, VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, amount, fmt, argp) < 0) {
+    va_start(argp, fmt);
+    amount *= 2;
+  }
+
+  if (fila < vga_rows) fila++;
 }
 
 void fill_screen(char color, char bright) {

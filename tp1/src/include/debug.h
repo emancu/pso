@@ -8,6 +8,13 @@ void debug_init(void);
 void debug_kernelpanic(const uint_32* stack, const exp_state* expst);
 
 
+void isr_timer_tick();
+void isr_keyboard();
+
+extern void timerTick();
+extern void keyboard();
+extern void debug_kernel_panic();
+
 #include <vga.h>
 #include <i386.h>
 

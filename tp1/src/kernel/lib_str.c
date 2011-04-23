@@ -2,6 +2,7 @@
 #define __KLIB_PRINT_C__
 
 #include "lib_str.h"
+#include "i386.h"
 
 int strlen(const char* str) {
   int len = 0;
@@ -29,10 +30,12 @@ int hex_into_string(char* str, int* index, int lim, int num) {
 int num_into_string(char* str, int* index, int lim, int num, int base) {
   int dignum = 1, acum = base, val;
   char* digits = "0123456789ABCDEF";
+  //if (acum == 0) breakpoint();
   while (num / acum > 0) {
     dignum += 1;
     acum *= base;
   }
+  //if (base == 0) breakpoint();
   acum /= base;
 
   if (num < 0) dignum++;
@@ -44,10 +47,12 @@ int num_into_string(char* str, int* index, int lim, int num, int base) {
   }
 
   while (acum > 0) {
+  //  if (acum == 0) breakpoint();
     val = num / acum;
     str[*index] = digits[val];
     (*index)++;
     num -= val * acum;
+  //  if (base == 0) breakpoint();
     acum /= base;
   }
   return 0;
