@@ -27,7 +27,8 @@ int hex_into_string(char* str, int* index, int lim, int num) {
 }
 
 int num_into_string(char* str, int* index, int lim, int num, int base) {
-  int dignum = 1, acum = base, val;
+  int dignum = 1, val;
+  long long int acum = base;
   char* digits = "0123456789ABCDEF";
   while (num / acum > 0) {
     dignum += 1;
