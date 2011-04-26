@@ -56,9 +56,11 @@ void printf(const char* fmt, ...) {
 	va_list argp;
 	int amount = 256;
 	va_start(argp, fmt);
-	if (fila == vga_rows) 
+	if (fila == vga_rows) { 
+    fila--;
 		move_scr_up();
-	
+  }
+
 	while(printf_resolver(fila, 0, VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, amount, fmt, argp) < 0) {
 		va_start(argp, fmt);
 		amount *= 2;

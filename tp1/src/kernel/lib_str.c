@@ -22,6 +22,7 @@ int dec_into_string(char* str, int* index, int lim, int num) {
     if (num < 0) (*index)--;
     return -1;
   }
+  return 0;
 }
 
 int hex_into_string(char* str, int* index, int lim, int num) {
