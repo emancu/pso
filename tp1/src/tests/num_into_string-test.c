@@ -4,14 +4,30 @@
 int main(void) {
 	char buf[100];
 	unsigned int index = 0, i = 0;
+  dec_into_string(buf, &index, 100, -55);
+  buf[index] = '\0'; printf("Test %s\n", buf); index = 0;
   hex_into_string(buf, &index, 100, 0xA);
-  printf("Test: %s\n", buf); index = 0;
+  buf[index] = '\0'; printf("Test %s\n", buf); index = 0;
   hex_into_string(buf, &index, 100, 0xA0);
-  printf("Test: %s\n", buf); index = 0;
+  buf[index] = '\0'; printf("Test %s\n", buf); index = 0;
   hex_into_string(buf, &index, 100, 0xA0F);
-  printf("Test: %s\n", buf); index = 0;
+  buf[index] = '\0'; printf("Test %s\n", buf); index = 0;
   hex_into_string(buf, &index, 100, 0x1000000);
-  printf("Test: %s\n", buf); index = 0;
+  buf[index] = '\0'; printf("Test %s\n", buf); index = 0;
+  hex_into_string(buf, &index, 100, 0xA000000);
+  buf[index] = '\0'; printf("Test %s\n", buf); index = 0;
+  hex_into_string(buf, &index, 100, 0x50000000);
+  buf[index] = '\0'; printf("Test %s\n", buf); index = 0;
+  hex_into_string(buf, &index, 100, 0xA0000000);
+  buf[index] = '\0'; printf("Test %s\n", buf); index = 0;
+
+  dec_into_string(buf, &index, 100, 0xF0000000);
+  buf[index] = '\0'; printf("Test %s\n", buf); index = 0;
+  dec_into_string(buf, &index, 100, 0x70000000);
+  buf[index] = '\0'; printf("Test %s\n", buf); index = 0;
+  hex_into_string(buf, &index, 100, 0xF0000000);
+  buf[index] = '\0'; printf("Test %s\n", buf); index = 0;
+
   for (i = 0x10000000; i > 0; i++) {
 		index = 0;
 		if (hex_into_string(buf, &index, 100, i) < 0) {

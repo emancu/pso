@@ -21,7 +21,7 @@ int hex_into_string(char* str, int* index, int lim, int num);
  * was successful, -1 otherwise. If conversion was not successful 'index' is
  * maintained in its original value. 
  * 'base' must be a number between 2 and 16 (both included) */
-int num_into_string(char* str, int* index, int lim, int num, int base);
+int num_into_string(char* str, int* index, int lim, unsigned int num, int base);
 
 /* Inserts the given character in 'c' into 'str'. It first checks 
  * 'index' is set previous to 'lim'. Returns 0 if successful, moving index; -1 otherwise.
