@@ -23,11 +23,7 @@ int dec_into_string(char* str, int* index, int lim, int num) {
     if (num < 0) (*index)--;
     return -1;
   }
-<<<<<<< HEAD
-  return 0; // Added this because we need to return something Always. Check it!
-=======
   return 0;
->>>>>>> e414c992afb35c4108454dc13c3c9e4fd58a7b97
 }
 
 int hex_into_string(char* str, int* index, int lim, int num) {
