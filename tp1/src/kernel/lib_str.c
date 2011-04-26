@@ -4,6 +4,8 @@
 #include "lib_str.h"
 #include "i386.h"
 
+#define LARGEST_INT 0x7FFFFFFF
+
 int strlen(const char* str) {
   int len = 0;
   while(str[len] != '\0')
@@ -12,7 +14,16 @@ int strlen(const char* str) {
 }
 
 int dec_into_string(char* str, int* index, int lim, int num) {
-  return num_into_string(str, index, lim, num, 10);
+  unsigned int number = num;
+  if (num < 0) {
+    str[(*index)++] = '-';
+    number = -num; 
+  }
+  if (num_into_string(str, index, lim, number, 10) < 0) {
+    if (num < 0) (*index)--;
+    return -1;
+  }
+  return 0; // Added this because we need to return something Always. Check it!
 }
 
 int hex_into_string(char* str, int* index, int lim, int num) {
@@ -27,24 +38,17 @@ int hex_into_string(char* str, int* index, int lim, int num) {
   return 0;
 }
 
-int num_into_string(char* str, int* index, int lim, int num, int base) {
-  int dignum = 1, acum = base, val;
+int num_into_string(char* str, int* index, int lim, unsigned int num, int base) {
+  int dignum = 1;
+  int acum = base;
+  unsigned int val;
   char* digits = "0123456789ABCDEF";
-  //if (acum == 0) breakpoint();
-  while (num / acum > 0) {
+  while (num / acum >= base) {
     dignum += 1;
     acum *= base;
   }
-  //if (base == 0) breakpoint();
-  acum /= base;
 
-  if (num < 0) dignum++;
   if (*index + dignum >= lim) return -1;
-
-  if (num < 0) {
-    str[*index] = '-';
-    (*index)++;
-  }
 
   while (acum > 0) {
   //  if (acum == 0) breakpoint();
