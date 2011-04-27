@@ -1,0 +1,72 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Este archivo contiene macros para la definición de rutinas de interrupción en asm;
+;y las llamadas que estas deben hacer a funciones en C                            ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+%define PUSHAD_LEN 8*4
+
+;Este macro se encarga de definir la entrada %1 que llama a la función
+;%2 de C considerando que no hubo error code y el privilegio es 0
+%macro isr_define_ep 2
+[GLOBAL %1]
+[EXTERN %2]
+  %1:
+    cli
+    pushad
+
+    ;llamamos a la rutina en C
+    call %2
+
+    popad
+    sti
+    iret
+
+%endmacro
+
+;Este macro declara la llamada a debug_kernelpanic con los parámetros adecuados
+;Considera que no hay código de error ni cambio de privilegio
+;Recibe un nombre de etiqueta de la función y un número de error
+;Además define la etiqueta de la función como global
+%macro isr_dkp_ep 2
+[EXTERN %1_c]
+[GLOBAL %1]
+  %1:
+    cti;
+    pushad;
+
+    push dword 0x0A; org_ss;
+    push dword 0x0B; org_esp;
+    push dword [esp+PUSHAD_LEN+4*4]; eflags;
+    push dword [esp+PUSHAD_LEN+4*4]; org_cs;
+    push dword [esp+PUSHAD_LEN+4*4]; org_eip;
+    push dword 0x0C; errcode;
+    push eax;
+    push ecx;
+    push edx;
+    push ebx;
+    push esp;
+    push ebp;
+    push esi;
+    push edi;
+    push ss;
+    push ds;
+    push es;
+    push fs;
+    push gs;
+
+    push esp; puntero a la estructura
+    mov eax, esp
+    sub eax, 4*28
+    push eax; puntero al stack
+
+    call debug_kernelpanic
+
+    xchg bx,bx
+
+    add esp, 4*21; borramos los push
+
+    popad;
+    sti;
+    iret;
+
+%endmacro

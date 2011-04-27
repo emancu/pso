@@ -35,8 +35,8 @@ uint_8 make_format(char blink, char front, char back, char bright);
 #define VGA_FC_BLACK   0x00
 #define VGA_FC_BLUE    0x01
 #define VGA_FC_GREEN   0x02
-#define VGA_FC_RED     0x03
-#define VGA_FC_CYAN    0x04
+#define VGA_FC_RED     0x04
+#define VGA_FC_CYAN    0x03
 #define VGA_FC_MAGENTA 0x05
 #define VGA_FC_BROWN   0x06
 #define VGA_FC_WHITE   0x07
