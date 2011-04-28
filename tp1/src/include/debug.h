@@ -7,6 +7,15 @@ void debug_init(void);
 
 void debug_kernelpanic(const uint_32* stack, const exp_state* expst);
 
+/* Prints the stack content in the screen starting at row 'f' and column 'c', writing a total
+ * of 'dwords' dwords in 'cols' columns starting from memmory position 'stack' and going 
+ * upwards. */
+void print_stack(uint_32 f, uint_32 c, uint_32 dwords, uint_32 cols, const uint_32* stack);
+
+/* Prints the backtrace of 'level' number of cunctions using a starting frame given by 'ebp'.
+ * With each call backtraced the function it prints the first 'params' dwords in the stack of 
+ * that function call frame. */
+void print_backtrace(uint_32 f, uint_32 c, uint_32 level, uint_32 params, const uint_32 ebp);
 
 void isr_timerTick_c();
 void isr_keyboard_c();
@@ -29,3 +38,8 @@ extern void isr_keyboard();
 #endif
 
 #endif
+
+#define PANIC_GEN_COL 0
+#define PANIC_GEN_ROW 2
+#define PANIC_STACK_COL 0
+#define PANIC_STACK_ROW 7

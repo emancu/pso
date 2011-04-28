@@ -53,5 +53,7 @@ uint_8 make_format(char blink, char front, char back, char bright);
 #define VGA_BC_BROWN   0x60
 #define VGA_BC_WHITE   0x70
 
+#define VGA_HEX_MAX_WIDTH 10
+
 #endif
 
