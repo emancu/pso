@@ -19,5 +19,8 @@ void kernel_init(void) {
   clear_screen();
   vga_write(vga_rows-1, vga_cols/4-1, " OS by: E. Marcusso, A. Mataloni, M. Miguel ", VGA_FC_BLUE | VGA_FC_LIGHT | VGA_BC_WHITE);
   print_machine_stat();
+  idt_init();
+  debug_init();
+  sti();
   return;
 }

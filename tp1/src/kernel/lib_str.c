@@ -2,6 +2,7 @@
 #define __KLIB_PRINT_C__
 
 #include "lib_str.h"
+#include "i386.h"
 
 #define LARGEST_INT 0x7FFFFFFF
 
@@ -22,7 +23,7 @@ int dec_into_string(char* str, int* index, int lim, int num) {
     if (num < 0) (*index)--;
     return -1;
   }
-  return 0; // Added this because we need to return something Always. Check it!
+  return 0;
 }
 
 int hex_into_string(char* str, int* index, int lim, int num) {
@@ -42,6 +43,7 @@ int num_into_string(char* str, int* index, int lim, unsigned int num, int base) 
   int acum = base;
   unsigned int val;
   char* digits = "0123456789ABCDEF";
+
   while (num / acum >= base) {
     dignum += 1;
     acum *= base;

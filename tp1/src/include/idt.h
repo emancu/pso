@@ -15,7 +15,7 @@ void idt_register(int intr, void (*isr)(void), int pl);
 #define ISR_OFLOW      4		// overflow
 #define ISR_BOUND      5		// bounds check
 #define ISR_ILLOP      6		// illegal opcode
-#define ISR_DEVICE     7		// device not available 
+#define ISR_DEVICE     7		// device not available
 #define ISR_DBLFLT     8		// double fault
 #define ISR_COPRO      9		// coprocesor (WTF!!)
 #define ISR_TSS       10		// invalid task switch segment
@@ -40,7 +40,7 @@ void idt_register(int intr, void (*isr)(void), int pl);
 #define ISR_IRQ7    0x27		// LPT1
 
 #define ISR_IRQ8    0x28		// Real Time Clock
-#define ISR_IRQ9    0x29		// 
+#define ISR_IRQ9    0x29		//
 #define ISR_IRQ10   0x2A		// Reserved
 #define ISR_IRQ11   0x2B		// Reserved
 #define ISR_IRQ12   0x2C		// PS/2 mouse

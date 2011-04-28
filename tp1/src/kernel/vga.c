@@ -20,7 +20,7 @@ void vga_write(uint_16 f, uint_16 c, const char* msg, uint_8 attr) {
   int str = 0;
   while(msg[str] != '\0' && video < vga_limit) {
     if (msg[str] == '\n') { //Avanzo una línea el puntero
-		video = (uint_8*)(video + (vga_cols * 2));
+    video = (uint_8*)(video + (vga_cols * 2));
     } else { //Escribo en pantalla
       *video++ = msg[str];
       *video++ = attr;
@@ -65,7 +65,7 @@ void printf(const char* fmt, ...) {
 		va_start(argp, fmt);
 		amount *= 2;
 	}
-	
+
 	if (fila < vga_rows) fila++;
 }
 
