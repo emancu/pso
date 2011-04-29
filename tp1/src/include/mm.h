@@ -2,6 +2,7 @@
 #define __MM_H__
 
 #include <tipos.h>
+#include <vga.h>
 
 #define MM_ATTR_P     0x001 // Present
 #define MM_ATTR_RW    0x002 // Read/Write
@@ -49,8 +50,16 @@ typedef struct str_mm_page {
 	uint_32 base:20;
 }  __attribute__((__packed__, aligned (4))) mm_page;
 
+//Este tipo es el conjunto de bits usados para saber si un page_frame
+//está ocupado o no.
+typedef uint_32 page_frame_info;
+
 #define make_mm_entry(base, attr) (mm_page){(uint_32)(attr), (uint_32)(base)}
 #define make_mm_entry_addr(addr, attr) (mm_page){(uint_32)(attr), (uint_32)(addr) >> 12}
+
+#define PAGE_SIZE 4096
+#define MAGIC_NUMBER 0x4D324432
+#define USR_MEM_START 4194304
 
 void mm_init(void);
 void* mm_mem_alloc();
@@ -62,6 +71,16 @@ mm_page* mm_dir_new(void);
 void mm_dir_free(mm_page* d);
 
 /* Syscalls */
-// void* palloc(void);
+void* palloc(void);
+
+
+/* Funciones de inicio de memoria */
+
+// Esta función devuelve el puntero de la última posición de memoria válida contigua.
+// Para ello, empezando desde 'start', escribe de a saltos 'jump' y verifica que se mantuvo
+// lo escrito. Si es así se considera que el intervalo es válido y salta otro intervalo
+// 'jump'. Sino se considera que la memoria es inválida y se devuelve el último valor escrito válido.
+uint_32* memory_detect(uint_32* start, const uint_32 jump);
 
 #endif
+
