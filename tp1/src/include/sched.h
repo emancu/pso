@@ -4,6 +4,7 @@
 #include <tss.h>
 #include <tipos.h>
 #include <syscalls.h>
+#include <linked_list.h>
 
 #ifdef __KERNEL__
 
