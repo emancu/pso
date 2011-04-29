@@ -13,7 +13,7 @@ typedef signed long long sint_64;
 
 typedef int bool;
 
-typedef sint_32 pid;
+typedef uint_32 pid;
 
 #define FALSE 0
 #define TRUE 1

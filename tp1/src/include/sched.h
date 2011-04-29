@@ -4,7 +4,6 @@
 #include <tss.h>
 #include <tipos.h>
 #include <syscalls.h>
-#include <linked_list.h>
 
 #ifdef __KERNEL__
 
@@ -16,6 +15,10 @@ void sched_unblock(pid);
 int sched_exit();
 int sched_block();
 int sched_tick();
+
+
+// Auxiliar
+void configure_task(pid, int, pid, pid);
 
 #endif
 
