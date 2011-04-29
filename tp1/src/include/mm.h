@@ -60,6 +60,12 @@ typedef uint_32 page_frame_info;
 #define PAGE_SIZE 4096
 #define MAGIC_NUMBER 0x4D324432
 #define USR_MEM_START 4194304
+#define KRN_MEM_START 1048576
+#define PFI_OCCUPIED 0xFFFFFFFF
+
+#define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
+#define SET_BIT(var, pos) ((var) |= (1<<(pos)))
+#define UNSET_BIT(var, pos) ((var) &= (~(1<<(pos))))
 
 void mm_init(void);
 void* mm_mem_alloc();
