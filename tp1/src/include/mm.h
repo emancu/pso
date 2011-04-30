@@ -88,5 +88,13 @@ void* palloc(void);
 // 'jump'. Sino se considera que la memoria es inválida y se devuelve el último valor escrito válido.
 uint_32* memory_detect(uint_32* start, const uint_32 jump);
 
+//Esta funcion mapea la direccion virtual 'virtual' a la direccion fisica 'fisica' en el directorio dado por 'cr3'. Si 'page_size' = 0 mapea usando paginas de 4kb, recorriendo el segundo nivel de la estructura y pidiendo a kernel una nueva pagina de ser necesario. Si el kernel no tiene mas paginas falla, devolviendo -1. En caso de ser exitoso devuelve 0.
+int mm_page_map(uint_32 virtual, mm_page* cr3, uint_32 fisica, uint_32 page_size, uint_32 attr);
+
+
+//Se encarga de invalidar la entrada en la tabla de páginas a la que se llega mediante la dirección virtual 
+//parámetro utilizando cr3 como dirección de la tabla de directorios.
+//!!Asume que cr3 apunta a una tabla de directorios válida
+void* mm_page_free(uint_32 virtual, mm_page* cr3);
 #endif
 
