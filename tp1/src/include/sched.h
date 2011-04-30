@@ -20,6 +20,9 @@ int sched_tick();
 // Auxiliar
 void configure_task(pid, int, pid, pid);
 
+void show_task_structure(pid pd);
+void showTasks();
+
 #endif
 
 #endif /* SCHED_H_ */

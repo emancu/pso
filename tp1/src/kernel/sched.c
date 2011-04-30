@@ -1,11 +1,15 @@
 #include <idt.h>
 #include <sched.h>
 #include <loader.h>
+#include <vga.h>
 
 
 #define STATE_RUNNING 0
 #define STATE_BLOCKED 1
 #define STATE_FINISHED 2
+
+
+char* states[] = {"running", "blocked", "finished"};
 
 typedef struct str_sched_task {
   int state;
@@ -28,7 +32,7 @@ void sched_init(void) {
 //Agregamos despues de
 void sched_load(pid pd) {
   // last esta en 0 significa que la queue esta vacia,
-  if( current_pid == 0){
+  if( last == 0){
     tasks[pd].next = pd;
     tasks[pd].prev = pd;
   }else{
@@ -39,6 +43,26 @@ void sched_load(pid pd) {
   }
   last = pd;
   tasks[pd].state = STATE_RUNNING;
+  //if(pd ==3)
+  //showTasks();
+}
+
+void showTasks(){
+    int i = 0;
+    for(i = 0 ; i <= 4 ; i++){
+        show_task_structure(i);
+    }
+    printf("current pid: %d", current_pid);
+    printf("last: %d", last);
+}
+
+
+void show_task_structure(pid pd){
+    printf("----------");
+    printf("mi pid: %d \n" , pd);
+    printf("estado: %s \n" , states[tasks[pd].state]);
+    printf("next: %d \n" , tasks[pd].next);
+    printf("prev: %d \n" , tasks[pd].prev);
 }
 
 void sched_unblock(pid pd) {
