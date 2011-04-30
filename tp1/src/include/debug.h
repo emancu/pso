@@ -24,6 +24,8 @@ extern void debug_kernel_panic();
 extern void isr_timerTick();
 extern void isr_keyboard();
 
+extern char exp_msg[];
+extern uint_32 exp_num;
 #include <vga.h>
 #include <i386.h>
 

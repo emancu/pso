@@ -88,5 +88,8 @@ void* palloc(void);
 // 'jump'. Sino se considera que la memoria es inválida y se devuelve el último valor escrito válido.
 uint_32* memory_detect(uint_32* start, const uint_32 jump);
 
+/* Funciones de tablas y directorios de páginas */
+
+
 #endif
 

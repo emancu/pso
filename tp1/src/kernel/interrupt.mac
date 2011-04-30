@@ -31,7 +31,7 @@
 [EXTERN %1_c]
 [GLOBAL %1]
   %1:
-    cti;
+    cli;
     pushad;
 
     push dword 0x0A; org_ss;
