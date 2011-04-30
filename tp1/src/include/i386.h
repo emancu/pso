@@ -27,6 +27,9 @@ LS_INLINE void cli();
 LS_INLINE void sti();
 LS_INLINE void iret();
 
+LS_INLINE void pushad();
+LS_INLINE void popad();
+
 /* CR function */
 LS_INLINE void lcr0(uint_32 val);
 LS_INLINE uint_32 rcr0(void);
@@ -52,6 +55,8 @@ LS_INLINE uint_64 read_tsc();
 LS_INLINE void ltr(uint_16 sel);
 LS_INLINE uint_16 rtr(void);
 LS_INLINE void hlt(void);
+
+
 
 LS_INLINE void breakpoint(void);
 
@@ -140,6 +145,30 @@ LS_INLINE void lidt(void *p) {
 LS_INLINE void sti() {
   __asm__ __volatile__ ("sti");
 }
+
+LS_INLINE void pushad() {
+  __asm__ __volatile__ ("push %%eax"::: "eax");
+  __asm__ __volatile__ ("push %%ecx"::: "ecx");
+  __asm__ __volatile__ ("push %%edx"::: "edx");
+  __asm__ __volatile__ ("push %%ebx"::: "ebx");
+  __asm__ __volatile__ ("push %%esp"::: "esp");
+  __asm__ __volatile__ ("push %%ebp"::: "ebp");
+  __asm__ __volatile__ ("push %%esi"::: "esi");
+  __asm__ __volatile__ ("push %%edi"::: "edi");
+}
+
+
+LS_INLINE void popad() {
+  __asm__ __volatile__ ("pop %%eax"::: "eax");
+  __asm__ __volatile__ ("pop %%ecx"::: "ecx");
+  __asm__ __volatile__ ("pop %%edx"::: "edx");
+  __asm__ __volatile__ ("pop %%ebx"::: "ebx");
+  __asm__ __volatile__ ("pop %%esp"::: "esp");
+  __asm__ __volatile__ ("pop %%ebp"::: "ebp");
+  __asm__ __volatile__ ("pop %%esi"::: "esi");
+  __asm__ __volatile__ ("pop %%edi"::: "edi");
+}
+
 
 LS_INLINE void cli() {
   __asm__ __volatile__ ("cli");
