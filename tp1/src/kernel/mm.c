@@ -78,7 +78,9 @@ void mm_dir_free(mm_page* d) {
       mm_mem_free((void*)(d[i].base << 12)); // Marco como libre el page frame donde estaba la tabla
     }
   }
+  d[0].attr &= ~MM_ATTR_P;
   mm_mem_free((void*)((int)d & ~0xFFF)); // Marco como libre el page frame donde está este directorio
+  tlbflush();
 }
 
 uint_32* memory_detect(uint_32* start, const uint_32 jump) {
@@ -111,31 +113,31 @@ void activate_pse(uint_32 status) {
   tlbflush(); // Necesario segun el manual
 }
 
-int mm_page_map(uint_32 virtual, mm_page* cr3, uint_32 fisica, uint_32 page_size, uint_32 attr) {
+void* mm_page_map(uint_32 virtual, mm_page* cr3, uint_32 fisica, uint_32 page_size, uint_32 attr) {
 	uint_32 ind_td = virtual >> 22;
 	uint_32 ind_tp = (virtual << 10) >> 22;
 	uint_32 base_tabla = fisica & ~0xFFF;
   uint_32 base_dir = ((int)cr3) & ~0xFFF;
   void* new_dir;
-  printf("ind_td %x, ind_tp %x, base_tabla %x, base_dir %x", ind_td, ind_tp, base_tabla, base_dir);
+  // printf("ind_td %x, ind_tp %x, base_tabla %x, base_dir %x", ind_td, ind_tp, base_tabla, base_dir);
 	//Buscamos descriptor del directorio en cr3
 	uint_32* desc_dir = (uint_32 *)(base_dir + (ind_td*4));
   if (page_size) { //Trabajo con paginas de 4 mb, no me importa si ya habia algo mappeado
     *desc_dir = ((fisica & ~0xFFFFF) & (attr & 0x1FFF)) | (MM_ATTR_SZ_4M | 1);
-    return 0;
+    return (void*)cr3;
   }
   if (!(*desc_dir & 1)) { //Vemos si no està presente 
     new_dir = mm_mem_kalloc();
-    if (!new_dir) return -1;
+    if (!new_dir) return NULL;
 		*desc_dir = (int)new_dir & ~0xFFF;
 		*desc_dir |= attr | 1;
 		// *((uint_32 *)(base_dir + (ind_td*4))) = desc_dir;
 	}
 	uint_32* ptr_desc_tabla = (uint_32*)(((*desc_dir & ~0xFFF) + (ind_tp*4)));
 	*ptr_desc_tabla = base_tabla | attr | 1; //!!Preguntar si hay que poner otros atributos
-  printf("desc_dir = %x, *desc_dir = %x", desc_dir, *desc_dir);
-  printf("desc_tabla = %x, *desc_tabla = %x", ptr_desc_tabla, *ptr_desc_tabla);
-  return 0;
+  // printf("desc_dir = %x, *desc_dir = %x", desc_dir, *desc_dir);
+  // printf("desc_tabla = %x, *desc_tabla = %x", ptr_desc_tabla, *ptr_desc_tabla);
+  return (void*)(*desc_dir & ~0xFFF;
 }
 
 void* mm_page_free(uint_32 virtual, mm_page* cr3) {
@@ -198,24 +200,31 @@ void mm_init(void) {
     lcr3((uint_32)kernel_dir);
     activate_paging(1);
     //Testo de funciones de paginacion
-    printf("kernel_pf_info[1] = %x", kernel_pf_info[0]);
+    printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
     printf("cr3[0] = %x, cr3[1] = %x", kernel_dir[0], kernel_dir[1]);
     printf("Mapeo 0x400000 a si misma en kernel_dir");
-    mm_page_map(0x00400000, kernel_dir, 0x00400000, 0, 0x2);
+    temp2 = mm_page_map(0x00400000, kernel_dir, 0x00400000, 0, 0x2);
     temp1 = (void*)((int*)kernel_dir)[1];
     temp1 = (void*)((int)temp1 & ~0xFFF);
     printf("cr3[0] = %x, cr3[1] = %x, cr3[1][0] = %x", kernel_dir[0], kernel_dir[1], *(int*)temp1);
     printf("Desmapeo 0x400000 en kernel_dir");
     mm_page_free(0x00400000, kernel_dir);
+    mm_mem_free(temp2);
     printf("cr3[0] = %x, cr3[1] = %x, cr3[1][0] = %x", kernel_dir[0], kernel_dir[1], *(int*)temp1);
     printf("kernel_pf_info[1] = %x", kernel_pf_info[0]);
 
     temp1 = mm_dir_new();
+    lcr3((uint_32)temp1);
     printf("Obtengo un nuevo directorio, mm_dir_new = %x", temp1);
     mm_page_map(0x00401000, temp1, 0x00402000, 0, 0x2);
     printf("Mapeo en el nuevo directorio 0x401000 -> 0x402000", temp1);
+    printf("usr_pf_info[0] = %x", usr_pf_info[0]);
+    printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
     breakpoint();
     printf("Libero el directorio");
+    lcr3((uint_32)kernel_dir);
     mm_dir_free(temp1);
+    printf("usr_pf_info[0] = %x", usr_pf_info[0]);
+    printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
     breakpoint();
 }
