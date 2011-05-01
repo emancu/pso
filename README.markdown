@@ -24,6 +24,8 @@ Punteo para el desarrollo
 
 * **syscall palloc**: busca un bit en 0 en la estructura de page frames de usuario (puede fallar si no hay), luego usa el cr3 para seguir el arbol de paginas y mapearla en la primera posicion disponible. Llena los atributos de la manera standard (read/write, excecutable, usuario, presente). Puede fallar si no hay mas paginas virtuales para mapear o si el kernel no tiene mas page frames libres y se necesita uno nuevo para una nueva tabla de paginas. Si todo esto funciona pone en 1 el bit en la estrucutra de page frames de usuario y devuelve la direccion virtual a la que fue mapeada la pagina.
 
+* **PSE**: Para paginas de 4 mb debe activarse PSE, no se esta chequeando que la funcion este habilitada (CPUID).
+
 ###sched
 
 * **estructuras**: posee dos listas circulares de pids para representar los estados. Se manejan dos estados: *running* y *blocked*. Debe saber cual es el pid de ejecucion actual. Estas estructuras mantienen otra informacion util para el scheduler como la cantidad de quantums consumidos por la tarea actual. 
