@@ -48,10 +48,26 @@ void mm_mem_free(void* page) {
 }
 
 mm_page* mm_dir_new(void) {
-  return NULL;
+  mm_page* cr3 = (mm_page*)mm_mem_kalloc();
+  if (cr3 == NULL) return NULL;
+  mm_page_map(0x0, cr3, 0x0, 1, USR_STD_ATTR);
+  return cr3;
+}
+
+void mm_table_free(mm_page* d) {
+
 }
 
 void mm_dir_free(mm_page* d) {
+  int i = 0;
+  for (i = 0; i < TABLE_ENTRY_NUM; i++) {
+    if (!(d[i].attr && MM_ATTR_SZ_4M)) { // Me encuentro con una entrada de 4 mb
+      mm_table_free((mm_page*)d[i]);
+    }
+    d[i].attr &= ~0x1;
+    //NO es tan simple liberar esos page_frames
+   // mm_mem_free((void*)((int*)d)[i]);
+  }
 }
 
 uint_32* memory_detect(uint_32* start, const uint_32 jump) {
@@ -173,9 +189,15 @@ void mm_init(void) {
     //Testo de funciones de paginacion
     printf("kernel_pf_info[1] = %x", kernel_pf_info[0]);
     printf("cr3[0] = %x, cr3[1] = %x", kernel_dir[0], kernel_dir[1]);
-    mm_page_map(0x00400000, kernel_dir, 0x00400000, 0, 0x2);
     printf("Mapeo 0x400000 a si misma en kernel_dir");
+    mm_page_map(0x00400000, kernel_dir, 0x00400000, 0, 0x2);
+    temp1 = (void*)((int*)kernel_dir)[1];
+    temp1 = (void*)((int)temp1 & ~0xFFF);
+    printf("cr3[0] = %x, cr3[1] = %x, cr3[1][0] = %x", kernel_dir[0], kernel_dir[1], *(int*)temp1);
     printf("Desmapeo 0x400000 en kernel_dir");
     mm_page_free(0x00400000, kernel_dir);
+    printf("cr3[0] = %x, cr3[1] = %x, cr3[1][0] = %x", kernel_dir[0], kernel_dir[1], *(int*)temp1);
     printf("kernel_pf_info[1] = %x", kernel_pf_info[0]);
+
+
 }

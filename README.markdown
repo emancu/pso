@@ -26,6 +26,8 @@ Punteo para el desarrollo
 
 * **PSE**: Para paginas de 4 mb debe activarse PSE, no se esta chequeando que la funcion este habilitada (CPUID).
 
+* **eliminar directorios**: eliminar directorios no es tan simple ya que hay páginas que pueden estar mapeadas pero no sean page_frames válidos (particularmente los 4mb de kernel). *Pensar!*
+
 ###sched
 
 * **estructuras**: posee dos listas circulares de pids para representar los estados. Se manejan dos estados: *running* y *blocked*. Debe saber cual es el pid de ejecucion actual. Estas estructuras mantienen otra informacion util para el scheduler como la cantidad de quantums consumidos por la tarea actual. 

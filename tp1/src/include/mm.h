@@ -44,7 +44,6 @@
 #define CR4_PVI		0x00000002	// Protected-Mode Virtual Interrupts
 #define CR4_VME		0x00000001	// V86 Mode Extensions
 
-#define PAGE_SIZE 4096
 typedef struct str_mm_page {
 	uint_32 attr:12;
 	uint_32 base:20;
@@ -58,6 +57,7 @@ typedef uint_32 page_frame_info;
 #define make_mm_entry_addr(addr, attr) (mm_page){(uint_32)(attr), (uint_32)(addr) >> 12}
 
 #define PAGE_SIZE 4096
+#define TABLE_ENTRY_NUM 1024
 #define MAGIC_NUMBER 0x4D324432
 #define USR_MEM_START 4194304
 #define KRN_MEM_START 1048576
@@ -66,6 +66,8 @@ typedef uint_32 page_frame_info;
 #define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 #define SET_BIT(var, pos) ((var) |= (1<<(pos)))
 #define UNSET_BIT(var, pos) ((var) &= (~(1<<(pos))))
+
+#define USR_STD_ATTR MM_ATTR_RW | MM_ATTR_US_U
 
 void mm_init(void);
 void* mm_mem_alloc();

@@ -88,7 +88,7 @@ void debug_init(void) {
   /* Registra todas las excepciones para sí */
   idt_register(33, &isr_keyboard, 0);
   idt_register(32, &isr_timerTick, 0);
-  idt_register(0x40, &isr_softPanic, 0);
+  // idt_register(0x40, &isr_softPanic, 0);
 }
 
 void isr_timerTick_c() {
