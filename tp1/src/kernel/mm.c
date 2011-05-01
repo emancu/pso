@@ -55,19 +55,30 @@ mm_page* mm_dir_new(void) {
 }
 
 void mm_table_free(mm_page* d) {
-
+    int i = 0;
+    for (i = 0; i < TABLE_ENTRY_NUM; i++) {
+      if (d[i].attr & MM_ATTR_P) { // La página está mappeada
+        mm_mem_free((mm_page*)(d[i].base << 12));
+        d[i].attr &= ~MM_ATTR_P;
+      }
+    }
 }
 
+// Acá tengo que liberar los page frames en espacio de usuario y en espacio de kernel
+// En usuario los page frame ocupados van a estar apuntados por las tablas de páginas
+// de segundo nivel (asumo que hay una única entrada de 4mb y la de identity mapping 
+// del kernel). Los page frames en kernel son los usados para guardar las tablas de 
+// páginas. Estos son apuntados por las direcciones en la tabla de directorios.
 void mm_dir_free(mm_page* d) {
   int i = 0;
-  for (i = 0; i < TABLE_ENTRY_NUM; i++) {
-    if (!(d[i].attr && MM_ATTR_SZ_4M)) { // Me encuentro con una entrada de 4 mb
-      mm_table_free((mm_page*)d[i]);
+  for (i = 1; i < TABLE_ENTRY_NUM; i++) {
+    if (d[i].attr & MM_ATTR_P) { // Si está presente entro recursivamente a borrar
+      mm_table_free((void*)(d[i].base << 12)); // Libero las tablas
+      d[i].attr &= ~MM_ATTR_P; // La marco como no presente (al pedo?)
+      mm_mem_free((void*)(d[i].base << 12)); // Marco como libre el page frame donde estaba la tabla
     }
-    d[i].attr &= ~0x1;
-    //NO es tan simple liberar esos page_frames
-   // mm_mem_free((void*)((int*)d)[i]);
   }
+  mm_mem_free((void*)((int)d & ~0xFFF)); // Marco como libre el page frame donde está este directorio
 }
 
 uint_32* memory_detect(uint_32* start, const uint_32 jump) {
@@ -199,5 +210,12 @@ void mm_init(void) {
     printf("cr3[0] = %x, cr3[1] = %x, cr3[1][0] = %x", kernel_dir[0], kernel_dir[1], *(int*)temp1);
     printf("kernel_pf_info[1] = %x", kernel_pf_info[0]);
 
-
+    temp1 = mm_dir_new();
+    printf("Obtengo un nuevo directorio, mm_dir_new = %x", temp1);
+    mm_page_map(0x00401000, temp1, 0x00402000, 0, 0x2);
+    printf("Mapeo en el nuevo directorio 0x401000 -> 0x402000", temp1);
+    breakpoint();
+    printf("Libero el directorio");
+    mm_dir_free(temp1);
+    breakpoint();
 }
