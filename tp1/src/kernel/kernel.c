@@ -22,6 +22,7 @@ void kernel_init(void) {
   //print_machine_stat();
   idt_init();
   debug_init();
+  mm_init();
   sti();
 
   test_scheduler();
