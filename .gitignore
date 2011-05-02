@@ -6,3 +6,6 @@ tmp
 parport.out
 bochsout.txt
 deps
+tp1.pdf
+TPPSO/
+.gitignore

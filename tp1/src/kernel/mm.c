@@ -66,8 +66,8 @@ void mm_table_free(mm_page* d) {
 
 // Acá tengo que liberar los page frames en espacio de usuario y en espacio de kernel
 // En usuario los page frame ocupados van a estar apuntados por las tablas de páginas
-// de segundo nivel (asumo que hay una única entrada de 4mb y la de identity mapping 
-// del kernel). Los page frames en kernel son los usados para guardar las tablas de 
+// de segundo nivel (asumo que hay una única entrada de 4mb y la de identity mapping
+// del kernel). Los page frames en kernel son los usados para guardar las tablas de
 // páginas. Estos son apuntados por las direcciones en la tabla de directorios.
 void mm_dir_free(mm_page* d) {
   int i = 0;
@@ -105,10 +105,10 @@ void activate_paging(uint_32 status) {
 
 void activate_pse(uint_32 status) {
   int cr4 = rcr4();
-  printf("Activate pse, cr4 = %x", cr4);
+ // printf("Activate pse, cr4 = %x", cr4);
   if (status) cr4 |= (1<<4);
   else cr4 &= ~(1<<4);
-  printf("Activate pse, cr4 = %x", cr4);
+ // printf("Activate pse, cr4 = %x", cr4);
   lcr4(cr4);
   tlbflush(); // Necesario segun el manual
 }
@@ -126,7 +126,7 @@ void* mm_page_map(uint_32 virtual, mm_page* cr3, uint_32 fisica, uint_32 page_si
     *desc_dir = ((fisica & ~0xFFFFF) & (attr & 0x1FFF)) | (MM_ATTR_SZ_4M | 1);
     return (void*)cr3;
   }
-  if (!(*desc_dir & 1)) { //Vemos si no està presente 
+  if (!(*desc_dir & 1)) { //Vemos si no està presente
     new_dir = mm_mem_kalloc();
     if (!new_dir) return NULL;
 		*desc_dir = (int)new_dir & ~0xFFF;
@@ -137,7 +137,7 @@ void* mm_page_map(uint_32 virtual, mm_page* cr3, uint_32 fisica, uint_32 page_si
 	*ptr_desc_tabla = base_tabla | attr | 1; //!!Preguntar si hay que poner otros atributos
   // printf("desc_dir = %x, *desc_dir = %x", desc_dir, *desc_dir);
   // printf("desc_tabla = %x, *desc_tabla = %x", ptr_desc_tabla, *ptr_desc_tabla);
-  return (void*)(*desc_dir & ~0xFFF;
+  return (void*)(*desc_dir & ~0xFFF);
 }
 
 void* mm_page_free(uint_32 virtual, mm_page* cr3) {
@@ -151,47 +151,47 @@ void* mm_page_free(uint_32 virtual, mm_page* cr3) {
     return (void*)(*desc_dir & ~0xFFF);
   }
 	//Buscamos descriptor del directorio en cr3
-	if (*desc_dir & 1) { //Vemos si no està presente 
+	if (*desc_dir & 1) { //Vemos si no està presente
 		uint_32* ptr_desc_tabla = (uint_32*)((*desc_dir & ~0xFFF) + (ind_tp*4));
 		*ptr_desc_tabla &= ~0x1;
     return (void*)(*ptr_desc_tabla & ~0xFFF);
-	} else 
+	} else
     return NULL;
 }
 
 extern void* _end; // Puntero al fin del c'odigo del kernel.bin (definido por LD).
 void mm_init(void) {
     int i = 0;
-    printf("Initializing memory managment unit...\n");
+//    printf("Initializing memory managment unit...\n");
     usr_pf_limit = (uint_32)memory_detect((uint_32*)USR_MEM_START, PAGE_SIZE);
-    printf("Total memory: %x bytes (Assuming at least 4mb of contiguous memory)\n", usr_pf_limit, usr_pf_limit);
+//    printf("Total memory: %x bytes (Assuming at least 4mb of contiguous memory)\n", usr_pf_limit, usr_pf_limit);
     usr_pf_limit = (usr_pf_limit - USR_MEM_START)/(PAGE_SIZE*32);
-    printf("User page_frame limit: %x\n", usr_pf_limit);
-    printf("Cleaning pf_info structures...");
-    for (i = 0; i < sizeof(kernel_pf_info); i++) 
+  //  printf("User page_frame limit: %x\n", usr_pf_limit);
+   // printf("Cleaning pf_info structures...");
+    for (i = 0; i < sizeof(kernel_pf_info); i++)
       kernel_pf_info[i] = 0x0;
     for (i = 0; i < sizeof(usr_pf_info); i++)
       usr_pf_info[i] = 0x0;
-    printf("Done.");
+  //S  printf("Done.");
     //Testeo de funciones de memoria
-    printf("Testing mm_alloc functions...\n");
+   // printf("Testing mm_alloc functions...\n");
     void* temp1, * temp2;
     temp1 = mm_mem_kalloc();
     temp2 = mm_mem_kalloc();
-    printf("Requesting kernel page: %x, requesting second kernel page: %x", temp1, temp2);
+   // printf("Requesting kernel page: %x, requesting second kernel page: %x", temp1, temp2);
     mm_mem_free(temp1);
-    printf("Freeing first kernel page. Requesting new kernel page: %x", mm_mem_kalloc());
+   // printf("Freeing first kernel page. Requesting new kernel page: %x", mm_mem_kalloc());
     mm_mem_free(temp1);
     mm_mem_free(temp2);
-    printf("Restoring structures. kernel_pf_info[0] = %x", kernel_pf_info[0]);
+  //  printf("Restoring structures. kernel_pf_info[0] = %x", kernel_pf_info[0]);
     temp1 = mm_mem_alloc();
     temp2 = mm_mem_alloc();
-    printf("Requesting user page: %x, requesting second user page: %x", temp1, temp2);
+  //  printf("Requesting user page: %x, requesting second user page: %x", temp1, temp2);
     mm_mem_free(temp1);
-    printf("Freeing first user page. Requesting new user page: %x", mm_mem_alloc());
+  //  printf("Freeing first user page. Requesting new user page: %x", mm_mem_alloc());
     mm_mem_free(temp1);
     mm_mem_free(temp2);
-    printf("Restoring structures. usr_pf_info[0] = %x", usr_pf_info[0]);
+  //  printf("Restoring structures. usr_pf_info[0] = %x", usr_pf_info[0]);
     //Fin testeo de funciones de memoria
     //Inicializo directorio de paginas de kernel (asumo existe PSE) y activo paginacion
     activate_pse(1);
@@ -200,31 +200,31 @@ void mm_init(void) {
     lcr3((uint_32)kernel_dir);
     activate_paging(1);
     //Testo de funciones de paginacion
-    printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
-    printf("cr3[0] = %x, cr3[1] = %x", kernel_dir[0], kernel_dir[1]);
-    printf("Mapeo 0x400000 a si misma en kernel_dir");
+  //  printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
+  //  printf("cr3[0] = %x, cr3[1] = %x", kernel_dir[0], kernel_dir[1]);
+   // printf("Mapeo 0x400000 a si misma en kernel_dir");
     temp2 = mm_page_map(0x00400000, kernel_dir, 0x00400000, 0, 0x2);
     temp1 = (void*)((int*)kernel_dir)[1];
     temp1 = (void*)((int)temp1 & ~0xFFF);
-    printf("cr3[0] = %x, cr3[1] = %x, cr3[1][0] = %x", kernel_dir[0], kernel_dir[1], *(int*)temp1);
-    printf("Desmapeo 0x400000 en kernel_dir");
+  //  printf("cr3[0] = %x, cr3[1] = %x, cr3[1][0] = %x", kernel_dir[0], kernel_dir[1], *(int*)temp1);
+  //  printf("Desmapeo 0x400000 en kernel_dir");
     mm_page_free(0x00400000, kernel_dir);
     mm_mem_free(temp2);
-    printf("cr3[0] = %x, cr3[1] = %x, cr3[1][0] = %x", kernel_dir[0], kernel_dir[1], *(int*)temp1);
-    printf("kernel_pf_info[1] = %x", kernel_pf_info[0]);
+  //  printf("cr3[0] = %x, cr3[1] = %x, cr3[1][0] = %x", kernel_dir[0], kernel_dir[1], *(int*)temp1);
+  //  printf("kernel_pf_info[1] = %x", kernel_pf_info[0]);
 
     temp1 = mm_dir_new();
     lcr3((uint_32)temp1);
-    printf("Obtengo un nuevo directorio, mm_dir_new = %x", temp1);
+  //  printf("Obtengo un nuevo directorio, mm_dir_new = %x", temp1);
     mm_page_map(0x00401000, temp1, 0x00402000, 0, 0x2);
-    printf("Mapeo en el nuevo directorio 0x401000 -> 0x402000", temp1);
-    printf("usr_pf_info[0] = %x", usr_pf_info[0]);
-    printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
-    breakpoint();
-    printf("Libero el directorio");
+  //  printf("Mapeo en el nuevo directorio 0x401000 -> 0x402000", temp1);
+   // printf("usr_pf_info[0] = %x", usr_pf_info[0]);
+   // printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
+   // breakpoint();
+   // printf("Libero el directorio");
     lcr3((uint_32)kernel_dir);
     mm_dir_free(temp1);
-    printf("usr_pf_info[0] = %x", usr_pf_info[0]);
-    printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
-    breakpoint();
+   // printf("usr_pf_info[0] = %x", usr_pf_info[0]);
+   // printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
+   // breakpoint();
 }

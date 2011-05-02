@@ -13,6 +13,8 @@
 #include "scheduler_test.c"
 
 extern void* _end;
+extern pso_file task_task1_pso;
+
 /* Entry-point del modo protegido luego de cargar los registros de
  * segmento y armar un stack */
 void kernel_init(void) {
@@ -25,7 +27,9 @@ void kernel_init(void) {
   mm_init();
   sti();
 
-  test_scheduler();
+
+  //printf("task_init: %x" , &task_task1_pso);
+  loader_load(&task_task1_pso,0);
 
   return;
 }
