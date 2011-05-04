@@ -68,9 +68,9 @@ void print_stack(uint_32 f, uint_32 c, uint_32 dwords, uint_32 cols, const uint_
       for (j = i; j < i+cols*8; j++) //Imprimo en formato caracter 
         vga_printf(f, col_count++, "%c", VGA_BC_BLACK | VGA_FC_BLUE | VGA_FC_LIGHT, ((char*) stack)[i*8+j]);
       col_count = c;
-  }
-  vga_printf(f, col_count, "%x", VGA_FC_WHITE | VGA_BC_BLACK | VGA_FC_LIGHT, stack[i]); //Imprimo de a ints en hexa 
-  col_count += VGA_HEX_MAX_WIDTH+1;
+    }
+    vga_printf(f, col_count, "%x", VGA_FC_WHITE | VGA_BC_BLACK | VGA_FC_LIGHT, stack[i]); //Imprimo de a ints en hexa 
+    col_count += VGA_HEX_MAX_WIDTH+1;
   }
 }
 
@@ -149,3 +149,4 @@ void isr_keyboard_c() {
     __asm__ __volatile__("inb $0x60, %%al" : "=a" (tecla));
     outb(0x20,0x20);
 }
+

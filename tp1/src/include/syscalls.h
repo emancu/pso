@@ -5,6 +5,10 @@
 
 #define SYS_INT 0x30
 
+uint_32 syscall_list[128];
+extern void isr_syscall();
+extern void* palloc();
+
 #ifdef __KERNEL__
 
 // Sólo se compila en modo "kernel"

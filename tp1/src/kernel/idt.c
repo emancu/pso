@@ -5,6 +5,7 @@
 #include <idt.h>
 #include <pic.h>
 #include <vga.h>
+#include <syscalls.h>
 
 static const uint_32 IDT_ATTR_DPL_[4] = { IDT_ATTR_DPL0, IDT_ATTR_DPL1, IDT_ATTR_DPL2, IDT_ATTR_DPL3 };
 
@@ -34,6 +35,9 @@ void idt_init(void) {
 
     pic_reset(0x20,0x28);
     pic_enable();
+
+    //Registro la isr_syscall
+    idt_register(SYS_INT, &isr_syscall, 0);
   return;
 }
 

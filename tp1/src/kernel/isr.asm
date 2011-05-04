@@ -1,5 +1,7 @@
 [bits 32]
 
+syscall_dir: resq 1 
+
 %include "interrupt.mac"
 
 [EXTERN debug_kernelpanic]
@@ -29,3 +31,12 @@ isr_dkp_E isr_11_AC, 17
 isr_dkp_e isr_12_MC, 18
 isr_dkp_e isr_13_XM, 19
 
+[EXTERN syscall_list]
+[GLOBAL isr_syscall]
+isr_syscall:
+  xchg bx, bx
+  lea eax, [syscall_list+eax*4]
+  mov eax, [eax]
+  mov [syscall_dir], eax
+  call [syscall_dir]
+  iret

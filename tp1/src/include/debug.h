@@ -45,6 +45,8 @@ extern void isr_11_AC();
 extern void isr_12_MC();
 extern void isr_13_XM();
 
+extern char exp_msg[];
+extern uint_32 exp_num;
 #include <vga.h>
 #include <i386.h>
 

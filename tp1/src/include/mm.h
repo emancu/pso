@@ -2,6 +2,8 @@
 #define __MM_H__
 
 #include <tipos.h>
+#include <vga.h>
+#include <syscalls.h>
 
 #define MM_ATTR_P     0x001 // Present
 #define MM_ATTR_RW    0x002 // Read/Write
@@ -43,14 +45,31 @@
 #define CR4_PVI		0x00000002	// Protected-Mode Virtual Interrupts
 #define CR4_VME		0x00000001	// V86 Mode Extensions
 
-#define PAGE_SIZE 4096
 typedef struct str_mm_page {
 	uint_32 attr:12;
 	uint_32 base:20;
 }  __attribute__((__packed__, aligned (4))) mm_page;
 
+//Este tipo es el conjunto de bits usados para saber si un page_frame
+//está ocupado o no.
+typedef uint_32 page_frame_info;
+#define pfi_size (sizeof(page_frame_info)*8)
+
 #define make_mm_entry(base, attr) (mm_page){(uint_32)(attr), (uint_32)(base)}
 #define make_mm_entry_addr(addr, attr) (mm_page){(uint_32)(attr), (uint_32)(addr) >> 12}
+
+#define PAGE_SIZE 4096
+#define TABLE_ENTRY_NUM 1024
+#define MAGIC_NUMBER 0x4D324432
+#define USR_MEM_START 4194304
+#define KRN_MEM_START 1048576
+#define PFI_OCCUPIED 0xFFFFFFFF
+
+#define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
+#define SET_BIT(var, pos) ((var) |= (1<<(pos)))
+#define UNSET_BIT(var, pos) ((var) &= (~(1<<(pos))))
+
+#define USR_STD_ATTR MM_ATTR_RW | MM_ATTR_US_U
 
 void mm_init(void);
 void* mm_mem_alloc();
@@ -62,6 +81,41 @@ mm_page* mm_dir_new(void);
 void mm_dir_free(mm_page* d);
 
 /* Syscalls */
-// void* palloc(void);
+void* palloc(void);
 
+/* Funciones de inicio de memoria */
+
+// Esta función devuelve el puntero de la última posición de memoria válida contigua.
+// Para ello, empezando desde 'start', escribe de a saltos 'jump' y verifica que se mantuvo
+// lo escrito. Si es así se considera que el intervalo es válido y salta otro intervalo
+// 'jump'. Sino se considera que la memoria es inválida y se devuelve el último valor escrito válido.
+uint_32* memory_detect(uint_32* start, const uint_32 jump);
+
+/* Funciones de tablas y directorios de páginas */
+
+//Esta funcion mapea la direccion virtual 'virtual' a la direccion fisica 'fisica' en el directorio dado por 'cr3'. 
+//Si 'page_size' = 0 mapea usando paginas de 4kb, recorriendo el segundo nivel de la estructura y pidiendo a kernel una nueva pagina de ser necesario. 
+//Si el kernel no tiene mas paginas falla, devolviendo NULL. En caso de ser exitoso devuelve la dirección de la tabla/directorio de página donde se hizo el mapeo.
+void* mm_page_map(uint_32 virtual, mm_page* cr3, uint_32 fisica, uint_32 page_size, uint_32 attr);
+
+
+//Se encarga de invalidar la entrada en la tabla de páginas a la que se llega mediante la dirección virtual 
+//parámetro utilizando cr3 como dirección de la tabla de directorios. Devuelve la dirección del page_frame liberado.
+//!!Asume que cr3 apunta a una tabla de directorios válida
+void* mm_page_free(uint_32 virtual, mm_page* cr3);
+
+//Se encarga de invalidar la entrada en el directorio de páginas ('cr3') direccionada por la dirección virtual.
+//No se toma cuidado de que la tabla inferior se deshabilite. 
+//!! Asume que el cr3 apunta a un directorio válido
+void mm_dir_unmap(uint_32 virtual, mm_page* cr3);
+
+/* Funciones de sistema */
+// Esta es la función de sistema que implementa la funcionalidad de la syscall 'palloc'
+// La función busca un marco de página libre en memoria de usuario y lo mapea al cr3 actual.
+// La función puede fallar si no hay page frames libres de usuario o si no hay un page frame
+// libre de kernel que se requiere para crear una nueva tabla de páginas en el directorio 
+// de la tarea actual. En caso de fallar devuelve NULL, sino devuelve la dirección virtual
+// a la que fue mapeado el marco. 
+void* sys_palloc();
 #endif
+
