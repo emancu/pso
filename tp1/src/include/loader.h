@@ -11,9 +11,27 @@
 #ifdef __KERNEL__
 
 typedef struct str_task {
-	int next, prev;
-	// Informaci'on
+	int next;
+	int prev;
+	struct task_tss *context;
 } task;
+
+typedef struct str_task_tss {
+	uint_32 edi;
+	uint_32 esi;
+	uint_32 ebp;
+	uint_32 esp;
+	uint_32 ebx;
+	uint_32 edx;
+	uint_32 ecx;
+	uint_32 eax;
+	uint_32 eflags;
+	uint_32 eip;
+	uint_32 cr3;
+	uint_32 esp0;
+    uint_16 ss0;
+	// Informaci'on
+} task_tss;
 
 extern task task_table[];
 extern uint_32 cur_pid;
@@ -27,6 +45,9 @@ void loader_unqueue(int* cola);
 void loader_exit(void);
 
 void loader_switchto(pid pd);
+
+
+uint_32 get_pid(void);
 
 #endif
 
