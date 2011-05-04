@@ -24,27 +24,32 @@
 %endmacro
 
 ;Este macro declara la llamada a debug_kernelpanic con los parámetros adecuados
-;Considera que no hay código de error ni cambio de privilegio
+;Considera que no hay código de error
 ;Recibe un nombre de etiqueta de la función y un número de error
 ;Además define la etiqueta de la función como global
-%macro isr_dkp_ep 2
+%macro isr_dkp_e 2
 [EXTERN %1_c]
 [GLOBAL %1]
   %1:
+;    xchg bx, bx
     cli;
     pushad;
 
-    push dword 0x0A; org_ss;
-    push dword 0x0B; org_esp;
+    mov dword [error_num], %2 ; muevo el número de error a la variable global
+
+    push dword [esp+PUSHAD_LEN+4*4]; org_ss;
+    push dword [esp+PUSHAD_LEN+4*4]; org_esp;
     push dword [esp+PUSHAD_LEN+4*4]; eflags;
     push dword [esp+PUSHAD_LEN+4*4]; org_cs;
     push dword [esp+PUSHAD_LEN+4*4]; org_eip;
-    push dword 0x0C; errcode;
+    push dword 0x0E; errcode;
     push eax;
     push ecx;
     push edx;
     push ebx;
-    push esp;
+    mov eax, esp
+    add eax, 4*10+PUSHAD_LEN; Calculo el esp original en eax
+    push eax;
     push ebp;
     push esi;
     push edi;
@@ -56,16 +61,91 @@
 
     push esp; puntero a la estructura
     mov eax, esp
-    sub eax, 4*28
-    push eax; puntero al stack
-
+    add eax, 4*20+PUSHAD_LEN ;Obtengo en eax el inicio del stack actual
+    mov ebx, [eax+4] ;Obtengo el cs original
+    mov dx, cs
+    and bx, 0x3
+    and dx, 0x3
+    cmp dx, bx
+    jz %%no_priv_change
+%%priv_change:
+    push dword [eax+3*4] ;Pusheo el esp pusheado por la interrupcion
+    jmp %%func_call
+%%no_priv_change:
+    push eax;Pusheo el esp calculado
+%%func_call:
     call debug_kernelpanic
 
-    xchg bx,bx
+ ;   xchg bx,bx
 
     add esp, 4*21; borramos los push
 
     popad;
+    sti;
+    iret;
+
+%endmacro
+
+
+;Este macro declara la llamada a debug_kernelpanic con los parámetros adecuados
+;Considera que sí hay código de error
+;Recibe un nombre de etiqueta de la función y un número de error
+;Además define la etiqueta de la función como global
+%macro isr_dkp_E 2
+[EXTERN %1_c]
+[GLOBAL %1]
+  %1:
+  ;  xchg bx, bx
+    cli;
+    pushad;
+
+    mov dword [error_num], %2 ; muevo el número de error a la variable global
+
+    push dword [esp+PUSHAD_LEN+5*4]; org_ss;
+    push dword [esp+PUSHAD_LEN+5*4]; org_esp;
+    push dword [esp+PUSHAD_LEN+5*4]; eflags;
+    push dword [esp+PUSHAD_LEN+5*4]; org_cs;
+    push dword [esp+PUSHAD_LEN+5*4]; org_eip;
+    push dword [esp+PUSHAD_LEN+5*4]; errcode;
+    push eax;
+    push ecx;
+    push edx;
+    push ebx;
+    mov eax, esp
+    add eax, 4*10+PUSHAD_LEN; Calculo el esp original en eax
+    push eax;
+    push ebp;
+    push esi;
+    push edi;
+    push ss;
+    push ds;
+    push es;
+    push fs;
+    push gs;
+
+    push esp; puntero a la estructura
+    mov eax, esp
+    add eax, 4*20+PUSHAD_LEN ;Obtengo en eax el inicio del stack actual
+    mov ebx, [eax+8] ;Obtengo el cs original
+    mov dx, cs
+    and bx, 0x3
+    and dx, 0x3
+    cmp dx, bx
+    jz %%no_priv_change
+%%priv_change:
+    push dword [eax+4*4] ;Pusheo el esp pusheado por la interrupcion
+    jmp %%func_call
+%%no_priv_change:
+    push eax;Pusheo el esp calculado
+%%func_call:
+    call debug_kernelpanic
+
+;    xchg bx,bx
+
+    add esp, 4*21; borramos los push
+
+    popad;
+    add esp, 4; Retiro el errorcode
     sti;
     iret;
 

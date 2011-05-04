@@ -3,6 +3,7 @@
 
 #include <tipos.h>
 #include <vga.h>
+#include <syscalls.h>
 
 #define MM_ATTR_P     0x001 // Present
 #define MM_ATTR_RW    0x002 // Read/Write
@@ -52,6 +53,7 @@ typedef struct str_mm_page {
 //Este tipo es el conjunto de bits usados para saber si un page_frame
 //está ocupado o no.
 typedef uint_32 page_frame_info;
+#define pfi_size (sizeof(page_frame_info)*8)
 
 #define make_mm_entry(base, attr) (mm_page){(uint_32)(attr), (uint_32)(base)}
 #define make_mm_entry_addr(addr, attr) (mm_page){(uint_32)(attr), (uint_32)(addr) >> 12}
@@ -81,7 +83,6 @@ void mm_dir_free(mm_page* d);
 /* Syscalls */
 void* palloc(void);
 
-
 /* Funciones de inicio de memoria */
 
 // Esta función devuelve el puntero de la última posición de memoria válida contigua.
@@ -102,5 +103,19 @@ void* mm_page_map(uint_32 virtual, mm_page* cr3, uint_32 fisica, uint_32 page_si
 //parámetro utilizando cr3 como dirección de la tabla de directorios. Devuelve la dirección del page_frame liberado.
 //!!Asume que cr3 apunta a una tabla de directorios válida
 void* mm_page_free(uint_32 virtual, mm_page* cr3);
+
+//Se encarga de invalidar la entrada en el directorio de páginas ('cr3') direccionada por la dirección virtual.
+//No se toma cuidado de que la tabla inferior se deshabilite. 
+//!! Asume que el cr3 apunta a un directorio válido
+void mm_dir_unmap(uint_32 virtual, mm_page* cr3);
+
+/* Funciones de sistema */
+// Esta es la función de sistema que implementa la funcionalidad de la syscall 'palloc'
+// La función busca un marco de página libre en memoria de usuario y lo mapea al cr3 actual.
+// La función puede fallar si no hay page frames libres de usuario o si no hay un page frame
+// libre de kernel que se requiere para crear una nueva tabla de páginas en el directorio 
+// de la tarea actual. En caso de fallar devuelve NULL, sino devuelve la dirección virtual
+// a la que fue mapeado el marco. 
+void* sys_palloc();
 #endif
 

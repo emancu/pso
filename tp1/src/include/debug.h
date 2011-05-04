@@ -3,6 +3,8 @@
 
 #include <isr.h>
 
+extern uint_32 error_num;
+
 void debug_init(void);
 
 void debug_kernelpanic(const uint_32* stack, const exp_state* expst);
@@ -23,6 +25,25 @@ void isr_keyboard_c();
 extern void debug_kernel_panic();
 extern void isr_timerTick();
 extern void isr_keyboard();
+extern void isr_0_DE();
+extern void isr_1_DB();
+extern void isr_2_NMI();
+extern void isr_3_BP();
+extern void isr_4_OF();
+extern void isr_5_BR();
+extern void isr_6_UD();
+extern void isr_7_NM();
+extern void isr_8_DF();
+extern void isr_9_CSO();
+extern void isr_A_TS();
+extern void isr_B_NP();
+extern void isr_C_SS();
+extern void isr_D_GP();
+extern void isr_E_PF();
+extern void isr_10_MF();
+extern void isr_11_AC();
+extern void isr_12_MC();
+extern void isr_13_XM();
 
 extern char exp_msg[];
 extern uint_32 exp_num;
