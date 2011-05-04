@@ -1,0 +1,119 @@
+\documentclass[a4paper]{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{caratula}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{listings}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{multicol}
+
+\textwidth 160mm
+\topmargin 0mm
+\oddsidemargin 0mm
+
+% \usepackage{manycolors}
+% \usepackage{m2codecolor}
+
+\DeclareGraphicsExtensions{.pdf,.png,.jpg}
+
+\materia{Programación de Sistemas Operativos}
+\titulo{Trabajo Pr\'actico 1}
+\subtitulo{Desarrollo de un Kernel básico}
+
+\integrante{Alejandro Mataloni}{}{amataloni@gmail.com}
+\integrante{Emiliano Mancuso}{}{emiliano.mancuso@gmail.com}
+\integrante{Martin Miguel}{}{m2.march@gmail.com}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introducción}
+El presente trabajo práctico comienza con el desarrollo de un sistema operativo. Este práctico conforma una parte de una serie de trabajos. El acumulado de estos trabajos llevaran a la consolidación de un kernel pequeño pero funcional. El objetivo de esta primera entrega es crear las unidades básicas de funcionamiento del kernel que sirvan como cimientos para los próximos avances. Entre estas unidades básicas se encuentran: 
+
+\begin{itemize}
+  \item una biblioteca para el manejo de la pantalla
+  \item un sistema de debug basado en interrupciones
+  \item un módulo encargado del manejo de la memoria mediante paginación
+  \item un módulo capaz de cargar y descargar tareas del procesador así como manejar colas de espera entre ellas
+  \item un módulo que implemente un algoritmo de scheduling para manejar el orden en que se ejecutarán las tareas en el procesador y la implementación de semáforos para operaciones de kernel
+\end{itemize}
+
+La red conformada por la relación de todos estos sistemas serán luego la base para la construcción de nuevas estructuras y funcionalidades en el kernel en los próximos trabajo prácticos. 
+
+\newpage
+
+\section{Módulos}
+
+En esta sección se explica la funcionalidad exportada de cada uno de los módulos desarrollados, así como detalles de implementación importantes para comprender el funcionamiento del módulo o para cuidados necesarios en su uso o futuros desarrollos. 
+
+A continuación se presenta la estructura de archivos fuentes del proyecto.
+
+\begin{multicols}{2}
+\begin{verbatim}
+ pso
+  \--src
+      |-- bin -- *
+      |-- boot -- *
+      |-- include
+      |   |-- bios.mac
+      |   |-- debug.h
+      |   |-- errors.h
+      |   |-- gdt.h
+      |   |-- i386.h
+      |   |-- idt.h
+      |   |-- isr-def.mac
+      |   |-- isr.h
+      |   |-- klib_machine.h
+      |   |-- lib_str.h
+      |   |-- loader.h
+      |   |-- mm.h
+      |   |-- pic.h
+      |   |-- pso_file.h
+      |   |-- sched.h
+      |   |-- sem.h
+      |   |-- syscalls.h
+      |   |-- tasks.h
+      |   |-- tipos.h
+      |   |-- tss.h
+      |   '-- vga.h
+      |-- kernel
+      |   |-- a20.asm
+      |   |-- debug.c
+      |   |-- gdt.c
+      |   |-- idt.c
+      |   |-- interrupt.mac
+      |   |-- isr.asm
+      |   |-- kernel.c
+      |   |-- kinit.asm
+      |   |-- klib_machine.c
+      |   |-- lib_str.c
+      |   |-- loader.c
+      |   |-- mm.c
+      |   |-- pic.c
+      |   |-- sched.c
+      |   |-- sem.c
+      |   |-- syscalls.asm
+      |   |-- tasks.asm
+      |   |-- tss.c
+      |   \-- vga.c
+      |-- Makefile
+      |-- tasks
+      |   |-- pso_head.asm
+      |   |-- pso_tail.asm
+      |   '-- task1.c
+      \-- tests
+	  |-- bit_check-test.c
+	  |-- Makefile
+	  \-- num_into_string-test.c
+\end{verbatim}
+\end{multicols}
+
+
+
+\end{document}
