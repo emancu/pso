@@ -229,75 +229,80 @@ void mm_init(void) {
       usr_pf_info[i] = 0x0;
     printf("Done.");
     //Testeo de funciones de memoria
-    printf("Testing mm_alloc functions...\n");
-    void* temp1, * temp2;
-    temp1 = mm_mem_kalloc();
-    temp2 = mm_mem_kalloc();
-    printf("Requesting kernel page: %x, requesting second kernel page: %x", temp1, temp2);
-    mm_mem_free(temp1);
-    printf("Freeing first kernel page. Requesting new kernel page: %x", mm_mem_kalloc());
-    mm_mem_free(temp1);
-    mm_mem_free(temp2);
-    printf("Restoring structures. kernel_pf_info[0] = %x", kernel_pf_info[0]);
-    temp1 = mm_mem_alloc();
-    temp2 = mm_mem_alloc();
-    printf("Requesting user page: %x, requesting second user page: %x", temp1, temp2);
-    mm_mem_free(temp1);
-    printf("Freeing first user page. Requesting new user page: %x", mm_mem_alloc());
-    mm_mem_free(temp1);
-    mm_mem_free(temp2);
-    printf("Restoring structures. usr_pf_info[0] = %x", usr_pf_info[0]);
+    // printf("Testing mm_alloc functions...\n");
+    // void* temp1, * temp2;
+    // temp1 = mm_mem_kalloc();
+    // temp2 = mm_mem_kalloc();
+    // printf("Requesting kernel page: %x, requesting second kernel page: %x", temp1, temp2);
+    // mm_mem_free(temp1);
+    // printf("Freeing first kernel page. Requesting new kernel page: %x", mm_mem_kalloc());
+    // mm_mem_free(temp1);
+    // mm_mem_free(temp2);
+    // printf("Restoring structures. kernel_pf_info[0] = %x", kernel_pf_info[0]);
+    // temp1 = mm_mem_alloc();
+    // temp2 = mm_mem_alloc();
+    // printf("Requesting user page: %x, requesting second user page: %x", temp1, temp2);
+    // mm_mem_free(temp1);
+    // printf("Freeing first user page. Requesting new user page: %x", mm_mem_alloc());
+    // mm_mem_free(temp1);
+    // mm_mem_free(temp2);
+    // printf("Restoring structures. usr_pf_info[0] = %x", usr_pf_info[0]);
     //Fin testeo de funciones de memoria
     //Inicializo directorio de paginas de kernel (asumo existe PSE) y activo paginacion
-    printf("Initializing kernel's page directory (PSE is assumed).");
+    printf("Initializing kernel's page directory (PSE is assumed)...");
     activate_pse(1);
     kernel_dir = mm_dir_new();
+    printf("Done.");
     lcr3((uint_32)kernel_dir);
-    printf("Activating paging.");
+    printf("Activating paging.000");
     activate_paging(1);
+    printf("Paging activation successfull.");
     //Fin inicialización pre-paginación
     //Testo de funciones de paginacion
-    printf("Testing mapping functions..");
-    printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
-    printf("cr3[0] = %x, cr3[1] = %x", kernel_dir[0], kernel_dir[1]);
-    printf("0x400000 is mapped to itself in kernel_dir");
-    temp2 = mm_page_map(0x00400000, kernel_dir, 0x00400000, 0, 0x2);
-    temp1 = (void*)((int*)kernel_dir)[1];
-    temp1 = (void*)((int)temp1 & ~0xFFF);
-    printf("cr3[0] = %x, cr3[1] = %x, cr3[1][0] = %x", kernel_dir[0], kernel_dir[1], *(int*)temp1);
-    printf("0x400000 is unmapped in kernel_dir");
-    mm_page_free(0x00400000, kernel_dir);
-    mm_dir_unmap(0x00400000, kernel_dir);
-    mm_mem_free((void*)((int)temp2 & ~0xFFF));
-    printf("cr3[0] = %x, cr3[1] = %x, cr3[1][0] = %x", kernel_dir[0], kernel_dir[1], *(int*)temp1);
-    printf("kernel_pf_info[1] = %x", kernel_pf_info[0]);
-    temp1 = mm_dir_new();
-    lcr3((uint_32)temp1);
-    printf("Obtaining new directory, mm_dir_new = %x", temp1);
-    mm_page_map(0x00401000, temp1, 0x00A02000, 0, 0x2);
-    printf("Maping 0x401000 -> 0xA02000 in new directory", temp1);
-    printf("Testing sys_palloc... requesting %d pages...", 1025);
-    printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
-    for (i = 0; i < 1025; i++) {
-      // printf("Requesting new page with sys_palloc = %x", sys_palloc());
-      sys_palloc();
-    }
-    printf("usr_pf_info[0] = %x", usr_pf_info[0]);
-    printf("Freeing directory");
-    lcr3((uint_32)kernel_dir);
-    mm_dir_free(temp1);
-    printf("usr_pf_info[0] = %x", usr_pf_info[0]);
-    printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
+    // printf("Testing mapping functions..");
+    // printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
+    // printf("cr3[0] = %x, cr3[1] = %x", kernel_dir[0], kernel_dir[1]);
+    // printf("0x400000 is mapped to itself in kernel_dir");
+    // temp2 = mm_page_map(0x00400000, kernel_dir, 0x00400000, 0, 0x2);
+    // temp1 = (void*)((int*)kernel_dir)[1];
+    // temp1 = (void*)((int)temp1 & ~0xFFF);
+    // printf("cr3[0] = %x, cr3[1] = %x, cr3[1][0] = %x", kernel_dir[0], kernel_dir[1], *(int*)temp1);
+    // printf("0x400000 is unmapped in kernel_dir");
+    // mm_page_free(0x00400000, kernel_dir);
+    // mm_dir_unmap(0x00400000, kernel_dir);
+    // mm_mem_free((void*)((int)temp2 & ~0xFFF));
+    // printf("cr3[0] = %x, cr3[1] = %x, cr3[1][0] = %x", kernel_dir[0], kernel_dir[1], *(int*)temp1);
+    // printf("kernel_pf_info[1] = %x", kernel_pf_info[0]);
+    // temp1 = mm_dir_new();
+    // lcr3((uint_32)temp1);
+    // printf("Obtaining new directory, mm_dir_new = %x", temp1);
+    // mm_page_map(0x00401000, temp1, 0x00A02000, 0, 0x2);
+    // printf("Maping 0x401000 -> 0xA02000 in new directory", temp1);
+    // printf("Testing sys_palloc... requesting %d pages...", 1025);
+    // printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
+    // for (i = 0; i < 1025; i++) {
+      printf("Requesting new page with sys_palloc = %x", sys_palloc());
+      // sys_palloc();
+    // }
+    // printf("usr_pf_info[0] = %x", usr_pf_info[0]);
+    // printf("Freeing directory");
+    // lcr3((uint_32)kernel_dir);
+    // mm_dir_free(temp1);
+    // printf("usr_pf_info[0] = %x", usr_pf_info[0]);
+    // printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
     //Fin testeo de funciones de paginación
 
     //Registro palloc como syscall 0x30
+    printf("Registering system function sys_palloc...");
     syscall_list[0x30] = (uint_32) &sys_palloc;
+    printf("Done.");
     
     //Testeo la syscall
-    breakpoint();
-    temp1 = palloc();
-    printf("palloc() = %x", temp1);
-    mm_page_free((uint_32)temp1, (mm_page*)rcr3());
-    mm_dir_unmap((uint_32)temp1, (mm_page*)rcr3());
+    // breakpoint();
+    // temp1 = palloc();
+    // printf("palloc() = %x", temp1);
+    // mm_page_free((uint_32)temp1, (mm_page*)rcr3());
+    // mm_dir_unmap((uint_32)temp1, (mm_page*)rcr3());
     // mm_mem_free();
+    printf("End of memory management unit initialization.");
 }

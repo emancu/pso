@@ -145,7 +145,7 @@ void isr_timerTick_c() {
 
 void isr_keyboard_c() {
     char tecla=0;
-    printf("Tecladooo!!! \n");
+    // printf("Tecladooo!!! \n");
     __asm__ __volatile__("inb $0x60, %%al" : "=a" (tecla));
     outb(0x20,0x20);
 }
