@@ -3,32 +3,20 @@
 #include <mm.h>
 #include <sched.h>
 
-
 task task_table[MAX_PID];
+uint_32 cur_pid;
 
-/* pid "actual" */
-uint_32 cur_pid = 0;
+static int free_pids[MAX_PID];
+static int next_free;
 
 void loader_init(void) {
     int i;
-    task_tss* ptr_context;
-    for(i = 1 ; i < MAX_PID ; i++){
-        ptr_context = (task_tss*) task_table[i].context;
-        ptr_context->cr3 = 0;
-    }
-}
+    for(i=0;i<MAX_PID-1;i++)
+      free_pids[i] = i+1;
+    free_pid[MAX_PID-1] = -1;
 
-uint_32 get_pid(void){
-    uint_32 i;
-    task_tss* ptr_context;
-    for(i = 1 ; i < MAX_PID ; i++){
-        ptr_context = (task_tss*) task_table[i].context;
-        if(ptr_context->cr3 == 0)
-            return i;
-
-    }
-    //si no hay ninguno libre
-    return -1;
+    next_free = 0;
+    cur_pid = 0;
 }
 
 pid loader_load(pso_file* f, int pl) {
@@ -105,9 +93,25 @@ void loader_tick(){
 }
 
 void loader_enqueue(int* cola) {
+  // no se en que cola se tienen que encolar... hago de cuenta que se ponen en el next
+  task_table[cur_pid].next = *cola;
+  task_table[cur_pid].prev = task_table[*cola].prev;
+  task_table[task_table[*cola].prev].next = cur_pid;
+  task_table[*cola].prev = cur_pid;
+  *cola = cur_pid; // es asi ?? 
+  sched_block();
 }
 
 void loader_unqueue(int* cola) {
+  int next_node = task_table[*cola].next;
+  int prev_node = task_table[*cola].prev;
+  if (next_node != -1){
+    task_table[next_node].prev = prev_node;
+    task_table[prev_node].next = next_node;
+    task_table[*cola].next = -1;
+    task_table[*cola].prev = -1;
+    sched_unblock(*cola);
+  }
 }
 
 void loader_exit(void) {
@@ -115,3 +119,16 @@ void loader_exit(void) {
 
 void loader_switchto(pid pd) {
 }
+
+
+uint_32 get_pid(void){
+  int ret = next_free;
+  next_free = free_pids[next_free];
+  return ret;
+}
+
+void free_pid(uint_32 pid){
+  free_pids[pid] = next_free;
+  next_free = pid;
+}
+
