@@ -145,6 +145,7 @@
     add esp, 4*21; borramos los push
 
     popad;
+    add esp, 4; Retiro el errorcode
     sti;
     iret;
 

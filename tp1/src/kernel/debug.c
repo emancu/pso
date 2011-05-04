@@ -103,6 +103,7 @@ void debug_kernelpanic(const uint_32* stack, const exp_state* expst) {
   } else {
     vga_write(0, vga_cols-strlen(" Exception Undefined "), " Undefined Exception ", VGA_BC_MAGENTA | VGA_FC_WHITE | VGA_FC_LIGHT);
   }
+  error_num = -1;
 }
 
 int tick = 0;
