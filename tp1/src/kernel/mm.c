@@ -17,10 +17,12 @@ void* page_frame_info_alloc(page_frame_info* pfi, uint_32 limit, uint_32 mem_off
   while (i < limit && pfi[i++] == PFI_OCCUPIED) ;//Busco la primer entrada no completa
   if (i >= limit) return NULL; //Si me pasé no hay más page_frames
   j = i-1;
-  for (i = 0; CHECK_BIT(pfi[j], i); i++) ; //Busco el primer bit 0 (de der a izq)
+  i = 0;
+  while (CHECK_BIT(pfi[j], i)) { i++; }; //Busco el primer bit 0 (de der a izq)
+  // for (i = 0; CHECK_BIT(pfi[j], i); i++) ; 
   // printf("mm_mem_kalloc: %d %d", j, i);
   SET_BIT(pfi[j], i);
-  return (void*)mem_offset + (j*8+i) * PAGE_SIZE; //Calculo la dirección de la página
+  return (void*)mem_offset + (j*pfi_size+i) * PAGE_SIZE; //Calculo la dirección de la página
 }
 
 void* mm_mem_alloc() {
@@ -42,9 +44,9 @@ void mm_mem_free(void* page) {
     page -= USR_MEM_START;
   }
   int index = (int)page/PAGE_SIZE;
-  // printf("mm_mem_free: %d %d %x", index/8, index%8, pfi[index/8]);
-  UNSET_BIT(pfi[index/8], index%8);
-  // printf("mm_mem_free: %d %d %x", index/8, index%8, pfi[index/8]);
+  // printf("mm_mem_free: %d %d %x", index/32, index%32, pfi[index/32]);
+  UNSET_BIT(pfi[index/pfi_size], index%pfi_size);
+  // printf("mm_mem_free: %d %d %x", index/32, index%32, pfi[index/32]);
 }
 
 mm_page* mm_dir_new(void) {
@@ -105,10 +107,10 @@ void activate_paging(uint_32 status) {
 
 void activate_pse(uint_32 status) {
   int cr4 = rcr4();
-  printf("Activate pse, cr4 = %x", cr4);
+  // printf("Activate pse, cr4 = %x", cr4);
   if (status) cr4 |= (1<<4);
   else cr4 &= ~(1<<4);
-  printf("Activate pse, cr4 = %x", cr4);
+  // printf("Activate pse, cr4 = %x", cr4);
   lcr4(cr4);
   tlbflush(); // Necesario segun el manual
 }
@@ -122,11 +124,12 @@ void* mm_page_map(uint_32 virtual, mm_page* cr3, uint_32 fisica, uint_32 page_si
   // printf("ind_td %x, ind_tp %x, base_tabla %x, base_dir %x", ind_td, ind_tp, base_tabla, base_dir);
 	//Buscamos descriptor del directorio en cr3
 	uint_32* desc_dir = (uint_32 *)(base_dir + (ind_td*4));
+  // printf("mm_page_map : cr3 = %x : desc_dir = %x : page_size = %d", cr3, desc_dir, page_size);
   if (page_size) { //Trabajo con paginas de 4 mb, no me importa si ya habia algo mappeado
     *desc_dir = ((fisica & ~0xFFFFF) & (attr & 0x1FFF)) | (MM_ATTR_SZ_4M | 1);
-    return (void*)cr3;
+    return (void*)desc_dir;
   }
-  if (!(*desc_dir & 1)) { //Vemos si no està presente 
+  if (!(*desc_dir & 1)) { //Vemos si no esta presente 
     new_dir = mm_mem_kalloc();
     if (!new_dir) return NULL;
 		*desc_dir = (int)new_dir & ~0xFFF;
@@ -137,7 +140,8 @@ void* mm_page_map(uint_32 virtual, mm_page* cr3, uint_32 fisica, uint_32 page_si
 	*ptr_desc_tabla = base_tabla | attr | 1; //!!Preguntar si hay que poner otros atributos
   // printf("desc_dir = %x, *desc_dir = %x", desc_dir, *desc_dir);
   // printf("desc_tabla = %x, *desc_tabla = %x", ptr_desc_tabla, *ptr_desc_tabla);
-  return (void*)(*desc_dir & ~0xFFF;
+  // return (void*)(*desc_dir & ~0xFFF);
+  return (void*)(ptr_desc_tabla);
 }
 
 void* mm_page_free(uint_32 virtual, mm_page* cr3) {
@@ -157,6 +161,57 @@ void* mm_page_free(uint_32 virtual, mm_page* cr3) {
     return (void*)(*ptr_desc_tabla & ~0xFFF);
 	} else 
     return NULL;
+}
+
+void mm_dir_unmap(uint_32 virtual, mm_page* cr3) {
+	uint_32 ind_td = virtual >> 22;
+	uint_32 base_dir = ((int)cr3) & ~0xFFF;
+	uint_32* desc_dir = (uint_32 *)(base_dir + (ind_td*4));
+  *desc_dir &= ~MM_ATTR_P;
+}
+
+void* sys_palloc() {
+  //Primero busco la dirección virtual donde voy a mappear (la primera página virtual no ocupada)
+  // para saber si voy necesitar una página de kernel.
+  mm_page* dir = (mm_page*)rcr3();
+  mm_page* table;
+  void* kernel_page;
+  void* usr_page = mm_mem_alloc();
+  int i, j, virtual;
+
+  if (usr_page == NULL) return NULL; // No pude obtener una nueva página de usuario
+  for (i = 1; i < TABLE_ENTRY_NUM; i++) { //Recorro el directorio sin contar la primer entrada (identity mapping)
+    // printf("sys_palloc - recorro dir - i = %d", i);
+    if (dir[i].attr & MM_ATTR_P) { 
+      // printf("sys_palloc - dir[%d] = %x | presente",i,  (dir[i]));
+      if (!(dir[i].attr & MM_ATTR_SZ_4M)) { //Si la entrada está ocupada y no es de 4mb, recorro la tabla inferior
+        table = (mm_page*)(dir[i].base << 12);
+        for (j = 0; j < TABLE_ENTRY_NUM; j++) {
+          // printf("sys_palloc - recorro tabla - j = %d - table[%d] & MM_ATTR_P = %x", j, j, table[j].attr & MM_ATTR_P);
+          if (!(table[j].attr & MM_ATTR_P)) {//Si encuentro una entrada en la taba libre, allí mapeo la página nueva
+            //Armo la dirección virtual a partir de los índices en el directorio y en la tabla de páginas.
+            //El índice de directorio me dice cuandos bloques de 4mb avancé, el de la tabla me dice cuantos de 4kb
+            virtual = PAGE_SIZE * TABLE_ENTRY_NUM * i + PAGE_SIZE * j;
+            if (NULL !=  mm_page_map(virtual, dir, (uint_32) usr_page, 0, USR_STD_ATTR))
+              return (void*)virtual; // Devuelvo la dirección virtual a la que lo mapeé si está todo en orden.
+            return NULL;
+          }
+        }
+      } else {
+        // printf("sys_palloc - dir[%d] de 4mb", i);
+      }
+    } else { // Si encuentro una entrada de directorio libre, necesito una nueva página de kernel
+      // printf("sys_palloc - dir[%d] no presente", i);
+      virtual = PAGE_SIZE * TABLE_ENTRY_NUM * i;
+      kernel_page = mm_page_map(virtual, dir, (uint_32)usr_page, 0, USR_STD_ATTR);
+      if (kernel_page == NULL) { // Falló el prceso de mapeo a causa de falta de páginas de kernel
+        mm_mem_free(usr_page); //Rollbackeo el proceso, devuelvo la página de usuario
+        return NULL;
+      }
+      return (void*)virtual;
+    }
+  }
+  return NULL; // Se llega aquí si el mapa de memoria del cr3 actual está completo
 }
 
 extern void* _end; // Puntero al fin del c'odigo del kernel.bin (definido por LD).
@@ -194,37 +249,55 @@ void mm_init(void) {
     printf("Restoring structures. usr_pf_info[0] = %x", usr_pf_info[0]);
     //Fin testeo de funciones de memoria
     //Inicializo directorio de paginas de kernel (asumo existe PSE) y activo paginacion
+    printf("Initializing kernel's page directory (PSE is assumed).");
     activate_pse(1);
-    kernel_dir = mm_mem_kalloc();
-    mm_page_map(0x0, kernel_dir, 0x0, 1, 0x2);
+    kernel_dir = mm_dir_new();
     lcr3((uint_32)kernel_dir);
+    printf("Activating paging.");
     activate_paging(1);
+    //Fin inicialización pre-paginación
     //Testo de funciones de paginacion
+    printf("Testing mapping functions..");
     printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
     printf("cr3[0] = %x, cr3[1] = %x", kernel_dir[0], kernel_dir[1]);
-    printf("Mapeo 0x400000 a si misma en kernel_dir");
+    printf("0x400000 is mapped to itself in kernel_dir");
     temp2 = mm_page_map(0x00400000, kernel_dir, 0x00400000, 0, 0x2);
     temp1 = (void*)((int*)kernel_dir)[1];
     temp1 = (void*)((int)temp1 & ~0xFFF);
     printf("cr3[0] = %x, cr3[1] = %x, cr3[1][0] = %x", kernel_dir[0], kernel_dir[1], *(int*)temp1);
-    printf("Desmapeo 0x400000 en kernel_dir");
+    printf("0x400000 is unmapped in kernel_dir");
     mm_page_free(0x00400000, kernel_dir);
-    mm_mem_free(temp2);
+    mm_dir_unmap(0x00400000, kernel_dir);
+    mm_mem_free((void*)((int)temp2 & ~0xFFF));
     printf("cr3[0] = %x, cr3[1] = %x, cr3[1][0] = %x", kernel_dir[0], kernel_dir[1], *(int*)temp1);
     printf("kernel_pf_info[1] = %x", kernel_pf_info[0]);
-
     temp1 = mm_dir_new();
     lcr3((uint_32)temp1);
-    printf("Obtengo un nuevo directorio, mm_dir_new = %x", temp1);
-    mm_page_map(0x00401000, temp1, 0x00402000, 0, 0x2);
-    printf("Mapeo en el nuevo directorio 0x401000 -> 0x402000", temp1);
-    printf("usr_pf_info[0] = %x", usr_pf_info[0]);
+    printf("Obtaining new directory, mm_dir_new = %x", temp1);
+    mm_page_map(0x00401000, temp1, 0x00A02000, 0, 0x2);
+    printf("Maping 0x401000 -> 0xA02000 in new directory", temp1);
+    printf("Testing sys_palloc... requesting %d pages...", 1025);
     printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
-    breakpoint();
-    printf("Libero el directorio");
+    for (i = 0; i < 1025; i++) {
+      // printf("Requesting new page with sys_palloc = %x", sys_palloc());
+      sys_palloc();
+    }
+    printf("usr_pf_info[0] = %x", usr_pf_info[0]);
+    printf("Freeing directory");
     lcr3((uint_32)kernel_dir);
     mm_dir_free(temp1);
     printf("usr_pf_info[0] = %x", usr_pf_info[0]);
     printf("kernel_pf_info[0] = %x", kernel_pf_info[0]);
+    //Fin testeo de funciones de paginación
+
+    //Registro palloc como syscall 0x30
+    syscall_list[0x30] = (uint_32) &sys_palloc;
+    
+    //Testeo la syscall
     breakpoint();
+    temp1 = palloc();
+    printf("palloc() = %x", temp1);
+    mm_page_free((uint_32)temp1, (mm_page*)rcr3());
+    mm_dir_unmap((uint_32)temp1, (mm_page*)rcr3());
+    // mm_mem_free();
 }
