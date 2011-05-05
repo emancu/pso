@@ -31,83 +31,83 @@ void loader_init(void) {
 }
 
 pid loader_load(pso_file* f, int pl) {
-  //ver cuanta memoria nesecita
-  uint_32 old_cr3 = rcr3();
-  //printf("old cr3: %x", old_cr3);
+    //ver cuanta memoria nesecita
+    uint_32 old_cr3 = rcr3();
+    //printf("old cr3: %x", old_cr3);
 
-  //solo para testiar le cambie el signature
-  if(pl == 1){
-    f->signature[0] = 'A';
-    f->signature[1] = 'L';
-    f->signature[2] = 'E';
-  }
-  //printf("f apunta a: %x" , f);
-  //printf("sign: %s", f->signature);
-  //printf("mem_start: %x", f->mem_start);
-  //printf("mem_end_disk: %x", f->mem_end_disk);
-  //printf("mem_end: %x", f->mem_end);
-  //printf("main entry: %x", f->_main);
+    //solo para testiar le cambie el signature
+    if(pl == 1){
+        f->signature[0] = 'A';
+        f->signature[1] = 'L';
+        f->signature[2] = 'E';
+    }
+    //printf("f apunta a: %x" , f);
+    //printf("sign: %s", f->signature);
+    //printf("mem_start: %x", f->mem_start);
+    //printf("mem_end_disk: %x", f->mem_end_disk);
+    //printf("mem_end: %x", f->mem_end);
+    //printf("main entry: %x", f->_main);
 
-  //pido un directorio para la nueva tarea
-  void* task_dir = mm_dir_new();
-  //cargo el cr3 con el nuevo directorio. TENGO QUE GUARDAR EL VIEJO!!
-  lcr3((uint_32) task_dir);
+    //pido un directorio para la nueva tarea
+    void* task_dir = mm_dir_new();
+    //cargo el cr3 con el nuevo directorio. TENGO QUE GUARDAR EL VIEJO!!
+    lcr3((uint_32) task_dir);
 
-  //pido una pagina de 4k para la tarea (hay que sacar cuanto ocupa)
-  void* puntero_page_tarea = mm_mem_alloc();
+    //pido una pagina de 4k para la tarea (hay que sacar cuanto ocupa)
+    void* puntero_page_tarea = mm_mem_alloc();
 
-  void* task_stack3 = mm_mem_alloc();
-  void* task_stack0 = mm_mem_alloc();
+    void* task_stack3 = mm_mem_alloc();
+    void* task_stack0 = mm_mem_alloc();
 
-  //ver esto donde van mapeados los stacks
-  mm_page_map(0x00401000, task_dir, (uint_32)task_stack3, 0, USR_STD_ATTR);
-  mm_page_map(0xFFFFF000, task_dir, (uint_32)task_stack0, 0, 0x2);
+    //ver esto donde van mapeados los stacks
+    mm_page_map(0x00401000, task_dir, (uint_32)task_stack3, 0, USR_STD_ATTR);
+    mm_page_map(0xFFFFF000, task_dir, (uint_32)task_stack0, 0, 0x2);
 
-  //inicializamos la pila de nivel 0 para que tenga el contexto para
-  //poder volver del switchto
-  uint_32* stack0 = (uint_32*) 0xFFFFFFFC;
-  //TODO ALEMATA HAY QUE REVISAR ESTOS ULTIMOS
-  *stack0-- = 0x18;
-  *stack0-- = resp();
-  *stack0-- = 0x202;
-  *stack0-- = 0x1A;
-  *stack0-- = (uint_32) f->_main;
-  *stack0-- = (uint_32) &task_ret;
-  *stack0-- = resp();
-  *stack0-- = 0x0;
-  *stack0-- = 0x0;
-  *stack0-- = 0x0;
-  //mapeo la direccion virtual 0x00400000 en la pagina que recien se me asigno.
-  mm_page_map((uint_32)f->mem_start, task_dir, (uint_32)puntero_page_tarea, 0, USR_STD_ATTR);
+    //inicializamos la pila de nivel 0 para que tenga el contexto para
+    //poder volver del switchto
+    uint_32* stack0 = (uint_32*) 0xFFFFFFFC;
+    //TODO ALEMATA HAY QUE REVISAR ESTOS ULTIMOS
+    *stack0-- = 0x23;
+    *stack0-- = resp();
+    *stack0-- = 0x202;
+    *stack0-- = 0x1B;
+    *stack0-- = (uint_32) f->_main;
+    *stack0-- = (uint_32) &task_ret;
+    *stack0-- = resp();
+    *stack0-- = 0x0;
+    *stack0-- = 0x0;
+    *stack0-- = 0x0;
+    //mapeo la direccion virtual 0x00400000 en la pagina que recien se me asigno.
+    mm_page_map((uint_32)f->mem_start, task_dir, (uint_32)puntero_page_tarea, 0, USR_STD_ATTR);
 
-  //copio la tarea desde donde esta a la pagina que acabo de mapear.
-  uint_8* addr_to_copy = (uint_8*) f->mem_start;
-  uint_8* task_to_copy = (uint_8*) f;
-  uint_32 cant_to_copy = f->mem_end_disk - f->mem_start;
-  int i;
-  for(i = 0 ; i < cant_to_copy ; i++){
-    *addr_to_copy++ = *task_to_copy++;
-  }
+    //copio la tarea desde donde esta a la pagina que acabo de mapear.
+    uint_8* addr_to_copy = (uint_8*) f->mem_start;
+    uint_8* task_to_copy = (uint_8*) f;
+    uint_32 cant_to_copy = f->mem_end_disk - f->mem_start;
+    int i;
+    for(i = 0 ; i < cant_to_copy ; i++){
+        *addr_to_copy++ = *task_to_copy++;
+    }
 
-  //tengo que armar la estreuctura
-  uint_32 requested_pid = get_new_pid();
-  task_table[requested_pid].cr3 = (uint_32) task_dir;
-  task_table[requested_pid].esp0 = 0xFFFFFFD8;
-  printf("requested pid: %d", requested_pid);
+    //tengo que armar la estreuctura
+    uint_32 requested_pid = get_pid();
+    task_table[requested_pid].cr3 = (uint_32) task_dir;
+    task_table[requested_pid].esp0 = 0xFFFFFFD8;
+    printf("requested pid: %d", requested_pid);
 
-  //lo apunto al final de la pila
-  //ptr_context.esp = 0x00402000;
-  //ptr_context.esp0 = 0x00403000;
+    //lo apunto al final de la pila
+    //ptr_context.esp = 0x00402000;
+    //ptr_context.esp0 = 0x00403000;
 
-  //ptr_context.ss0 = 0x08; //Segmento de datos de anillo 0
-  //ptr_context.eip = (uint_32) f->_main;
+    //ptr_context.ss0 = 0x08; //Segmento de datos de anillo 0
+    //ptr_context.eip = (uint_32) f->_main;
 
-  sched_load(requested_pid);
+    sched_load(requested_pid);
 
-  //vuelvo al directorio de la tarea actual
-  lcr3((uint_32) old_cr3);
+    //vuelvo al directorio de la tarea actual
+    lcr3((uint_32) old_cr3);
 
-  return 0;
+	return 0;
 }
 
 
@@ -169,7 +169,9 @@ void free_pid(uint_32 pid){
  */
 
 uint_32 sys_getpid(void){
-  return cur_pid;
+    breakpoint();
+    printf("me pidieron un pid");
+    return cur_pid;
 }
 
 void sys_exit(void){

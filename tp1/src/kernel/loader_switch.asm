@@ -3,7 +3,8 @@
 ;; Funcion para utilizar en la creacion de tareas
 GLOBAL task_ret
 task_ret:
-    ret
+;xchg bx, bx
+    iret
 
 
 ;; Funcion del loader encargada de hacer el switch.
@@ -13,6 +14,7 @@ extern cur_pid
 extern task_table
 GLOBAL loader_switchto
 loader_switchto:
+    xchg bx,bx
     push ebp
     mov ebp, esp
 
