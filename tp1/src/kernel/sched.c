@@ -101,6 +101,7 @@ int sched_block() {
   return current_pid;
 }
 
+
 int sched_tick() {
   // si es el IDLE task devolvemos inmediatamente la que sigue
   if (current_pid == 0){
@@ -112,10 +113,12 @@ int sched_tick() {
   }
 
   // Si no es IDLE Task
-  if (--quantum == 0){
+  /*if (--quantum == 0){
     quantum = 10;
-    current_pid = tasks[current_pid].next;
-  }
+    //para probar vuelvo al idle task...
+    //current_pid = tasks[current_pid].next;
+    current_pid = 0;
+  }*/
   return current_pid;
 }
 

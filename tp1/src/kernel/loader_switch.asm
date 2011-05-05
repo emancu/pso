@@ -3,7 +3,8 @@
 
 GLOBAL task_ret
 task_ret:
-    iret
+;xchg bx,bx
+    ret
 
 
 
@@ -11,6 +12,7 @@ extern cur_pid
 extern task_table
 GLOBAL loader_switchto
 loader_switchto:
+    xchg bx,bx
     push ebp
     mov ebp, esp
 
@@ -21,7 +23,7 @@ loader_switchto:
 
     mov esi, [ebp+8]; traemos el pid a switchear
 
-    xchg bx,bx
+
     ;mov ecx, [cur_pid]
     mov eax, [cur_pid]
     mov edx, 16 ; sizeof(*task_table)
@@ -37,9 +39,9 @@ loader_switchto:
     mov eax, [eax]
     mov cr3, eax
 
-    xchg bx,bx
+    ;xchg bx,bx
     mov edx, 16 ; sizeof(*task_table)
-    mov eax, [cur_pid]
+    mov eax, esi
     mul edx ;
     lea eax, [task_table+eax+12] ; new ESP
 

@@ -64,18 +64,24 @@ pid loader_load(pso_file* f, int pl) {
     //inicializamos la pila de nivel 0 para que tenga el contexto para
     //poder volver del switchto
     uint_32* stack0 = (uint_32*) 0xFFFFFFFC;
-    *stack0-- = 0x0;
-    *stack0-- = 0x0;
-    *stack0-- = 0x0;
-    *stack0-- = resp();
-    *stack0-- = (uint_32) &task_ret;
-    *stack0-- = (uint_32) f->_main;
-    *stack0-- = 0x1A;
-    *stack0-- = 0x202;
-    *stack0-- = resp();
     *stack0-- = 0x18;
+    *stack0-- = resp();
+    *stack0-- = 0x202;
+    *stack0-- = 0x1A;
+    *stack0-- = (uint_32) f->_main;
+    *stack0-- = (uint_32) &task_ret;
+    *stack0-- = resp();
+    *stack0-- = 0x0;
+    *stack0-- = 0x0;
+    *stack0-- = 0x0;
+    printf("STACKK: %x" , (uint_32) stack0);
 
 
+
+
+
+
+    printf("RETORNOOO: %x" , (uint_32) &task_ret);
     //mapeo la direccion virtual 0x00400000 en la pagina que recien se me asigno.
     mm_page_map((uint_32)f->mem_start, task_dir, (uint_32)puntero_page_tarea, 0, USR_STD_ATTR);
 
@@ -90,9 +96,9 @@ pid loader_load(pso_file* f, int pl) {
 
     //tengo que armar la estreuctura
     uint_32 requested_pid = get_pid();
-    printf("pid: %d" , requested_pid);
     task_table[requested_pid].cr3 = (uint_32) task_dir;
-    printf("task 1: %x", &task_table[requested_pid]);
+    task_table[requested_pid].esp0 = 0xFFFFFFD8;
+
     //lo apunto al final de la pila
     //ptr_context.esp = 0x00402000;
     //ptr_context.esp0 = 0x00403000;

@@ -6,6 +6,7 @@
 #define SYS_INT 0x30
 
 uint_32 syscall_list[128];
+//esta es la syscal para hacer un llamado a una funcion del kernel.
 extern void isr_syscall();
 
 //todo alemata PARA QUE ESTA LA DEFINICION ACA... YA ESTA EN mm.h

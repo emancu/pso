@@ -35,7 +35,7 @@ isr_dkp_e isr_13_XM, 19
 [GLOBAL isr_syscall]
 isr_syscall:
   ;para debug?? SACAR!!
-  xchg bx, bx
+  ;xchg bx, bx
   lea eax, [syscall_list+eax*4]
   mov eax, [eax]
   mov [syscall_dir], eax

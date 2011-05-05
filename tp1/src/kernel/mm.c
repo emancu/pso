@@ -303,7 +303,7 @@ void mm_init(void) {
     //Testeo la syscall
     // breakpoint();
     // temp1 = palloc();
-    palloc();
+    //palloc();
     // printf("palloc() = %x", temp1);
     // mm_page_free((uint_32)temp1, (mm_page*)rcr3());
     // mm_dir_unmap((uint_32)temp1, (mm_page*)rcr3());
