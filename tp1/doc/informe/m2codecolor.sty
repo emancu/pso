@@ -1,0 +1,81 @@
+\ProvidesPackage{m2codecolor}
+
+\lstset{ %
+language=C,                % choose the language of the code
+basicstyle=\small\ttfamily,       % the size of the fonts that are used for the code
+numbers=left,                   % where to put the line-numbers
+numberstyle=\scriptsize\ttfamily,      % the size of the fonts that are used for the line-numbers
+stepnumber=5,                   % the step between two line-numbers. If it's 1 each line will be numbered
+numbersep=5pt,                  % how far the line-numbers are from the code
+backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+commentstyle=\color{navyblue},
+showspaces=false,               % show spaces adding particular underscores
+showstringspaces=false,         % underline spaces within strings
+stringstyle=\color{mahogany},
+keywordstyle=\color{olivegreen},
+showtabs=false,                 % show tabs within strings adding particular underscores
+frame=single,	                % adds a frame around the code
+tabsize=2,	                % sets default tabsize to 2 spaces
+captionpos=b,                   % sets the caption-position to bottom
+breaklines=true,
+breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+xleftmargin = 15mm,
+xrightmargin = 15mm
+%title=\lstname,                 % show the filename of files included with \lstinputlisting; also try caption instead of title
+%escapeinside={\%*}{*)}          % if you want to add a comment within your code
+%morekeywords={*,...}            % if you want to add more keywords to the set
+}
+
+\lstdefinelanguage[m2]{C}{
+morekeywords={[1]for,if,while,do,else,case,default,switch},
+morekeywords={[2]float,double,bool,char,int,short,long,sizeof,enum,void,static,const,struct,union,typedef,extern},
+morekeywords={[3]goto,continue,break,return},
+%morekeywords={[4]\#define},
+keywordstyle={[1]\bfseries\color{royalpurple}},
+keywordstyle={[2]\color{olivegreen}},
+keywordstyle={[3]\color{blue}},
+%keywordstyle={[4]\color{cadetblue}},
+morecomment=[l][\color{navyblue}]//,
+morecomment=[l][\color{cadetblue}]\#,
+morecomment=[s][\color{navyblue}]{/*}{*/},
+morecomment=[s][\color{tearblue}]{__}{;},
+morestring=[b][\color{grey}]\",
+morestring=[b][\color{grey}]'
+}
+
+\lstdefinelanguage[m2]{Assembler}{
+morekeywords={[1]mov, xor, cmovz, inc, dec, jmp, jz, jnz, je, jne, jg, jl, jge, jle, push, pop, call, add, sub, mul, ret, sal, shl, sar, shr, cmp,
+psllq, shufps, divps, mulps},
+morekeywords={[2]extern,section,db,dw,dd},
+morekeywords={[3]byte, word, doubleword},
+morekeywords={[4]eax, ebx, ecx, esi, edi, esp, ebp, si, di, ax, bx, cx},
+keywordstyle={[1]\bfseries\color{royalpurple}},
+keywordstyle={[2]\color{olivegreen}},
+keywordstyle={[3]\color{blue}},
+keywordstyle={[4]\color{cadetblue}},
+morecomment=[l][\color{navyblue}];,
+morecomment=[l][\color{cadetblue}]\%,
+morecomment=[s][\color{navyblue}]{/*}{*/},
+morestring=[b][\color{grey}]\",
+morestring=[b][\color{grey}]',
+morecomment=[l][\color{red}].,
+%morecomment=[s][\color{red}]{)}{:}
+}
+\lstdefinelanguage[m2macros]{Assembler}{
+morekeywords={[1]mov, xor, cmovz, inc, dec, jmp, jz, jnz, je, jne, jg, jl, jge, jle, push, pop, call, add, sub, mul, ret, sal, shl, sar, shr, cmp},
+morekeywords={[2]extern,section,db,dw,dd},
+morekeywords={[3]byte, word, doubleword},
+morekeywords={[4]eax, ebx, ecx, esi, edi, edx, esp, ebp, si, di, ax, bx, cx, dx},
+keywordstyle={[1]\bfseries\color{royalpurple}},
+keywordstyle={[2]\color{olivegreen}},
+keywordstyle={[3]\color{blue}},
+keywordstyle={[4]\color{cadetblue}},
+morecomment=[l][\color{navyblue}];,
+morecomment=[l][\color{cadetblue}]\%,
+morecomment=[l][\color{cadetblue}]\#,
+morecomment=[s][\color{navyblue}]{/*}{*/},
+morestring=[b][\color{grey}]\",
+morestring=[b][\color{grey}]',
+morecomment=[l][\color{yellow}].,
+morecomment=[s][\color{red}]{\\}{:}
+}
