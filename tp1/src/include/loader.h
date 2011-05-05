@@ -11,44 +11,37 @@
 #ifdef __KERNEL__
 
 typedef struct str_task {
-	int next;
-	int prev;
-	uint_32 cr3;
-	uint_32 esp0;
+  int next;
+  int prev;
+  uint_32 cr3;
+  uint_32 esp0;
 } task;
 
+/* Variables */
 extern task task_table[];
 extern uint_32 cur_pid;
 
-
+/* Funciones */
 void loader_init(void);
-pid loader_load(pso_file* f, int pl);
 
+pid loader_load(pso_file* f, int pl);
 void loader_enqueue(int* cola);
 void loader_unqueue(int* cola);
-
 extern void loader_switchto(pid pd);
 extern void task_ret(void);
-
 void loader_tick();
 void loader_exit(void);
 
-uint_32 get_pid(void);
+uint_32 get_new_pid(void);
 void free_pid(uint_32);
 
 /* Syscalls */
 uint_32 getpid(void);
-void exit(pid pd);
-
-
 uint_32 sys_getpid(void);
-void sys_exit(pid pd);
 
+void exit(void);
+void sys_exit(void);
 
 
 #endif
-
-
-
-
 #endif

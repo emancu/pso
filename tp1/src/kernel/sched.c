@@ -43,7 +43,6 @@ void sched_load(pid pd) {
   }
   last = pd;
   tasks[pd].state = STATE_RUNNING;
-
 }
 
 void sched_unblock(pid pd) {
