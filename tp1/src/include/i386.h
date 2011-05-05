@@ -42,6 +42,9 @@ LS_INLINE uint_32 rcr3(void);
 LS_INLINE void lcr4(uint_32 val);
 LS_INLINE uint_32 rcr4(void);
 
+LS_INLINE uint_32 rcr4(void);
+
+
 /* Register functions*/
 LS_INLINE uint_32 rcs(void);
 LS_INLINE uint_32 res(void);
@@ -55,6 +58,10 @@ LS_INLINE uint_64 read_tsc();
 LS_INLINE void ltr(uint_16 sel);
 LS_INLINE uint_16 rtr(void);
 LS_INLINE void hlt(void);
+
+/*Registers*/
+LS_INLINE uint_32 resp(void);
+LS_INLINE uint_32 rebp(void);
 
 
 
@@ -308,5 +315,19 @@ LS_INLINE uint_32 rss(void) {
   __asm __volatile("mov %%ss, %0" : "=r" (val));
   return val;
 }
+
+
+
+LS_INLINE uint_32 resp(void) {
+  uint_32 val;
+  __asm __volatile("movl %%esp,%0" : "=r" (val));
+  return val;
+}
+LS_INLINE uint_32 rebp(void) {
+  uint_32 val;
+  __asm __volatile("movl %%ebp,%0" : "=r" (val));
+  return val;
+}
+
 
 #endif

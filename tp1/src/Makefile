@@ -26,7 +26,7 @@ BIN_BOOT=$(DIRBOOT)floppyboot.bin
 OBJS_KERN=kernel/kinit.o kernel/a20.o kernel/kernel.o kernel/gdt.o kernel/idt.o \
   kernel/isr.o kernel/pic.o kernel/vga.o kernel/sched.o \
   kernel/mm.o kernel/debug.o kernel/loader.o kernel/tasks.o \
-  kernel/syscalls.o kernel/sem.o kernel/lib_str.o kernel/klib_machine.o kernel/tss.o
+  kernel/syscalls.o kernel/sem.o kernel/lib_str.o kernel/klib_machine.o kernel/tss.o kernel/loader_switch.o
 BIN_KERN=$(DIROUT)kernel.bin
 DUMP_KERN=$(DIROUT)kernel.bin.asm $(DIROUT)kernel.bin.elf $(DIROUT)kernel.bin.dbg
 SYM_KERN=$(DIROUT)kernel.sym

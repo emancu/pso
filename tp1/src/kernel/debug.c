@@ -4,6 +4,7 @@
 #include <mm.h>
 #include <sched.h>
 #include <i386.h>
+#include <loader.h>
 
 const char* exp_name[] = {
   "Divide Error",
@@ -56,20 +57,20 @@ void print_expst(const exp_state* expst) {
 void print_stack(uint_32 f, uint_32 c, uint_32 dwords, uint_32 cols, const uint_32* stack) {
   uint_32 col_count = 0;
   int i = 0, j = 0;
-  
+
   vga_write(f, c, "Stack:", VGA_BC_GREEN | VGA_FC_WHITE | VGA_FC_LIGHT);
   vga_printf(f, c+6, " %x", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, (uint_32)stack);
-  
+
   col_count = c;
   for (i = 0; i < dwords; i++) {
     if (i%cols == 0) {
       f++;
       col_count = 1+ c + (VGA_HEX_MAX_WIDTH+1)*cols;
-      for (j = i; j < i+cols*8; j++) //Imprimo en formato caracter 
+      for (j = i; j < i+cols*8; j++) //Imprimo en formato caracter
         vga_printf(f, col_count++, "%c", VGA_BC_BLACK | VGA_FC_BLUE | VGA_FC_LIGHT, ((char*) stack)[i*8+j]);
       col_count = c;
     }
-    vga_printf(f, col_count, "%x", VGA_FC_WHITE | VGA_BC_BLACK | VGA_FC_LIGHT, stack[i]); //Imprimo de a ints en hexa 
+    vga_printf(f, col_count, "%x", VGA_FC_WHITE | VGA_BC_BLACK | VGA_FC_LIGHT, stack[i]); //Imprimo de a ints en hexa
     col_count += VGA_HEX_MAX_WIDTH+1;
   }
 }
@@ -138,6 +139,9 @@ void isr_timerTick_c() {
     char clock[] = {'\\', '-', '/', '|'};
     if (!in_panic) {
       vga_printf(vga_rows-1, vga_cols-1, "%c", VGA_BC_BLACK | VGA_FC_GREEN | VGA_FC_LIGHT ,clock[tick++%4]);
+
+      loader_tick();
+
       outb(0x20,0x20);
     } else
       vga_printf(vga_rows-1, vga_cols-2, "!H", VGA_FC_BLACK | VGA_BC_RED);

@@ -173,7 +173,7 @@ void mm_dir_unmap(uint_32 virtual, mm_page* cr3) {
 void* sys_palloc() {
   //Primero busco la dirección virtual donde voy a mappear (la primera página virtual no ocupada)
   // para saber si voy necesitar una página de kernel.
-  mm_page* dir = (mm_page*)rcr3();
+  /*mm_page* dir = (mm_page*)rcr3();
   mm_page* table;
   void* kernel_page;
   void* usr_page = mm_mem_alloc();
@@ -212,6 +212,9 @@ void* sys_palloc() {
     }
   }
   return NULL; // Se llega aquí si el mapa de memoria del cr3 actual está completo
+  */
+  printf("champions");
+  return NULL;
 }
 
 extern void* _end; // Puntero al fin del c'odigo del kernel.bin (definido por LD).
