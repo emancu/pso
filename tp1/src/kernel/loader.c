@@ -10,9 +10,6 @@ uint_32 cur_pid;
 static int free_pids[MAX_PID];
 static int next_free;
 
-void idle_task() {
-    while(1) hlt();
-}
 
 void loader_init(void) {
     int i;
@@ -23,8 +20,12 @@ void loader_init(void) {
     //hay que generar la tarea actual.. que dps se convierte en idle
     task_table[0].cr3= rcr3();
 
-    next_free = 0;
+    next_free = 1;
     cur_pid = 0;
+
+    //registro las syscalls (UNIFICAR UN LUGAR O CADA UNA EN SU MODULO)
+    syscall_list[0x31] = (uint_32) &sys_getpid;
+    syscall_list[0x32] = (uint_32) &sys_exit;
 }
 
 pid loader_load(pso_file* f, int pl) {
@@ -74,7 +75,6 @@ pid loader_load(pso_file* f, int pl) {
     *stack0-- = resp();
     *stack0-- = 0x18;
 
-    breakpoint();
 
     //mapeo la direccion virtual 0x00400000 en la pagina que recien se me asigno.
     mm_page_map((uint_32)f->mem_start, task_dir, (uint_32)puntero_page_tarea, 0, USR_STD_ATTR);
@@ -143,7 +143,7 @@ void loader_unqueue(int* cola) {
 void loader_exit(void) {
 
     mm_dir_free((mm_page*) task_table[cur_pid].cr3);
-    //todo falta liberar de las colas
+    //TODO FALTA LIBERAR LAS COLAS!!!!!!!!
 
     loader_switchto(sched_exit());
     //free_pid();
@@ -159,3 +159,21 @@ void free_pid(uint_32 pid){
   free_pids[pid] = next_free;
   next_free = pid;
 }
+
+//syscalls
+uint_32 sys_getpid(void){
+    return cur_pid;
+}
+
+void sys_exit(pid pd){
+    //NO SE PARA QUE ES EL PD SI HAY QUE DESALOJAR LA TAREA ACTUAL...
+    loader_exit();
+}
+
+
+
+
+
+
+
+

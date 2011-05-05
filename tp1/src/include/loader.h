@@ -36,10 +36,19 @@ void loader_exit(void);
 uint_32 get_pid(void);
 void free_pid(uint_32);
 
+/* Syscalls */
+uint_32 getpid(void);
+void exit(pid pd);
+
+
+uint_32 sys_getpid(void);
+void sys_exit(pid pd);
+
+
+
 #endif
 
-/* Syscalls */
-// pid getpid(void);
-// void exit(pid pd);
+
+
 
 #endif

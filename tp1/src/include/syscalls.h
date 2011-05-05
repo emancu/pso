@@ -7,6 +7,8 @@
 
 uint_32 syscall_list[128];
 extern void isr_syscall();
+
+//todo alemata PARA QUE ESTA LA DEFINICION ACA... YA ESTA EN mm.h
 extern void* palloc();
 
 #ifdef __KERNEL__

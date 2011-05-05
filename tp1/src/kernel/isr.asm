@@ -1,6 +1,6 @@
 [bits 32]
 
-syscall_dir: resq 1 
+syscall_dir: resq 1
 
 %include "interrupt.mac"
 
@@ -34,6 +34,7 @@ isr_dkp_e isr_13_XM, 19
 [EXTERN syscall_list]
 [GLOBAL isr_syscall]
 isr_syscall:
+  ;para debug?? SACAR!!
   xchg bx, bx
   lea eax, [syscall_list+eax*4]
   mov eax, [eax]
