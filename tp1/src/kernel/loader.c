@@ -31,7 +31,7 @@ void loader_init(void) {
 pid loader_load(pso_file* f, int pl) {
     //ver cuanta memoria nesecita
     uint_32 old_cr3 = rcr3();
-    printf("old cr3: %x", old_cr3);
+    //printf("old cr3: %x", old_cr3);
 
     //solo para testiar le cambie el signature
     if(pl == 1){
@@ -39,12 +39,12 @@ pid loader_load(pso_file* f, int pl) {
         f->signature[1] = 'L';
         f->signature[2] = 'E';
     }
-    printf("f apunta a: %x" , f);
-    printf("sign: %s", f->signature);
-    printf("mem_start: %x", f->mem_start);
-    printf("mem_end_disk: %x", f->mem_end_disk);
-    printf("mem_end: %x", f->mem_end);
-    printf("main entry: %x", f->_main);
+    //printf("f apunta a: %x" , f);
+    //printf("sign: %s", f->signature);
+    //printf("mem_start: %x", f->mem_start);
+    //printf("mem_end_disk: %x", f->mem_end_disk);
+    //printf("mem_end: %x", f->mem_end);
+    //printf("main entry: %x", f->_main);
 
     //pido un directorio para la nueva tarea
     void* task_dir = mm_dir_new();
@@ -64,6 +64,7 @@ pid loader_load(pso_file* f, int pl) {
     //inicializamos la pila de nivel 0 para que tenga el contexto para
     //poder volver del switchto
     uint_32* stack0 = (uint_32*) 0xFFFFFFFC;
+    //TODO ALEMATA HAY QUE REVISAR ESTOS ULTIMOS
     *stack0-- = 0x18;
     *stack0-- = resp();
     *stack0-- = 0x202;
@@ -74,14 +75,6 @@ pid loader_load(pso_file* f, int pl) {
     *stack0-- = 0x0;
     *stack0-- = 0x0;
     *stack0-- = 0x0;
-    printf("STACKK: %x" , (uint_32) stack0);
-
-
-
-
-
-
-    printf("RETORNOOO: %x" , (uint_32) &task_ret);
     //mapeo la direccion virtual 0x00400000 en la pagina que recien se me asigno.
     mm_page_map((uint_32)f->mem_start, task_dir, (uint_32)puntero_page_tarea, 0, USR_STD_ATTR);
 
@@ -98,6 +91,7 @@ pid loader_load(pso_file* f, int pl) {
     uint_32 requested_pid = get_pid();
     task_table[requested_pid].cr3 = (uint_32) task_dir;
     task_table[requested_pid].esp0 = 0xFFFFFFD8;
+    printf("requested pid: %d", requested_pid);
 
     //lo apunto al final de la pila
     //ptr_context.esp = 0x00402000;
@@ -117,9 +111,10 @@ pid loader_load(pso_file* f, int pl) {
 
 
 void loader_tick(){
+    //printf("entre a cambiarrrrrr");
     int new_current_pid = sched_tick();
     if(new_current_pid != cur_pid){
-        printf("entre a switch current = %d" , new_current_pid);
+        //printf("entre a switch current = %d" , new_current_pid);
         loader_switchto(new_current_pid);
     }
 }
@@ -168,6 +163,7 @@ void free_pid(uint_32 pid){
 
 //syscalls
 uint_32 sys_getpid(void){
+    //printf("me pidieron un pid");
     return cur_pid;
 }
 

@@ -12,7 +12,7 @@ extern cur_pid
 extern task_table
 GLOBAL loader_switchto
 loader_switchto:
-    xchg bx,bx
+    ;xchg bx,bx
     push ebp
     mov ebp, esp
 

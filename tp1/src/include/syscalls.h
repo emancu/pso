@@ -11,6 +11,7 @@ extern void isr_syscall();
 
 //todo alemata PARA QUE ESTA LA DEFINICION ACA... YA ESTA EN mm.h
 extern void* palloc();
+extern uint_32 getpid();
 
 #ifdef __KERNEL__
 

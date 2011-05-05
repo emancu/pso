@@ -1,6 +1,8 @@
 #include <tipos.h>
 #include <gdt.h>
 #include <tss.h>
+#include <i386.h>
+
 
 /* Macro para crear una entrada de la GDT dando base(32), limit(20) y attr(12). */
 #define make_gdt_entry(base, limit, attr) \
@@ -36,5 +38,5 @@ void gdt_init(void) {
   gdt[5] = make_gdt_entry(&tss_entry, sizeof(tss), GDT_ATTR_P | GDT_ATTR_DPL0 | GDT_ATTR_TYPE_TSS); // TSS
 
   //todo ALEMATA hay que cargar esto
-  //ltr()
+  ltr(0x28);
 }

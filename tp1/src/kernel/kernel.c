@@ -14,7 +14,7 @@
 
 extern void* _end;
 extern pso_file task_task1_pso;
-//extern pso_file task_task2_pso;
+extern pso_file task_task2_pso;
 
 /* Entry-point del modo protegido luego de cargar los registros de
  * segmento y armar un stack */
@@ -29,7 +29,7 @@ void kernel_init(void) {
   loader_init();
   //printf("task_init: %x" , &task_task1_pso);
   loader_load(&task_task1_pso,0);
-  //loader_load(&task_task2_pso,1);
+  loader_load(&task_task2_pso,1);
 
   sti();
   return;

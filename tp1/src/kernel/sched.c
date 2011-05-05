@@ -43,6 +43,7 @@ void sched_load(pid pd) {
   }
   last = pd;
   tasks[pd].state = STATE_RUNNING;
+
 }
 
 void sched_unblock(pid pd) {
@@ -101,24 +102,21 @@ int sched_block() {
   return current_pid;
 }
 
-
 int sched_tick() {
   // si es el IDLE task devolvemos inmediatamente la que sigue
   if (current_pid == 0){
     if (last != 0){
-      quantum = 10;
+      quantum = 1;
       current_pid = last;
     }
     return current_pid;
   }
 
   // Si no es IDLE Task
-  /*if (--quantum == 0){
-    quantum = 10;
-    //para probar vuelvo al idle task...
-    //current_pid = tasks[current_pid].next;
-    current_pid = 0;
-  }*/
+  if (--quantum == 0){
+    quantum = 1;
+    current_pid = tasks[current_pid].next;
+  }
   return current_pid;
 }
 

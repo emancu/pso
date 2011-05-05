@@ -213,7 +213,7 @@ void* sys_palloc() {
   }
   return NULL; // Se llega aquí si el mapa de memoria del cr3 actual está completo
   */
-  printf("champions");
+  printf("LLAMARON A PALLOC");
   return NULL;
 }
 
