@@ -4,6 +4,11 @@
 GLOBAL task_ret
 task_ret:
 ;xchg bx, bx
+    mov eax, 0x23
+    mov ds, ax
+    mov es, ax
+    mov gs, ax
+    mov fs, ax
     iret
 
 
@@ -14,7 +19,7 @@ extern cur_pid
 extern task_table
 GLOBAL loader_switchto
 loader_switchto:
-    xchg bx,bx
+    ;xchg bx,bx
     push ebp
     mov ebp, esp
 

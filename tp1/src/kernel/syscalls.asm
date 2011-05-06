@@ -8,8 +8,9 @@
 %1:
 [EXTERN sys_%1]
 [GLOBAL %1]
-;  pushad
+ ; pushad
   mov eax, %2
+  ;xchg bx, bx
   int 0x30
 ;  popad
   ret

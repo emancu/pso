@@ -61,14 +61,14 @@ pid loader_load(pso_file* f, int pl) {
 
     //ver esto donde van mapeados los stacks
     mm_page_map(0x00401000, task_dir, (uint_32)task_stack3, 0, USR_STD_ATTR);
-    mm_page_map(0xFFFFF000, task_dir, (uint_32)task_stack0, 0, 0x2);
+    mm_page_map(0xFFFFF000, task_dir, (uint_32)task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
 
     //inicializamos la pila de nivel 0 para que tenga el contexto para
     //poder volver del switchto
     uint_32* stack0 = (uint_32*) 0xFFFFFFFC;
     //TODO ALEMATA HAY QUE REVISAR ESTOS ULTIMOS
     *stack0-- = 0x23;
-    *stack0-- = resp();
+    *stack0-- = 0x00402000;//resp();
     *stack0-- = 0x202;
     *stack0-- = 0x1B;
     *stack0-- = (uint_32) f->_main;
@@ -169,8 +169,8 @@ void free_pid(uint_32 pid){
  */
 
 uint_32 sys_getpid(void){
-    breakpoint();
-    printf("me pidieron un pid");
+    //breakpoint();
+    //printf("me pidieron un pid");
     return cur_pid;
 }
 

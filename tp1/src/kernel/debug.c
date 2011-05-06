@@ -137,20 +137,23 @@ void debug_init(void) {
 int i = 0;
 
 void isr_timerTick_c() {
+    //breakpoint();
+    outb(0x20,0x20);
     // printf("Tick! %d \n", tick++);
     char clock[] = {'\\', '-', '/', '|'};
     if (!in_panic) {
       vga_printf(vga_rows-1, vga_cols-1, "%c", VGA_BC_BLACK | VGA_FC_GREEN | VGA_FC_LIGHT ,clock[tick++%4]);
       i++;
-      if(i == 50){
-          printf("entre a cambiarrrrrr");
-      loader_tick();
-      i = 0;
+      if(i == 30){
+        printf("cambio de tarea");
+        i = 0;
+        loader_tick();
       }
-
-      outb(0x20,0x20);
     } else
       vga_printf(vga_rows-1, vga_cols-2, "!H", VGA_FC_BLACK | VGA_BC_RED);
+
+    outb(0x20,0x20);
+
 }
 
 void isr_keyboard_c() {
