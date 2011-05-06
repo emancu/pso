@@ -37,12 +37,13 @@ void idt_init(void) {
     pic_enable();
 
     //Registro la isr_syscall
-    idt_register(SYS_INT, &isr_syscall, 0);
+    idt_register(SYS_INT, &isr_syscall, 3);
   return;
 }
 
 void idt_register(int intr, void (*isr)(void), int pl ) {
     int dpl = (pl == 3)? IDT_ATTR_DPL3 : IDT_ATTR_DPL0;
-    int sel = (pl == 3)? (3 << 3) : (1 << 3);
+    //int sel = (pl == 3)? (3 << 3) : (1 << 3);
+    int sel = 0x08;
     idt[intr] = make_idt_entry(isr, sel, IDT_INT | dpl);
 }

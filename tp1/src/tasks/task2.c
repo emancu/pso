@@ -3,7 +3,7 @@
 
 int main(void) {
 	while (1){
-	    palloc();
+	    getpid();
 	}
 	// void* p = palloc();
 	return 0;

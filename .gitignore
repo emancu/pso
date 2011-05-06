@@ -12,3 +12,6 @@ deps
 *.log
 *.synctex.gz
 *.toc
+tp1.pdf
+TPPSO/
+.gitignore

@@ -49,23 +49,24 @@ void idt_register(int intr, void (*isr)(void), int pl);
 #define ISR_IRQ15   0x2F		// Secondary IDE
 
 
+
 /* Struct de descriptor de IDT */
 typedef struct str_idt_descriptor {
-	unsigned short idt_length;
-	unsigned int idt_addr;
+  unsigned short idt_length;
+  unsigned int idt_addr;
 } __attribute__((__packed__)) idt_descriptor;
 
 /* Struct de una entrada de la IDT */
 typedef union str_idt_entry {
-	struct str_idt_entry_vl {
-		unsigned int vl0, vl1;
-	} vl;
-	struct str_idt_entry_fld {
-		unsigned short offset_0;
-		unsigned short segsel;
-		unsigned short attr;
-		unsigned short offset_1;
-	} fld;
+  struct str_idt_entry_vl {
+    unsigned int vl0, vl1;
+  } vl;
+  struct str_idt_entry_fld {
+    unsigned short offset_0;
+    unsigned short segsel;
+    unsigned short attr;
+    unsigned short offset_1;
+  } fld;
 } __attribute__((__packed__, aligned (8))) idt_entry;
 
 extern idt_entry idt[];
