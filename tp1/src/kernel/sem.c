@@ -21,7 +21,7 @@ void sem_signaln(sem_t* s) {
 
 void sem_broadcast(sem_t* s) {
   while (s->q != -1) {
-    loader_unqueue((int*)&(s->q);
+    loader_unqueue((int*)&(s->q));
   }
   s->vl = 1; //Lo dejo en 1 para que pueda haber un nuevo acceso.
 }
