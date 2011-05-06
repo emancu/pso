@@ -155,6 +155,21 @@ Finalmente, este módulo posee la función \func{void* sys\_palloc()} que es lla
 
 En \func{mm\_init()} se realizan testeos de todas las funciones nombradas anteriormente. Todas verificaciones imprimen en pantalla. La verificaciones se encuentran comentadas. 
 
+\subsection{Scheduler}
+El módulo de scheduler es el algoritmo encargado de decidir cual será la próxima tarea a ejecutarse. Funciona muy relacionado con el módulo \textbf{loader}. El \textbf{scheduler} mantiene un \textit{array} de \textbf{sched-task}. Ésta estructura contiene el estado y dos enteros (next y prev) que sirven para mantener una cola de tareas sobre un \textit{array}.
+En esta cola, sólo mantenemos enlazadas a las tareas que están en estado \textit{RUNNING}.
+Además de la cola, el módulo lleva una cuenta del quantum consumido por la tarea actual, el \textbf{pid} de la misma y el indice del ultimo elemento de la cola.
+
+\subsection{Loader}
+El módulo del loader se encarga de mantener el \textbf{Process Control block}, cambiar el contexto de las tareas, e interactuar con el \textbf{scheduler}.
+Para el \textbf{Process Control block}, creamos una estructura que solo guarda el \textbf{CR3} y el \textbf{ESP0} de la tarea, junto con dos indices (prev y next) para armar las colas donde las tareas se bloquearan.
+Para administrar los \textbf{pids} tenemos una cola de los libres, así el próximo lo obtenemos en \textbf{O}(1).
+El \textbf{loader} es el módulo que inicializa las tareas, las bloquea, desbloquea y las termina dentro del sistema operativo.
+
+Este módulo también define las syscalls \textbf{getpid} y \textbf{exit}.
+
+\textbf{<#text#>}
+
 \subsection{Syscalls}
 
 Los archivos \file{syscalls.h} y \file{syscalls.asm} proveen las herramientas para el registro de las llamadas al sistema provistas por el kernel. Las syscalls suelen hacerse mediante interrupciones ya que es un método que nos provee el procesador para cambiar de nivel de privilegio. Nosotros decidimos mantener esta idea y además, para independizarnos de la cantidad de interrupciones posibles en el procesador, las syscalls fueron vectorizadas a dentro de la interrupción \func{0x30}. Esto es, acceder a una syscall particular significa hacer por software la interrupción \func{0x30} teniendo en el registro \func{eax} el número de la syscall a acceder. Este proceso se envuelve en una serie de funciones declaradas en \file{syscalls.h}, cuya verdadera implementación se encuentra en \file{syscalls.asm} y realizan las acciones descriptas anteriormente. La interrupción \func{0x30} está conectada a la isr \func{isr\_syscall} (en \file{isr.asm}), encargada del proceso de vectorización. El vector que relaciona el número de syscall con una función se encuentra en \file{syscalls.h}. Este vector debe ser llenado por la inicialización de los distintos módulos que exporten syscalls en la posición correspondiente con la dirección de la función llamada. 

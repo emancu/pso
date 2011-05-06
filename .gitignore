@@ -6,3 +6,9 @@ tmp
 parport.out
 bochsout.txt
 deps
+*.aux
+*.bbl
+*.blg
+*.log
+*.synctex.gz
+*.toc
