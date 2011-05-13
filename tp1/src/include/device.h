@@ -3,6 +3,11 @@
 
 #include <tipos.h>
 
+
+//IDs de tipos de device
+#define DEV_ID_PROC_CPUID 0xA
+#define MAX_FL 32
+
 /* Devices */
 typedef struct str_dev device;
 typedef uint_32(dev_flush_t)(device* this);
@@ -52,12 +57,27 @@ void device_init(void);
 
 int device_descriptor(chardev* dev);
 
+
+uint_32 get_next_free_fd_for_current_task();
+
+
+
 // Syscalls
-/*
 int read(int fd, void* buf, uint_32 size);
+int sys_read(int fd, void* buf, uint_32 size);
+
 int write(int fd, const void* buf, uint_32 size);
+int sys_write(int fd,const void* buf, uint_32 size);
+
 int seek(int fd, uint_32 size);
+int sys_seek(int fd, uint_32 size);
+
 int close(int fd);
-*/
+int sys_close(int fd);
+
+
+uint_32 get_new_file_descriptor(void);
+void do_free_file_descriptor(uint_32);
+
 
 #endif

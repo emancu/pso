@@ -10,7 +10,9 @@
 #define FS_OPEN_RDWR     0x0003
 
 // Syscalls
-// int open(const char*, uint_32)
+int open(const char*, uint_32);
+int sys_open(const char*, uint_32);
+
 
 #ifdef __KERNEL__
 
