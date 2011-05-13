@@ -2,8 +2,9 @@
 
 
 int main(void) {
+	open("/console", 0x3);
+	open("/console", 0x3);
 	while (1){
-	    getpid();
 	}
 	// void* p = palloc();
 	return 0;

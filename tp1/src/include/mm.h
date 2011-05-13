@@ -93,19 +93,19 @@ uint_32* memory_detect(uint_32* start, const uint_32 jump);
 
 /* Funciones de tablas y directorios de páginas */
 
-//Esta funcion mapea la direccion virtual 'virtual' a la direccion fisica 'fisica' en el directorio dado por 'cr3'. 
-//Si 'page_size' = 0 mapea usando paginas de 4kb, recorriendo el segundo nivel de la estructura y pidiendo a kernel una nueva pagina de ser necesario. 
+//Esta funcion mapea la direccion virtual 'virtual' a la direccion fisica 'fisica' en el directorio dado por 'cr3'.
+//Si 'page_size' = 0 mapea usando paginas de 4kb, recorriendo el segundo nivel de la estructura y pidiendo a kernel una nueva pagina de ser necesario.
 //Si el kernel no tiene mas paginas falla, devolviendo NULL. En caso de ser exitoso devuelve la dirección de la tabla/directorio de página donde se hizo el mapeo.
 void* mm_page_map(uint_32 virtual, mm_page* cr3, uint_32 fisica, uint_32 page_size, uint_32 attr);
 
 
-//Se encarga de invalidar la entrada en la tabla de páginas a la que se llega mediante la dirección virtual 
+//Se encarga de invalidar la entrada en la tabla de páginas a la que se llega mediante la dirección virtual
 //parámetro utilizando cr3 como dirección de la tabla de directorios. Devuelve la dirección del page_frame liberado.
 //!!Asume que cr3 apunta a una tabla de directorios válida
 void* mm_page_free(uint_32 virtual, mm_page* cr3);
 
 //Se encarga de invalidar la entrada en el directorio de páginas ('cr3') direccionada por la dirección virtual.
-//No se toma cuidado de que la tabla inferior se deshabilite. 
+//No se toma cuidado de que la tabla inferior se deshabilite.
 //!! Asume que el cr3 apunta a un directorio válido
 void mm_dir_unmap(uint_32 virtual, mm_page* cr3);
 
@@ -113,9 +113,9 @@ void mm_dir_unmap(uint_32 virtual, mm_page* cr3);
 // Esta es la función de sistema que implementa la funcionalidad de la syscall 'palloc'
 // La función busca un marco de página libre en memoria de usuario y lo mapea al cr3 actual.
 // La función puede fallar si no hay page frames libres de usuario o si no hay un page frame
-// libre de kernel que se requiere para crear una nueva tabla de páginas en el directorio 
+// libre de kernel que se requiere para crear una nueva tabla de páginas en el directorio
 // de la tarea actual. En caso de fallar devuelve NULL, sino devuelve la dirección virtual
-// a la que fue mapeado el marco. 
+// a la que fue mapeado el marco.
 void* sys_palloc();
 #endif
 

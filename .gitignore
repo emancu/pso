@@ -15,3 +15,5 @@ deps
 tp1.pdf
 TPPSO/
 .gitignore
+.cproject
+.project

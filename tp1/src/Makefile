@@ -26,7 +26,8 @@ BIN_BOOT=$(DIRBOOT)floppyboot.bin
 OBJS_KERN=kernel/kinit.o kernel/a20.o kernel/kernel.o kernel/gdt.o kernel/idt.o \
   kernel/isr.o kernel/pic.o kernel/vga.o kernel/sched.o \
   kernel/mm.o kernel/debug.o kernel/loader.o kernel/tasks.o \
-  kernel/syscalls.o kernel/sem.o kernel/lib_str.o kernel/klib_machine.o kernel/tss.o kernel/loader_switch.o
+  kernel/syscalls.o kernel/sem.o kernel/lib_str.o kernel/klib_machine.o kernel/tss.o kernel/loader_switch.o \
+  kernel/device.o kernel/con.o kernel/proc.o kernel/fs.o kernel/serial.o kernel/fat12.o
 BIN_KERN=$(DIROUT)kernel.bin
 DUMP_KERN=$(DIROUT)kernel.bin.asm $(DIROUT)kernel.bin.elf $(DIROUT)kernel.bin.dbg
 SYM_KERN=$(DIROUT)kernel.sym
@@ -107,7 +108,7 @@ clean:
 
 # Dependencias
 deps: Makefile
-	makedepend -I include/ kernel/*.c tasks/*.c $(OBJS_LIB:.o=.c) -f- > deps
+	makedepend -I include/  kernel/*.c  tasks/*.c $(OBJS_LIB:.o=.c) -f- > deps
 	for f in kernel/*.asm; do nasm $(NASMFLAGS) -felf32 -I $(DIRKERN) -M $$f; done >> deps 2>/dev/null
 #	$(CC) $(CFLAGS) -MM kernel/*.c $(OBJS_LIB:.o=.c) > deps
 

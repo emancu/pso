@@ -56,7 +56,7 @@ void printf(const char* fmt, ...) {
 	va_list argp;
 	int amount = 256;
 	va_start(argp, fmt);
-	if (fila == vga_rows) { 
+	if (fila == vga_rows) {
     fila--;
 		move_scr_up();
   }
@@ -77,6 +77,26 @@ void fill_screen(char color, char bright) {
     *video++ = fmt;
   }
 }
+
+void fill_screen_with_memory(uint_8* initial_position) {
+  uint_8* video = vga_addr;
+  uint_8* memory_video = initial_position;
+  while(video < vga_addr + vga_cols*2*vga_rows) {
+    *video++ = *memory_video++;
+    *video++ = *memory_video++;
+  }
+}
+
+void copy_screen_to_memory(uint_8* initial_position) {
+    uint_8* video = vga_addr;
+  uint_8* memory_video = initial_position;
+  while(video < vga_addr + vga_cols*2*vga_rows) {
+    *memory_video++ = *video++;
+    *memory_video++ = *video++;
+  }
+}
+
+
 
 void clear_screen() {
   fill_screen(0,0);

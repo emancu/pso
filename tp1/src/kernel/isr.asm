@@ -35,17 +35,21 @@ isr_dkp_e isr_13_XM, 19
 [GLOBAL isr_syscall]
 isr_syscall:
 
-  ;para debug?? SACAR!!
   ;xchg bx, bx
-  ;mov edx, eax
-  ;mov eax, 0x10
-  ;mov ds, ax
-  ;mov es, ax
-  ;mov gs, ax
-  ;mov fs, ax
-  ;mov eax, edx
+  ;con esto se puede pasar hasta 4 parametros en las syscalls
+  push edi
+  push ebx
+  push ecx
+  push edx
+
+
   lea eax, [syscall_list+eax*4]
   mov eax, [eax]
   mov [syscall_dir], eax
   call [syscall_dir]
+
+  pop edx
+  pop ecx
+  pop ebx
+  pop edi
   iret

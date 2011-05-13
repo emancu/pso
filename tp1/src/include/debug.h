@@ -10,12 +10,12 @@ void debug_init(void);
 void debug_kernelpanic(const uint_32* stack, const exp_state* expst);
 
 /* Prints the stack content in the screen starting at row 'f' and column 'c', writing a total
- * of 'dwords' dwords in 'cols' columns starting from memmory position 'stack' and going 
+ * of 'dwords' dwords in 'cols' columns starting from memmory position 'stack' and going
  * upwards. */
 void print_stack(uint_32 f, uint_32 c, uint_32 dwords, uint_32 cols, const uint_32* stack);
 
 /* Prints the backtrace of 'level' number of cunctions using a starting frame given by 'ebp'.
- * With each call backtraced the function it prints the first 'params' dwords in the stack of 
+ * With each call backtraced the function it prints the first 'params' dwords in the stack of
  * that function call frame. */
 void print_backtrace(uint_32 f, uint_32 c, uint_32 level, uint_32 params, const uint_32 ebp);
 
@@ -47,6 +47,9 @@ extern void isr_13_XM();
 
 extern char exp_msg[];
 extern uint_32 exp_num;
+
+
+
 #include <vga.h>
 #include <i386.h>
 

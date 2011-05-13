@@ -31,6 +31,13 @@ int printf_resolver(uint_16 f, uint_16 c, uint_8 attr, int amount, const char* f
 /*Creates a format byte with the given options.*/
 uint_8 make_format(char blink, char front, char back, char bright);
 
+void fill_screen_with_memory(uint_8* initial_position);
+void copy_screen_to_memory(uint_8* initial_position);
+
+
+
+
+
 /* Paleta de 16 colores */
 #define VGA_FC_BLACK   0x00
 #define VGA_FC_BLUE    0x01
@@ -56,4 +63,7 @@ uint_8 make_format(char blink, char front, char back, char bright);
 #define VGA_HEX_MAX_WIDTH 10
 
 #endif
+
+
+
 

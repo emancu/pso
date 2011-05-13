@@ -13,6 +13,15 @@ extern void isr_syscall();
 extern void* palloc();
 extern uint_32 getpid();
 
+extern int read(int fd, void* buf, uint_32 size);
+extern int write(int fd, const void* buf, uint_32 size);
+extern int seek(int fd, uint_32 size);
+extern int close(int fd);
+
+extern int open(const char* filename, uint_32 flags);
+
+
+
 #ifdef __KERNEL__
 
 // Sólo se compila en modo "kernel"
@@ -25,5 +34,6 @@ extern uint_32 getpid();
 // Declarar los "wrapers" para los syscalls que incluyen las tareas.
 
 #endif
+
 
 #endif

@@ -31,31 +31,18 @@ void loader_init(void) {
 }
 
 pid loader_load(pso_file* f, int pl) {
-    //ver cuanta memoria nesecita
+    //me guardo el cr3 viejo.
     uint_32 old_cr3 = rcr3();
-    //printf("old cr3: %x", old_cr3);
-
-    //solo para testiar le cambie el signature
-    if(pl == 1){
-        f->signature[0] = 'A';
-        f->signature[1] = 'L';
-        f->signature[2] = 'E';
-    }
-    //printf("f apunta a: %x" , f);
-    //printf("sign: %s", f->signature);
-    //printf("mem_start: %x", f->mem_start);
-    //printf("mem_end_disk: %x", f->mem_end_disk);
-    //printf("mem_end: %x", f->mem_end);
-    //printf("main entry: %x", f->_main);
 
     //pido un directorio para la nueva tarea
     void* task_dir = mm_dir_new();
-    //cargo el cr3 con el nuevo directorio. TENGO QUE GUARDAR EL VIEJO!!
+    //cargo el cr3 con el nuevo directorio.
     lcr3((uint_32) task_dir);
 
-    //pido una pagina de 4k para la tarea (hay que sacar cuanto ocupa)
+    //TODO VER CUANTA MEMORIA NESECITA REALMENTE
     void* puntero_page_tarea = mm_mem_alloc();
 
+    //stacks de anillo 3 y 0 para la tarea
     void* task_stack3 = mm_mem_alloc();
     void* task_stack0 = mm_mem_alloc();
 
@@ -66,9 +53,8 @@ pid loader_load(pso_file* f, int pl) {
     //inicializamos la pila de nivel 0 para que tenga el contexto para
     //poder volver del switchto
     uint_32* stack0 = (uint_32*) 0xFFFFFFFC;
-    //TODO ALEMATA HAY QUE REVISAR ESTOS ULTIMOS
     *stack0-- = 0x23;
-    *stack0-- = 0x00402000;//resp();
+    *stack0-- = 0x00402000;
     *stack0-- = 0x202;
     *stack0-- = 0x1B;
     *stack0-- = (uint_32) f->_main;
@@ -95,13 +81,6 @@ pid loader_load(pso_file* f, int pl) {
     task_table[requested_pid].esp0 = 0xFFFFFFD8;
     printf("requested pid: %d", requested_pid);
 
-    //lo apunto al final de la pila
-    //ptr_context.esp = 0x00402000;
-    //ptr_context.esp0 = 0x00403000;
-
-    //ptr_context.ss0 = 0x08; //Segmento de datos de anillo 0
-    //ptr_context.eip = (uint_32) f->_main;
-
     sched_load(requested_pid);
 
     //vuelvo al directorio de la tarea actual
@@ -114,6 +93,7 @@ pid loader_load(pso_file* f, int pl) {
 void loader_tick(){
   int new_current_pid = sched_tick();
   if(new_current_pid != cur_pid){
+    printf("cambio de tarea");
     loader_switchto(new_current_pid);
   }
 }
@@ -169,8 +149,6 @@ void free_pid(uint_32 pid){
  */
 
 uint_32 sys_getpid(void){
-    //breakpoint();
-    //printf("me pidieron un pid");
     return cur_pid;
 }
 

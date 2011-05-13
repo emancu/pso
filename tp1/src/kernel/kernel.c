@@ -8,6 +8,11 @@
 #include <loader.h>
 #include <syscalls.h>
 #include <i386.h>
+#include <device.h>
+#include <con.h>
+#include <proc.h>
+#include <fs.h>
+
 
 #include "klib_machine.h"
 #include "scheduler_test.c"
@@ -22,14 +27,18 @@ void kernel_init(void) {
   gdt_init();
   clear_screen();
 
-
+  //init all modules
   idt_init();
   debug_init();
   mm_init();
   loader_init();
-  //printf("task_init: %x" , &task_task1_pso);
+  fs_init();
+  device_init();
+
+  //load tasks
   loader_load(&task_task1_pso,0);
   loader_load(&task_task2_pso,1);
+
 
   sti();
   return;

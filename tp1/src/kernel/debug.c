@@ -5,6 +5,7 @@
 #include <sched.h>
 #include <i386.h>
 #include <loader.h>
+#include <con.h>
 
 const char* exp_name[] = {
   "Divide Error",
@@ -144,11 +145,8 @@ void isr_timerTick_c() {
     if (!in_panic) {
       vga_printf(vga_rows-1, vga_cols-1, "%c", VGA_BC_BLACK | VGA_FC_GREEN | VGA_FC_LIGHT ,clock[tick++%4]);
       i++;
-      if(i == 30){
-        printf("cambio de tarea");
-        i = 0;
-        loader_tick();
-      }
+      i = 0;
+      loader_tick();
     } else
       vga_printf(vga_rows-1, vga_cols-2, "!H", VGA_FC_BLACK | VGA_BC_RED);
 
@@ -156,10 +154,25 @@ void isr_timerTick_c() {
 
 }
 
+
+
 void isr_keyboard_c() {
-    char tecla=0;
+    sint_16 tecla=0;
     // printf("Tecladooo!!! \n");
     __asm__ __volatile__("inb $0x60, %%al" : "=a" (tecla));
+    //console_keyPressed(tecla);
+    //printf("tecla recibida: %x", tecla);
     outb(0x20,0x20);
 }
+
+
+
+
+
+
+
+
+
+
+
 
