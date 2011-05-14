@@ -6,12 +6,32 @@
 chardev_console* current_console;
 
 sint_32 con_read(chardev* this, void* buf, uint_32 size) {
+	int i;
+	// Verificamos que no se esté tratando de leer más de lo que permite el buffer
+	if (size > CON_BUFF_SIZE)
+		return CON_ERROR_READTOOLARGE;
+	size = (size > CON_BUFF_SIZE) ? CON_BUFF_SIZE : size;
+
+	chardev_console* this_chardev_console = (chardev_console *) this;
+	char* char_buf = (char*) buf;
+	//Chequeamos si hay suficientes cosas para leer en el buffer
+	if (this_chardev_console->buff_cant < size) {
+		//No hay suficiente para leer, lo bloqueamos en su semáforo
+		this_chardev_console->busy = 1;
+		this_chardev_console->read_expected = size;
+		loader_enqueue((sint_32*)&(this_chardev_console->sem.q));
+	} //Si me desbloquean entonces hay para leer.
+	for (i = 0; i < size; i++) {
+		char_buf[i] = this_chardev_console->buff[this_chardev_console->buff_index_start];
+		this_chardev_console->buff_index_start = (this_chardev_console->buff_index_start + 1) % CON_BUFF_SIZE;
+	}
+	this_chardev_console->buff_cant -= size;
+	this_chardev_console->read_expected = 0;
 	return 0;
 }
 
 sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
-	chardev_console* this_chardev_console = (chardev_console *) this;
-	this_chardev_console->fila = 3;
+//	chardev_console* this_chardev_console = (chardev_console *) this;
 	return 2;
 }
 
@@ -24,7 +44,10 @@ chardev* con_open(void) {
 	chardev_console* new_chardev_console = (chardev_console *) mm_mem_kalloc();
 	new_chardev_console->fila = 0;
 	new_chardev_console->columna = 0;
-	new_chardev_console->buff_index = 0;
+	new_chardev_console->buff_index_start = 0;
+	new_chardev_console->buff_index_end = 0;
+	new_chardev_console->buff_cant = 0;
+	new_chardev_console->sem = SEM_NEW(1);
 	new_chardev_console->dev.read = &con_read;
 	new_chardev_console->dev.write = &con_write;
 	//init structure;
@@ -61,15 +84,17 @@ void console_keyPressed(sint_16 tecla) {
 
 	//simepre se escribe en la consola actual
 	char incoming_char = getc(tecla);
-	if (0 != getc(tecla)){
-		uint_8 index = current_console->buff_index;
-		current_console->buff[index++] = incoming_char;
-		if(index >= BUFF_SIZE){
-			//despertar a la tarea que estaba esperando.
-		}else{
-			current_console->buff_index = index;
-		}
+	if (0 != getc(tecla) && current_console->buff_cant < CON_BUFF_SIZE) {
+		uint_8 index = current_console->buff_index_end;
+		current_console->buff[index] = incoming_char;
+		current_console->buff_index_end = (++index)%CON_BUFF_SIZE;
+		current_console->buff_cant++;
 
+		if (current_console->buff_cant >= current_console->read_expected) {
+			//despertar a la tarea que estaba esperando.
+			current_console->busy = 0;
+			loader_unqueue((sint_32*)&(current_console->sem.q));
+		}
 	}
 }
 

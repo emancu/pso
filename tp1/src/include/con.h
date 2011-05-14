@@ -3,17 +3,23 @@
 
 #include <tipos.h>
 #include <device.h>
+#include <sem.h>
 
-#define BUFF_SIZE 30
-
+#define CON_BUFF_SIZE 30
+#define CON_ERROR_READTOOLARGE -5
 
 typedef struct str_chardev_console {
 	chardev dev;
 	uint_16 fila;
 	uint_16 columna;
-	char buff[BUFF_SIZE];
-	uint_8 buff_index;
-	uint_16 busy;
+	//Buffer con las teclas presionadas mientras la consola estaba activa
+	char buff[CON_BUFF_SIZE];
+	uint_8 buff_index_start; //Última posición sin leer
+	uint_8 buff_index_end; //Próxima posición de buffer vacía
+	uint_8 buff_cant; //Cantidad de entradas para leer
+	uint_8 busy;
+	uint_8 read_expected;
+	sem_t sem;
 	char console_screen[4000];
 } __attribute__((packed)) chardev_console;
 
