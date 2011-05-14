@@ -1,11 +1,9 @@
 #include <con.h>
-#include <tipos.h>
-#include <vga.h>
-#include <mm.h>
 
 chardev_console* current_console;
 
 sint_32 con_read(chardev* this, void* buf, uint_32 size) {
+	printf("Read a este chardev: %x, con este size: %d", this, size);
 	int i;
 	// Verificamos que no se esté tratando de leer más de lo que permite el buffer
 	if (size > CON_BUFF_SIZE)
@@ -19,7 +17,7 @@ sint_32 con_read(chardev* this, void* buf, uint_32 size) {
 		//No hay suficiente para leer, lo bloqueamos en su semáforo
 		this_chardev_console->busy = 1;
 		this_chardev_console->read_expected = size;
-		loader_enqueue((sint_32*)&(this_chardev_console->sem.q));
+		loader_enqueue((sint_32*) &(this_chardev_console->sem.q));
 	} //Si me desbloquean entonces hay para leer.
 	for (i = 0; i < size; i++) {
 		char_buf[i] = this_chardev_console->buff[this_chardev_console->buff_index_start];
@@ -31,8 +29,29 @@ sint_32 con_read(chardev* this, void* buf, uint_32 size) {
 }
 
 sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
-//	chardev_console* this_chardev_console = (chardev_console *) this;
-	return 2;
+	//!TODO: Chequear no pasarse de la pantalla y el uso de \n.
+	chardev_console* this_chardev_console = (chardev_console *) this;
+	char* char_buf = (char*)buf;
+
+	uint_8* video = (uint_8*) (this_chardev_console->console_screen + vga_cols * 2 * this_chardev_console->fila + this_chardev_console->columna * 2);
+	int str = 0;
+	while (str < size && video < (uint_8*) (this_chardev_console->console_screen + 4000)) {
+		if (char_buf[str] == '\n') { //Avanzo una línea el puntero
+			this_chardev_console->fila++;
+			this_chardev_console->columna = 0;
+			video = (uint_8*) (this_chardev_console->console_screen + vga_cols * 2 * this_chardev_console->fila + this_chardev_console->columna * 2);
+		} else { //Escribo en pantalla
+			*video++ = char_buf[str];
+			*video++ = CON_STYLE;
+			if (this_chardev_console->columna + 1 == vga_cols)
+				this_chardev_console->fila++;
+			this_chardev_console->columna = (this_chardev_console->columna+1) % vga_cols;
+		}
+		str++;
+	}
+	if (current_console == this_chardev_console)
+		fill_screen_with_memory((uint_8*)current_console->console_screen);
+	return str;
 }
 
 uint_32 con_flush(chardev* this) {
@@ -52,7 +71,9 @@ chardev* con_open(void) {
 	new_chardev_console->dev.write = &con_write;
 	//init structure;
 	current_console = new_chardev_console;
+	fill_screen_with_memory((uint_8*)current_console->console_screen);
 	return (chardev*) new_chardev_console;
+	//!TODO: Manejar errores
 	return NULL;
 }
 
@@ -87,13 +108,16 @@ void console_keyPressed(sint_16 tecla) {
 	if (0 != getc(tecla) && current_console->buff_cant < CON_BUFF_SIZE) {
 		uint_8 index = current_console->buff_index_end;
 		current_console->buff[index] = incoming_char;
-		current_console->buff_index_end = (++index)%CON_BUFF_SIZE;
+		current_console->buff_index_end = (++index) % CON_BUFF_SIZE;
 		current_console->buff_cant++;
+
+		printf("Recibi tecla");
 
 		if (current_console->buff_cant >= current_console->read_expected) {
 			//despertar a la tarea que estaba esperando.
+			printf("Despierto a la tarea que estaba esperando.");
 			current_console->busy = 0;
-			loader_unqueue((sint_32*)&(current_console->sem.q));
+			loader_unqueue((sint_32*) &(current_console->sem.q));
 		}
 	}
 }
