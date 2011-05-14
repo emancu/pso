@@ -14,15 +14,17 @@ sint_32 con_read(chardev* this, void* buf, uint_32 size) {
 	char* char_buf = (char*) buf;
 	//Chequeamos si hay suficientes cosas para leer en el buffer
 	if (this_chardev_console->buff_cant < size) {
+		printf("Me bloqueo");
 		//No hay suficiente para leer, lo bloqueamos en su semáforo
 		this_chardev_console->busy = 1;
 		this_chardev_console->read_expected = size;
-		loader_enqueue((sint_32*) &(this_chardev_console->sem.q));
+		sem_wait(&this_chardev_console->sem);
 	} //Si me desbloquean entonces hay para leer.
 	for (i = 0; i < size; i++) {
 		char_buf[i] = this_chardev_console->buff[this_chardev_console->buff_index_start];
 		this_chardev_console->buff_index_start = (this_chardev_console->buff_index_start + 1) % CON_BUFF_SIZE;
 	}
+
 	this_chardev_console->buff_cant -= size;
 	this_chardev_console->read_expected = 0;
 	return 0;
@@ -66,12 +68,12 @@ chardev* con_open(void) {
 	new_chardev_console->buff_index_start = 0;
 	new_chardev_console->buff_index_end = 0;
 	new_chardev_console->buff_cant = 0;
-	new_chardev_console->sem = SEM_NEW(1);
+	new_chardev_console->sem = SEM_NEW(0);
 	new_chardev_console->dev.read = &con_read;
 	new_chardev_console->dev.write = &con_write;
 	//init structure;
 	current_console = new_chardev_console;
-	fill_screen_with_memory((uint_8*)current_console->console_screen);
+//	fill_screen_with_memory((uint_8*)current_console->console_screen);
 	return (chardev*) new_chardev_console;
 	//!TODO: Manejar errores
 	return NULL;
@@ -105,19 +107,21 @@ void console_keyPressed(sint_16 tecla) {
 
 	//simepre se escribe en la consola actual
 	char incoming_char = getc(tecla);
-	if (0 != getc(tecla) && current_console->buff_cant < CON_BUFF_SIZE) {
+	printf("Recibi tecla - tecla: %c, buff_cant: %d, CON_BUFF_SIZE: %d", tecla, current_console->buff_cant, CON_BUFF_SIZE);
+
+	if (0 != incoming_char && current_console->buff_cant < CON_BUFF_SIZE) {
 		uint_8 index = current_console->buff_index_end;
 		current_console->buff[index] = incoming_char;
 		current_console->buff_index_end = (++index) % CON_BUFF_SIZE;
 		current_console->buff_cant++;
 
-		printf("Recibi tecla");
-
+		printf("Recibi tecla2");
 		if (current_console->buff_cant >= current_console->read_expected) {
 			//despertar a la tarea que estaba esperando.
+			printf("Recibi tecla3");
 			printf("Despierto a la tarea que estaba esperando.");
 			current_console->busy = 0;
-			loader_unqueue((sint_32*) &(current_console->sem.q));
+			sem_signaln(&current_console->sem);
 		}
 	}
 }

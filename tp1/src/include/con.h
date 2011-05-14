@@ -9,7 +9,7 @@
 
 #define CON_BUFF_SIZE 30
 #define CON_ERROR_READTOOLARGE -5
-#define CON_STYLE VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT
+#define CON_STYLE VGA_BC_BLACK | VGA_FC_GREEN | VGA_FC_LIGHT
 
 typedef struct str_chardev_console {
 	chardev dev;

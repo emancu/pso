@@ -92,7 +92,7 @@ pid loader_load(pso_file* f, int pl) {
 void loader_tick(){
   int new_current_pid = sched_tick();
   if(new_current_pid != cur_pid){
-    printf("cambio de tarea");
+    printf("cambio de tarea %d", new_current_pid);
     loader_switchto(new_current_pid);
   }
 }
@@ -111,7 +111,9 @@ void loader_enqueue(int* cola) {
     task_table[cur_pid].prev = prev_pid;
   }
 
-  sched_block();
+  int i = sched_block();
+  printf("current_pid %d" , i);
+  loader_switchto(i);
 }
 
 void loader_unqueue(int* cola) {
