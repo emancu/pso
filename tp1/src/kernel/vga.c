@@ -29,11 +29,16 @@ void vga_write(uint_16 f, uint_16 c, const char* msg, uint_8 attr) {
   }
 }
 
+int printf_resolver_dinamic(uint_16 f, uint_16 c, uint_8 attr, int amount, const char* fmt, va_list argp) {
+	char buff[amount];
+	return printf_resolver(f, c, attr, amount, (char*)buff, fmt, argp);
+}
+
 void vga_printf(uint_16 f, uint_16 c, const char* format, uint_8 attr, ...) {
   va_list argp;
   int amount = 256;
   va_start(argp, attr);
-  while(printf_resolver(f, c, attr, amount, format, argp) < 0) {
+  while(printf_resolver_dinamic(f, c, attr, amount, format, argp) < 0) {
     va_start(argp, attr);
     amount *= 2;
   }
@@ -61,13 +66,15 @@ void printf(const char* fmt, ...) {
 		move_scr_up();
   }
 
-	while(printf_resolver(fila, 0, VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, amount, fmt, argp) < 0) {
+	while(printf_resolver_dinamic(fila, 0, VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, amount, fmt, argp) < 0) {
 		va_start(argp, fmt);
 		amount *= 2;
 	}
 
 	if (fila < vga_rows) fila++;
 }
+
+
 
 void fill_screen(char color, char bright) {
   uint_8* video = vga_addr;
@@ -103,8 +110,7 @@ void clear_screen() {
 }
 
 
-int printf_resolver(uint_16 f, uint_16 c, uint_8 attr, int amount, const char* fmt, va_list argp) {
-  char buff[amount];
+int printf_resolver(uint_16 f, uint_16 c, uint_8 attr, int amount, char* buff, const char* fmt, va_list argp) {
   char ch;
   char* str;
   int x, i = 0, count = 0, len = strlen(fmt), arg = 0;

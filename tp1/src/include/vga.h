@@ -26,7 +26,8 @@ void clear_screen();
 void printf(const char* fmt, ...);
 
 
-int printf_resolver(uint_16 f, uint_16 c, uint_8 attr, int amount, const char* fmt, va_list argp);
+int printf_resolver_dinamic(uint_16 f, uint_16 c, uint_8 attr, int amount, const char* fmt, va_list argp);
+int printf_resolver(uint_16 f, uint_16 c, uint_8 attr, int amount, char* buff, const char* fmt, va_list argp);
 
 /*Creates a format byte with the given options.*/
 uint_8 make_format(char blink, char front, char back, char bright);
