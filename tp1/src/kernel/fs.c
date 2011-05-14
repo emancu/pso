@@ -57,10 +57,12 @@ void fs_init(void) {
 
 
 int sys_open(const char* file_name, uint_32 flags){
-    int new_descriptor;
+    //printf("file name: %s", file_name);
+    //printf("new descriptor: %x", flags);
+	int new_descriptor;
     chardev* new_char_dev = fs_open(file_name, flags);
     new_descriptor = device_descriptor(new_char_dev);
-    printf("new descriptor: %d", new_descriptor);
+    //printf("new descriptor: %d", new_descriptor);
     return new_descriptor;
 }
 

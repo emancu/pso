@@ -3,7 +3,9 @@
 
 
 int main(void) {
-open("/console", 0x3);
+	char buff[10];
+	int fd = open("/console", 0x3);
+	write(fd,buff,4);
 	while (1){
 	}
 	// void* p = palloc();

@@ -4,12 +4,15 @@
 #include <tipos.h>
 #include <device.h>
 
+#define BUFF_SIZE 30
+
 
 typedef struct str_chardev_console {
 	chardev dev;
 	uint_16 fila;
 	uint_16 columna;
-	char buff[30];
+	char buff[BUFF_SIZE];
+	uint_8 buff_index;
 	uint_16 busy;
 	char console_screen[4000];
 } __attribute__((packed)) chardev_console;

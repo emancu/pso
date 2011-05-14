@@ -160,7 +160,7 @@ void isr_keyboard_c() {
     sint_16 tecla=0;
     // printf("Tecladooo!!! \n");
     __asm__ __volatile__("inb $0x60, %%al" : "=a" (tecla));
-    //console_keyPressed(tecla);
+    console_keyPressed(tecla);
     //printf("tecla recibida: %x", tecla);
     outb(0x20,0x20);
 }

@@ -79,7 +79,6 @@ pid loader_load(pso_file* f, int pl) {
     uint_32 requested_pid = get_new_pid();
     task_table[requested_pid].cr3 = (uint_32) task_dir;
     task_table[requested_pid].esp0 = 0xFFFFFFD8;
-    printf("requested pid: %d", requested_pid);
 
     sched_load(requested_pid);
 

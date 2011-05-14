@@ -153,6 +153,7 @@ LS_INLINE void sti() {
   __asm__ __volatile__ ("sti");
 }
 
+//mal ver porque en internet esta el esp en un temporal!!
 LS_INLINE void pushad() {
   __asm__ __volatile__ ("push %%eax"::: "eax");
   __asm__ __volatile__ ("push %%ecx"::: "ecx");

@@ -10,19 +10,25 @@
 ;para que es esta declaracion martin??? ale (10/5)
 [GLOBAL %1]
 ;TODO VER SI NO HAY QUE HACER PUSHAD PARA GUARDAR TODO
-  pushad
+  ;pushad
   ;xchg bx,bx
 
-  ;para los parametros de las syscalls
-  mov edx, [esp + 36]
-  mov ecx, [esp + 40]
-  mov ebx, [esp + 44]
-  mov edi, [esp + 48]
+  ;para los parametros de las syscalls cuando se usa pushad
+  ;mov edx, [esp + 36]
+  ;mov ecx, [esp + 40]
+  ;mov ebx, [esp + 44]
+  ;mov edi, [esp + 48]
+
+  ;sin pushad (nesecito usar eax para el resultado)
+  mov edx, [esp + 4]
+  mov ecx, [esp + 8]
+  mov ebx, [esp + 12]
+  mov edi, [esp + 16]
 
   mov eax, %2
   ;xchg bx, bx
   int 0x30
-  popad
+  ;popad
   ret
 %endmacro
 

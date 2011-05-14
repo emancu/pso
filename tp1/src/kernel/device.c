@@ -48,11 +48,11 @@ int sys_read(int fd, void* buf, uint_32 size){
 }
 
 int sys_write(int fd,const void* buf, uint_32 size){
-    printf("WRITE");
-    printf("llamaron a FD: %d", fd);
-    printf("llamaron a BUFF: %d", buf);
-    printf("llamaron a SIZE: %d", size);
-    return 2;
+	//busco en la current task el file descriptor solicitado
+	chardev* char_dev = (chardev*) char_devices[cur_pid][fd];
+	int result;
+	result = char_dev->write(char_dev, buf,size);
+	return result;
 }
 
 int sys_seek(int fd, uint_32 size){
