@@ -2,8 +2,10 @@
 
 chardev_console* current_console;
 
+char colors[6] = { VGA_BC_BLUE, VGA_BC_BROWN, VGA_BC_CYAN, VGA_BC_GREEN, VGA_BC_MAGENTA, VGA_BC_RED };
+int color = 0;
+
 sint_32 con_read(chardev* this, void* buf, uint_32 size) {
-	printf("Read a este chardev: %x, con este size: %d", this, size);
 	int i;
 	// Verificamos que no se esté tratando de leer más de lo que permite el buffer
 	if (size > CON_BUFF_SIZE)
@@ -14,12 +16,12 @@ sint_32 con_read(chardev* this, void* buf, uint_32 size) {
 	char* char_buf = (char*) buf;
 	//Chequeamos si hay suficientes cosas para leer en el buffer
 	if (this_chardev_console->buff_cant < size) {
-		printf("Me bloqueo");
 		//No hay suficiente para leer, lo bloqueamos en su semáforo
 		this_chardev_console->busy = 1;
 		this_chardev_console->read_expected = size;
 		sem_wait(&this_chardev_console->sem);
-	} //Si me desbloquean entonces hay para leer.
+	}
+	//Si me desbloquean entonces hay para leer.
 	for (i = 0; i < size; i++) {
 		char_buf[i] = this_chardev_console->buff[this_chardev_console->buff_index_start];
 		this_chardev_console->buff_index_start = (this_chardev_console->buff_index_start + 1) % CON_BUFF_SIZE;
@@ -33,7 +35,7 @@ sint_32 con_read(chardev* this, void* buf, uint_32 size) {
 sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
 	//!TODO: Chequear no pasarse de la pantalla y el uso de \n.
 	chardev_console* this_chardev_console = (chardev_console *) this;
-	char* char_buf = (char*)buf;
+	char* char_buf = (char*) buf;
 
 	uint_8* video = (uint_8*) (this_chardev_console->console_screen + vga_cols * 2 * this_chardev_console->fila + this_chardev_console->columna * 2);
 	int str = 0;
@@ -47,12 +49,12 @@ sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
 			*video++ = CON_STYLE;
 			if (this_chardev_console->columna + 1 == vga_cols)
 				this_chardev_console->fila++;
-			this_chardev_console->columna = (this_chardev_console->columna+1) % vga_cols;
+			this_chardev_console->columna = (this_chardev_console->columna + 1) % vga_cols;
 		}
 		str++;
 	}
 	if (current_console == this_chardev_console)
-		fill_screen_with_memory((uint_8*)current_console->console_screen);
+		fill_screen_with_memory((uint_8*) current_console->console_screen);
 	return str;
 }
 
@@ -61,6 +63,7 @@ uint_32 con_flush(chardev* this) {
 }
 
 chardev* con_open(void) {
+
 	//pido una pagina nueva del kernel para la consola
 	chardev_console* new_chardev_console = (chardev_console *) mm_mem_kalloc();
 	new_chardev_console->fila = 0;
@@ -71,23 +74,43 @@ chardev* con_open(void) {
 	new_chardev_console->sem = SEM_NEW(0);
 	new_chardev_console->dev.read = &con_read;
 	new_chardev_console->dev.write = &con_write;
-	//init structure;
+	int i;
+	char console_color = colors[color++ % sizeof(colors)];
+	for (i = 0; i <= 4000; i += 2) {
+		new_chardev_console->console_screen[i] = 0x0;
+		new_chardev_console->console_screen[i + 1] = console_color;
+	}
+	//actualizo para swichear
+	if (current_console == 0x0) {
+		new_chardev_console->next = new_chardev_console;
+		new_chardev_console->prev = new_chardev_console;
+	} else {
+		new_chardev_console->next = current_console->next;
+		new_chardev_console->prev = current_console;
+		(current_console->next)->prev = new_chardev_console;
+		current_console->next = new_chardev_console;
+
+	}
+
 	current_console = new_chardev_console;
-//	fill_screen_with_memory((uint_8*)current_console->console_screen);
+	fill_screen_with_memory((uint_8*) current_console->console_screen);
 	return (chardev*) new_chardev_console;
 	//!TODO: Manejar errores
 	return NULL;
 }
 
 void move_to_right_console() {
-	//set curren
+	fill_screen_with_memory((uint_8*) current_console->next->console_screen);
+	current_console = current_console->next;
 }
 
 void move_to_left_console() {
-	//set current_console
+	fill_screen_with_memory((uint_8*) current_console->prev->console_screen);
+	current_console = current_console->prev;
 }
 
 void con_init() {
+	current_console = 0x0;
 }
 
 /*
@@ -97,6 +120,7 @@ int altPressed = 0;
 int shiftPressed = 0;
 
 void console_keyPressed(sint_16 tecla) {
+	//ver este codigo no me gusta como esta!!!
 	if (altPressed == 1 && shiftPressed == 1) {
 		if (tecla == 0x4d) {
 			move_to_right_console();
@@ -107,19 +131,14 @@ void console_keyPressed(sint_16 tecla) {
 
 	//simepre se escribe en la consola actual
 	char incoming_char = getc(tecla);
-	printf("Recibi tecla - tecla: %c, buff_cant: %d, CON_BUFF_SIZE: %d", tecla, current_console->buff_cant, CON_BUFF_SIZE);
-
+	if (0 != incoming_char)
 	if (0 != incoming_char && current_console->buff_cant < CON_BUFF_SIZE) {
 		uint_8 index = current_console->buff_index_end;
 		current_console->buff[index] = incoming_char;
 		current_console->buff_index_end = (++index) % CON_BUFF_SIZE;
 		current_console->buff_cant++;
-
-		printf("Recibi tecla2");
 		if (current_console->buff_cant >= current_console->read_expected) {
 			//despertar a la tarea que estaba esperando.
-			printf("Recibi tecla3");
-			printf("Despierto a la tarea que estaba esperando.");
 			current_console->busy = 0;
 			sem_signaln(&current_console->sem);
 		}

@@ -40,7 +40,6 @@ void device_init(void) {
 
 
 int sys_read(int fd, void* buf, uint_32 size){
-	printf("Sysread - fd: %d, size: %d", fd, size);
     //busco en la current task el file descriptor solicitado
     chardev* char_dev = (chardev*) char_devices[cur_pid][fd];
     int result;

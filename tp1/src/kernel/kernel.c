@@ -34,6 +34,7 @@ void kernel_init(void) {
   loader_init();
   fs_init();
   device_init();
+  con_init();
 
   //load tasks
   loader_load(&task_task1_pso,0);

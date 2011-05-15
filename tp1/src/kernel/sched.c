@@ -50,6 +50,8 @@ void sched_unblock(pid pd) {
   if( current_pid == 0){
     tasks[pd].next = pd;
     tasks[pd].prev = pd;
+    //si pasa esto salto inmediatamente a la nueva tarea
+    loader_switchto(pd);
   }else{
     tasks[pd].prev = current_pid;
     tasks[pd].next = tasks[current_pid].next;

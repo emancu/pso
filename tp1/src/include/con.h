@@ -9,10 +9,12 @@
 
 #define CON_BUFF_SIZE 30
 #define CON_ERROR_READTOOLARGE -5
-#define CON_STYLE VGA_BC_BLACK | VGA_FC_GREEN | VGA_FC_LIGHT
+#define CON_STYLE VGA_BC_BLUE | VGA_FC_GREEN | VGA_FC_LIGHT
 
 typedef struct str_chardev_console {
-	chardev dev;
+	chardev dev;//dejar siempre primero
+	struct str_chardev_console* next;//in order to switch between opened consoles. go here? or another struct??
+	struct str_chardev_console* prev;
 	uint_16 fila;
 	uint_16 columna;
 	//Buffer con las teclas presionadas mientras la consola estaba activa
@@ -24,9 +26,7 @@ typedef struct str_chardev_console {
 	uint_8 read_expected;
 	sem_t sem;
 	char console_screen[4000];
-} __attribute__((packed)) chardev_console;
-
-
+}__attribute__((packed)) chardev_console;
 
 void con_init();
 
@@ -42,6 +42,5 @@ void console_keyPressed(sint_16 tecla);
 void move_to_right_console();
 
 void move_to_left_console();
-
 
 #endif
