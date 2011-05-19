@@ -78,7 +78,7 @@ void fill_screen(char color, char bright) {
   }
 }
 
-void fill_screen_with_memory(uint_8* initial_position) {
+void copy_memory_to_screen(uint_8* initial_position) {
   uint_8* video = vga_addr;
   uint_8* memory_video = initial_position;
   while(video < vga_addr + vga_cols*2*vga_rows) {

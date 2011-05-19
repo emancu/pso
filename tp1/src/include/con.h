@@ -6,6 +6,7 @@
 #include <sem.h>
 #include <vga.h>
 #include <mm.h>
+#include <i386.h>
 
 #define CON_BUFF_SIZE 30
 #define CON_ERROR_READTOOLARGE -5
@@ -17,11 +18,12 @@ typedef struct str_chardev_console {
 	struct str_chardev_console* prev;
 	uint_16 fila;
 	uint_16 columna;
-	//Buffer con las teclas presionadas mientras la consola estaba activa
+	uint_8  style;
+	//Buffer con las teclas ingresadas mientras la consola estaba activa
 	char buff[CON_BUFF_SIZE];
-	uint_8 buff_index_start; //Última posición sin leer
-	uint_8 buff_index_end; //Próxima posición de buffer vacía
-	uint_8 buff_cant; //Cantidad de entradas para leer
+	uint_8 buff_index_start; 	//Última posición sin leer
+	uint_8 buff_index_end; 		//Próxima posición de buffer vacía
+	uint_8 buff_cant; 			//Cantidad de entradas para leer
 	uint_8 busy;
 	uint_8 read_expected;
 	sem_t sem;
@@ -38,9 +40,9 @@ chardev* con_open(void);
 uint_8 getc(uint_16 scan_code);
 
 void console_keyPressed(sint_16 tecla);
-
 void move_to_right_console();
-
 void move_to_left_console();
+void move_to_empty_console();
+void set_console_style(chardev_console*,uint_8);
 
 #endif

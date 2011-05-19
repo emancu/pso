@@ -1,6 +1,9 @@
 #include <con.h>
 
+#define CONSOLE_STYLE_DEFAULT VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT
+
 chardev_console* current_console;
+chardev_console* empty_console;
 
 char colors[6] = { VGA_BC_BLUE, VGA_BC_BROWN, VGA_BC_CYAN, VGA_BC_GREEN, VGA_BC_MAGENTA, VGA_BC_RED };
 int color = 0;
@@ -14,11 +17,13 @@ sint_32 con_read(chardev* this, void* buf, uint_32 size) {
 
 	chardev_console* this_chardev_console = (chardev_console *) this;
 	char* char_buf = (char*) buf;
+	printf("entre a esperar con size: %d", size);
 	//Chequeamos si hay suficientes cosas para leer en el buffer
 	if (this_chardev_console->buff_cant < size) {
 		//No hay suficiente para leer, lo bloqueamos en su semáforo
 		this_chardev_console->busy = 1;
 		this_chardev_console->read_expected = size;
+		printf("entre a esperar con size: %d", size);
 		sem_wait(&this_chardev_console->sem);
 	}
 	//Si me desbloquean entonces hay para leer.
@@ -53,17 +58,41 @@ sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
 		}
 		str++;
 	}
+	*video++ = 219;
+	*video++ = VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT | VGA_FC_BLINK;
 	if (current_console == this_chardev_console)
-		fill_screen_with_memory((uint_8*) current_console->console_screen);
+		copy_memory_to_screen((uint_8*) current_console->console_screen);
+
+
+	 outb(0x3D4, 14);                  // Tell the VGA board we are setting the high cursor byte.
+	 outb(0x3D5, 0xFFFF >> 8); // Send the high cursor byte.
+	 outb(0x3D4, 15);                  // Tell the VGA board we are setting the low cursor byte.
+	 outb(0x3D5, 0xFFFF);      // Send the low cursor byte.
+
+
 	return str;
 }
 
 uint_32 con_flush(chardev* this) {
+	chardev_console* console_to_close = (chardev_console*) this;
+
+	if (console_to_close->next != console_to_close) {
+		console_to_close->next->prev = console_to_close->prev;
+		console_to_close->prev->next = console_to_close->next;
+	}
+
+	if (current_console == ((chardev_console*) this)) {
+		if (console_to_close->next == console_to_close)
+			move_to_empty_console();
+		else
+			move_to_right_console();
+	}
+
+	mm_mem_free((uint_32) this);
 	return 0;
 }
 
 chardev* con_open(void) {
-
 	//pido una pagina nueva del kernel para la consola
 	chardev_console* new_chardev_console = (chardev_console *) mm_mem_kalloc();
 	new_chardev_console->fila = 0;
@@ -74,11 +103,13 @@ chardev* con_open(void) {
 	new_chardev_console->sem = SEM_NEW(0);
 	new_chardev_console->dev.read = &con_read;
 	new_chardev_console->dev.write = &con_write;
+	new_chardev_console->dev.flush = &con_flush;
+	new_chardev_console->style = CONSOLE_STYLE_DEFAULT;
 	int i;
-	char console_color = colors[color++ % sizeof(colors)];
+
 	for (i = 0; i <= 4000; i += 2) {
 		new_chardev_console->console_screen[i] = 0x0;
-		new_chardev_console->console_screen[i + 1] = console_color;
+		new_chardev_console->console_screen[i + 1] = CONSOLE_STYLE_DEFAULT;
 	}
 	//actualizo para swichear
 	if (current_console == 0x0) {
@@ -89,28 +120,41 @@ chardev* con_open(void) {
 		new_chardev_console->prev = current_console;
 		(current_console->next)->prev = new_chardev_console;
 		current_console->next = new_chardev_console;
-
 	}
 
 	current_console = new_chardev_console;
-	fill_screen_with_memory((uint_8*) current_console->console_screen);
+	copy_memory_to_screen((uint_8*) current_console->console_screen);
 	return (chardev*) new_chardev_console;
 	//!TODO: Manejar errores
 	return NULL;
 }
 
 void move_to_right_console() {
-	fill_screen_with_memory((uint_8*) current_console->next->console_screen);
-	current_console = current_console->next;
+	if (current_console != 0x0) {
+		copy_memory_to_screen((uint_8*) current_console->next->console_screen);
+		current_console = current_console->next;
+	}
 }
 
 void move_to_left_console() {
-	fill_screen_with_memory((uint_8*) current_console->prev->console_screen);
-	current_console = current_console->prev;
+	if (current_console != 0x0) {
+		copy_memory_to_screen((uint_8*) current_console->prev->console_screen);
+		current_console = current_console->prev;
+	}
+}
+
+void move_to_empty_console() {
+	copy_memory_to_screen((uint_8*) empty_console->console_screen);
+	current_console = empty_console;
 }
 
 void con_init() {
 	current_console = 0x0;
+	empty_console = (chardev_console*) con_open();
+	set_console_style(empty_console, VGA_BC_RED | VGA_FC_GREEN | VGA_FC_LIGHT);
+	current_console = 0x0;
+	vga_write(12, 35, "EMPTY CONSOLE", VGA_BC_RED | VGA_FC_GREEN | VGA_FC_LIGHT);
+	copy_screen_to_memory((uint_8*) empty_console->console_screen);
 }
 
 /*
@@ -132,17 +176,28 @@ void console_keyPressed(sint_16 tecla) {
 	//simepre se escribe en la consola actual
 	char incoming_char = getc(tecla);
 	if (0 != incoming_char)
-	if (0 != incoming_char && current_console->buff_cant < CON_BUFF_SIZE) {
-		uint_8 index = current_console->buff_index_end;
-		current_console->buff[index] = incoming_char;
-		current_console->buff_index_end = (++index) % CON_BUFF_SIZE;
-		current_console->buff_cant++;
-		if (current_console->buff_cant >= current_console->read_expected) {
-			//despertar a la tarea que estaba esperando.
-			current_console->busy = 0;
-			sem_signaln(&current_console->sem);
+		if (0 != incoming_char && current_console->buff_cant < CON_BUFF_SIZE) {
+			uint_8 index = current_console->buff_index_end;
+			current_console->buff[index] = incoming_char;
+			current_console->buff_index_end = (++index) % CON_BUFF_SIZE;
+			current_console->buff_cant++;
+			if (current_console->buff_cant >= current_console->read_expected) {
+				//despertar a la tarea que estaba esperando.
+				current_console->busy = 0;
+				printf("entre a despertarrr!");
+				sem_signaln(&current_console->sem);
+			}
 		}
-	}
+}
+
+void set_console_style(chardev_console* console, uint_8 style) {
+	console->style = style;
+	int i;
+	for (i = 1; i < 4000; i += 2)
+		console->console_screen[i] = style;
+
+	if (current_console == console)
+		copy_memory_to_screen((uint_8 *) console->console_screen);
 }
 
 uint_8 getc(uint_16 scan_code) {

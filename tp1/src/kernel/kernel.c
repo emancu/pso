@@ -38,7 +38,7 @@ void kernel_init(void) {
 
   //load tasks
   loader_load(&task_task1_pso,0);
-  //loader_load(&task_task2_pso,1);
+//  loader_load(&task_task2_pso,1);
 
 
   sti();

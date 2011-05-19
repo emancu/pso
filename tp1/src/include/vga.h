@@ -31,7 +31,7 @@ int printf_resolver(uint_16 f, uint_16 c, uint_8 attr, int amount, const char* f
 /*Creates a format byte with the given options.*/
 uint_8 make_format(char blink, char front, char back, char bright);
 
-void fill_screen_with_memory(uint_8* initial_position);
+void copy_memory_to_screen(uint_8* initial_position);
 void copy_screen_to_memory(uint_8* initial_position);
 
 
