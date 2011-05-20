@@ -23,9 +23,9 @@
 \titulo{Trabajo Pr\'actico 1}
 \subtitulo{Desarrollo de un Kernel básico}
 
-\integrante{Alejandro Mataloni}{}{amataloni@gmail.com}
-\integrante{Emiliano Mancuso}{}{emiliano.mancuso@gmail.com}
-\integrante{Martin Miguel}{}{m2.march@gmail.com}
+\integrante{Alejandro Mataloni}{597/07}{amataloni@gmail.com}
+\integrante{Emiliano Mancuso}{706/07}{emiliano.mancuso@gmail.com}
+\integrante{Martin Miguel}{181/09}{m2.march@gmail.com}
 
 \lstset{language=[m2]C}
 
@@ -156,19 +156,19 @@ Finalmente, este módulo posee la función \func{void* sys\_palloc()} que es lla
 En \func{mm\_init()} se realizan testeos de todas las funciones nombradas anteriormente. Todas verificaciones imprimen en pantalla. La verificaciones se encuentran comentadas. 
 
 \subsection{Scheduler}
-El módulo de scheduler es el algoritmo encargado de decidir cual será la próxima tarea a ejecutarse. Funciona muy relacionado con el módulo \textbf{loader}. El \textbf{scheduler} mantiene un \textit{array} de \textbf{sched-task}. Ésta estructura contiene el estado y dos enteros (next y prev) que sirven para mantener una cola de tareas sobre un \textit{array}.
+El módulo de scheduler es el algoritmo encargado de decidir cual será la próxima tarea a ejecutarse. Funciona muy relacionado con el módulo \textbf{loader}. El \textbf{scheduler} mantiene un \textit{array} de \func{sched-task}. Ésta estructura contiene el estado y dos enteros (next y prev) que sirven para mantener una cola de tareas sobre un \textit{array}.
 En esta cola, sólo mantenemos enlazadas a las tareas que están en estado \textit{RUNNING}.
 Además de la cola, el módulo lleva una cuenta del quantum consumido por la tarea actual, el \textbf{pid} de la misma y el indice del ultimo elemento de la cola.
 
 \subsection{Loader}
 El módulo del loader se encarga de mantener el \textbf{Process Control block}, cambiar el contexto de las tareas, e interactuar con el \textbf{scheduler}.
-Para el \textbf{Process Control block}, creamos una estructura que solo guarda el \textbf{CR3} y el \textbf{ESP0} de la tarea, junto con dos indices (prev y next) para armar las colas donde las tareas se bloquearan.
-Para administrar los \textbf{pids} tenemos una cola de los libres, así el próximo lo obtenemos en \textbf{O}(1).
+Para el \textbf{Process Control block}, creamos una estructura que solo guarda el \func{CR3} y el \func{ESP0} de la tarea, junto con dos indices (prev y next) para armar las colas donde las tareas se bloquearan.
+Para administrar los \textbf{pids} tenemos una cola de los libres, así el próximo lo obtenemos en $\mathbb{O}(1)$.
 El \textbf{loader} es el módulo que inicializa las tareas, las bloquea, desbloquea y las termina dentro del sistema operativo.
+La funcion \func{loader\_switchto(...)} es la encargada de realizar el cambio de tarea. Esta función fue programada en assembler en el archivo \file{loader\_switch.asm} ya que necesita mucho control de bajo nivel como accesos a parte de la TSS, la pila y registros de control como el cr3. En el cambio de tarea es necesario guardar el estado actual de ejecución. El sistema de llamadas a sistema mediante interrupciones y la funciones involucradas en el medio van guardando toda la información importante (exceptuando los valores del \func{CR3} y \func{ESP}) en la pila. Es por este motivo que al cargar una tarea debe inicializarse una pila que responda a estas llamadas. Esto es, cargamos una tarea de forma que parezca que ya estaba corriendo. Como hacemos esto puede verse en la preparación de la pila realizado en \func{loader\_load(...)}. 
 
-Este módulo también define las syscalls \textbf{getpid} y \textbf{exit}.
+Este módulo también define las syscalls \func{getpid} y \func{exit}.
 
-\textbf{<#text#>}
 
 \subsection{Syscalls}
 
