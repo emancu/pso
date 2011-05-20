@@ -124,7 +124,7 @@ void loader_enqueue(int* cola) {
 }
 
 void loader_unqueue(int* cola) {
-  // int old_cola = *cola;
+  int old_cola = *cola;
   // printf("  Enqueue N %d  Unqueue N %d", enqueue_as ,++unqueue_as);
   if (*cola != -1) {
     int next_node = task_table[*cola].next;
@@ -139,8 +139,8 @@ void loader_unqueue(int* cola) {
     // printf("  *Unqueue cola= %d  next= %d  prev=%d",*cola, task_table[*cola].next, task_table[*cola].prev);
     // printf("  *Unqueue cur= %d  next= %d  prev=%d",cur_pid, task_table[cur_pid].next, task_table[cur_pid].prev);
     // *cola = -1;
-    sched_unblock(*cola);
     *cola = ((next_node == *cola)? -1 : next_node);
+    sched_unblock(old_cola);
   }
 }
 
