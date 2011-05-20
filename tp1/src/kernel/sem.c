@@ -7,7 +7,6 @@ void sem_wait(sem_t* s) {
   if (s->vl > 0) {
     s->vl--;
   } else {
-    //Falta caso base, si q es vacío
     loader_enqueue((int*)&(s->q));
   }
 }
@@ -15,8 +14,8 @@ void sem_wait(sem_t* s) {
 void sem_signaln(sem_t* s) {
   if (s->vl == 0) {
     loader_unqueue((int*)&(s->q));
-  }
-  s->vl++;
+  }else
+    s->vl++;
 }
 
 void sem_broadcast(sem_t* s) {

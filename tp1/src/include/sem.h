@@ -8,9 +8,10 @@
 typedef sint_32 sem_id;
 
 typedef struct str_sem_t {
-	uint_32 vl; /* Free places */
-	uint_32 q; /* Wait-event queue */
+  uint_32 vl; /* Free places */
+  uint_32 q; /* Wait-event queue */
 } sem_t;
+
 #define SEM_NEW(val) (sem_t){.vl = (val), .q = (uint_32)-1}
 
 /* Esta función inicializa el arreglo de semáforos con semáforos vacíos.
