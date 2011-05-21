@@ -1,23 +1,30 @@
 #include <syscalls.h>
 #include <tipos.h>
+#include <lib_str.h>
+
 
 int main(void) {
   // char buff[10];
-  char* msg = "Hola Mundo!\0";
+  char* ps1 = "kernel@pso: ";
+  char* msg[3];
+  msg[1] = 219;
+  msg[2] = '\0';
   // char* msg2 = "Hola 2!";
   int fd = open("/console", 0x3);
   //int fd2 = open("/console", 0x3);
+  //!todo preguntar de strlen
+  write(fd, ps1, strlen(ps1));
   while(1){
     read(fd,msg,1);
-    // write(fd, msg, 1);
+    write(fd, msg, 1);
   }
 
-  //write(fd2, msg2, 7);
+//write(fd2, msg2, 7);
 //  int i, j = 0;
 //  for (i = 0; i < 6000000; i++) {
 //    j = 0;
 //  }
-  //close(fd2);
+//close(fd2);
 //  for (i = 0; i < 6000000; i++) {
 //    j = 0;
 //  }

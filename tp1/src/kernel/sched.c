@@ -8,6 +8,8 @@
 #define STATE_BLOCKED 1
 #define STATE_FINISHED 2
 
+#define QUANTUM 2
+
 
 char* states[] = {"running", "blocked", "finished"};
 
@@ -64,7 +66,7 @@ void sched_unblock(pid pd) {
 }
 
 int sched_exit() {
-  quantum = 10;
+  quantum = QUANTUM;
   if (tasks[current_pid].next == current_pid){
     // Es el ultimo elemento en la cola
     last = 0;
@@ -83,7 +85,7 @@ int sched_exit() {
 }
 
 int sched_block() {
-  quantum = 10;
+  quantum = QUANTUM;
   if (tasks[current_pid].next == current_pid){
     // Es el ultimo elemento en la cola
     last = 0;
@@ -108,7 +110,7 @@ int sched_tick() {
   // si es el IDLE task devolvemos inmediatamente la que sigue
   if (current_pid == 0){
     if (last != 0){
-      quantum = 1;
+      quantum = QUANTUM;
       current_pid = last;
     }
     return current_pid;
@@ -116,7 +118,7 @@ int sched_tick() {
 
   // Si no es IDLE Task
   if (--quantum == 0){
-    quantum = 1;
+    quantum = QUANTUM;
     current_pid = tasks[current_pid].next;
   }
   return current_pid;

@@ -34,7 +34,6 @@ void device_init(void) {
 }
 
 int sys_read(int fd, void* buf, uint_32 size) {
-  printf("entre a read");
   // Busco en la current task el file descriptor solicitado
   chardev* char_dev = (chardev*) char_devices[cur_pid][fd];
   return char_dev->read(char_dev, buf, size);
