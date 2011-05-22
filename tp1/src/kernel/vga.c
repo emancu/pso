@@ -15,28 +15,41 @@ uint_16 fila = 0;
 void vga_init(void) {
 }
 
-void vga_write(uint_16 f, uint_16 c, const char* msg, uint_8 attr) {
-  uint_8* video = (uint_8*)(vga_addr + vga_cols * 2 * f + c * 2);
+void vga_write_in_memory(char* video, uint_8* fila, uint_8* col, const char* msg, uint_8 attr, uint_8 cant) {
   int str = 0;
-  while(msg[str] != '\0' && video < vga_limit) {
+  char* limit = (char*) (video + 4000);
+  while(((cant == 0 && msg[str] != '\0') || (cant != 0 && str < cant)) && video < limit) {
     if (msg[str] == '\n') { //Avanzo una línea el puntero
-    video = (uint_8*)(video + (vga_cols * 2));
+      (*fila)++;
+      (*col) = 0;
+      video = video + *col * 2 * *fila;
     } else { //Escribo en pantalla
       *video++ = msg[str];
       *video++ = attr;
+      if (*col + 1 == vga_cols)
+        (*fila)++;
+      *col = (*col + 1) % vga_cols;
     }
     str++;
   }
 }
 
+void vga_write(uint_16 f, uint_16 c, const char* msg, uint_8 attr) {
+  char* video = (char*)(vga_addr + vga_cols * 2 * f + c * 2);
+  uint_8 fila = f, col = c;
+  vga_write_in_memory(video, &fila, &col, msg, attr, 0);
+}
+
 void vga_printf(uint_16 f, uint_16 c, const char* format, uint_8 attr, ...) {
   va_list argp;
-  int amount = 256;
   va_start(argp, attr);
-  while(printf_resolver(f, c, attr, amount, format, argp) < 0) {
-    va_start(argp, attr);
-    amount *= 2;
-  }
+  int amount = printf_len(format, argp);
+  char buff[amount];
+  va_start(argp, attr);
+  if (sprintf_in(buff, format, argp) < 0) {} 
+    //Manejar error
+    //Ahora no tiene razón de fallar
+  vga_write(f, c, buff, attr);
 }
 
 void move_scr_up() {
@@ -54,17 +67,18 @@ void move_scr_up() {
 
 void printf(const char* fmt, ...) {
 	va_list argp;
-	int amount = 256;
 	va_start(argp, fmt);
-	if (fila == vga_rows) {
+  int amount = printf_len(fmt, argp);
+  char buff[amount];
+	va_start(argp, fmt);
+	
+  if (fila == vga_rows) {
     fila--;
 		move_scr_up();
   }
 
-	while(printf_resolver(fila, 0, VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, amount, fmt, argp) < 0) {
-		va_start(argp, fmt);
-		amount *= 2;
-	}
+	if (sprintf_in(buff, fmt, argp) < 0) {}
+  vga_write(fila, 0, buff, VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT);
 
 	if (fila < vga_rows) fila++;
 }
@@ -102,57 +116,6 @@ void clear_screen() {
   fill_screen(0,0);
 }
 
-
-int printf_resolver(uint_16 f, uint_16 c, uint_8 attr, int amount, const char* fmt, va_list argp) {
-  char buff[amount];
-  char ch;
-  char* str;
-  int x, i = 0, count = 0, len = strlen(fmt), arg = 0;
-  while(i < len) {
-    if (fmt[i] == '%') { //Special action needed
-      i++;
-      switch(fmt[i]) {
-        case 'c':
-          ch = (char)va_arg(argp, int);
-          if (char_into_string(buff, &count, amount, ch) < 0)
-            return -1;
-          arg++;
-          break;
-        case 'd':
-        case 'i':
-          x = va_arg(argp, int);
-          if (dec_into_string(buff, &count, amount, x) < 0)
-            return -1;
-          arg++;
-          break;
-        case 'x':
-          x = va_arg(argp, int);
-          if (hex_into_string(buff, &count, amount, x) < 0)
-            return -1;
-          arg++;
-          break;
-
-          break;
-        case 's':
-          str = va_arg(argp, char*);
-          if (str_into_string(buff, &count, amount, str) < 0)
-            return -1;
-          arg++;
-          break;
-      }
-      i++;
-    } else { //No special action is taken, char is copied
-      if (count >= amount) return -1;
-      buff[count] = fmt[i];
-      i++;
-      count++;
-    }
-  }
-  buff[count] = '\0';
-  vga_write(f, c, buff, attr);
-  va_end(argp);
-  return 0;
-}
 
 uint_8 make_format(char blink, char front, char back, char bright) {
   uint_8 fmt = (uint_8)0;

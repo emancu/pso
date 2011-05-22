@@ -5,6 +5,7 @@
 #include <tipos.h>
 #include <stdarg.h>
 #include <lib_str.h>
+#include <lib_printf.h>
 
 extern uint_8* vga_addr;
 extern const uint_16 vga_cols;
@@ -18,24 +19,27 @@ void vga_init(void);
 void vga_write(uint_16 f, uint_16 c, const char* msg, uint_8 attr);
 void vga_printf(uint_16 f, uint_16 c, const char* format, uint_8 attr, ...) __attribute__ ((format (printf, 3, 5)));
 
+/* Esta función escribe el string 'msg' con atributo 'attr' en un buffer que se considerará memoria de video.
+ * 'video' es la dirección donde comienza el buffer, pudiendo definir un offset en la posición mediante
+ * 'fila' y 'col'. 'cant' define cuantos caracteres del buffer se escribirán. Si 'cant' == 0 se escribirá hasta
+ * el primer '\0'. Sino estos se escribirán en memoria también respetando que se escriben 'cant' caracteres. */
+void vga_write_in_memory(char* video, uint_8* fila, uint_8* col, const char* msg, uint_8 attr, uint_8 cant);
+
+/* Llena la pantalla vga con el color dado y la opción de brillo dada. */
 void fill_screen(char color, char bright);
+
+/* Llena la pantalla vga de negro */
 void clear_screen();
 
 /* printf like function that supports the follwing format parameters: %s %c %d %x %i.
  * If \n is inside fmt, next line will be overwritten by next printf. */
 void printf(const char* fmt, ...);
 
-
-int printf_resolver(uint_16 f, uint_16 c, uint_8 attr, int amount, const char* fmt, va_list argp);
-
 /*Creates a format byte with the given options.*/
 uint_8 make_format(char blink, char front, char back, char bright);
 
 void copy_memory_to_screen(uint_8* initial_position);
 void copy_screen_to_memory(uint_8* initial_position);
-
-
-
 
 
 /* Paleta de 16 colores */
