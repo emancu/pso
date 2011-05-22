@@ -44,7 +44,7 @@ void vga_printf(uint_16 f, uint_16 c, const char* format, uint_8 attr, ...) {
   va_list argp;
   va_start(argp, attr);
   int amount = printf_len(format, argp);
-  char buff[amount];
+  char buff[amount+1];
   va_start(argp, attr);
   if (sprintf_in(buff, format, argp) < 0) {} 
     //Manejar error
@@ -69,7 +69,7 @@ void printf(const char* fmt, ...) {
 	va_list argp;
 	va_start(argp, fmt);
   int amount = printf_len(fmt, argp);
-  char buff[amount];
+  char buff[amount+1];
 	va_start(argp, fmt);
 	
   if (fila == vga_rows) {

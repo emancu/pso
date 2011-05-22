@@ -59,17 +59,23 @@ int num_into_string_len(unsigned int num, int base) {
 }
 
 int num_into_string(char* str, int* index, unsigned int num, int base) {
-  int acum = base;
+  int acum = 1;
   unsigned int val;
   char* digits = "0123456789ABCDEF";
+  
+  while (num / acum >= base) {
+    acum *= base;
+  }
 
-  while (acum > 0) {
+  while (acum >= base) {
     val = num / acum;
     str[*index] = digits[val];
     (*index)++;
     num -= val * acum;
     acum /= base;
   }
+  str[*index] = digits[num];
+  (*index)++;
   return 0;
 }
 
