@@ -28,7 +28,7 @@ OBJS_KERN=kernel/kinit.o kernel/a20.o kernel/kernel.o kernel/gdt.o kernel/idt.o 
   kernel/mm.o kernel/debug.o kernel/loader.o kernel/tasks.o \
   kernel/syscalls.o kernel/sem.o kernel/tss.o kernel/loader_switch.o \
   kernel/device.o kernel/con.o kernel/proc.o kernel/fs.o kernel/serial.o kernel/fat12.o \
-  kernel/lib_str.o kernel/klib_machine.o kernel/lib_printf.o
+  kernel/lib_str.o kernel/klib_machine.o kernel/lib_printf.o kernel/kernel_sym.o
 BIN_KERN=$(DIROUT)kernel.bin
 DUMP_KERN=$(DIROUT)kernel.bin.asm $(DIROUT)kernel.bin.elf $(DIROUT)kernel.bin.dbg
 SYM_KERN=$(DIROUT)kernel.sym
@@ -55,6 +55,9 @@ kernel/%.o: kernel/%.asm
 	nasm $(NASMFLAGS) -felf32 -I $(DIRKERN) -o $@ $<
 
 kernel/tasks.o: kernel/tasks.asm $(TASKS) $(TASKS_ELF)
+	nasm $(NASMFLAGS) -felf32 -I $(DIRKERN) -o $@ $<
+	
+kernel/kernel_sym.o: kernel/kernel_sym.asm
 	nasm $(NASMFLAGS) -felf32 -I $(DIRKERN) -o $@ $<
 
 tasks/pso_head.o: tasks/pso_head.asm
@@ -103,8 +106,13 @@ $(IMG_FLOPPY): $(BIN_BOOT) $(BIN_KERN) $(IMG_BASE)
 	for T in $(TASKS); do mcopy -obi $@ $$T ::`basename $$T`; done;
 
 # Otros
+refsym:
+	touch kernel/kernel_sym.asm
+	make
+
 clean:
-	rm -f $(BIN_KERN) $(IMG_FLOPPY) $(IMG_BASE) $(OBJS_KERN) $(DUMP_KERN) $(SYM_KERN) $(OBJS_TASKS) $(TASKS) $(TASKS:.pso=.elf)
+	rm -f $(BIN_KERN) $(IMG_FLOPPY) $(IMG_BASE) $(OBJS_KERN) $(DUMP_KERN) $(OBJS_TASKS) $(TASKS) $(TASKS:.pso=.elf)
+#	rm -f $(BIN_KERN) $(IMG_FLOPPY) $(IMG_BASE) $(OBJS_KERN) $(DUMP_KERN) $(SYM_KERN) $(OBJS_TASKS) $(TASKS) $(TASKS:.pso=.elf)
 	#rm -f deps
 
 # Dependencias
