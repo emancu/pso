@@ -45,7 +45,7 @@ IMG_FLOPPY=$(DIROUT)floppy.img
 
 .PHONY: all clean
 
-all: $(IMG_FLOPPY) $(DUMP_KERN) $(SYM_KERN)
+all: $(SYM_KERN) $(IMG_FLOPPY) $(DUMP_KERN)
 
 # Bootloader - disk
 ### TODO ###
