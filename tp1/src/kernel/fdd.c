@@ -97,8 +97,21 @@ blockdev* fdd_open(int nro) {
 }
 
 
+int fdd_send_byte(char byte) {
+	uint_32 timeout = DEFAULT_TIMEOUT;
+	char msr;
+	char success = 0;
+	while (timeout-- && !success) {
+		msr = inb(PORT_MSR);
+		if (msr == FDD_MSR_MRQ) {
+			
+		}
+	}
+}
+
 
 /** Init **/
 
 void fdd_init(void) {
+	
 }
