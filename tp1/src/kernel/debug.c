@@ -65,7 +65,11 @@ void print_backtrace(uint_32 f, uint_32 c, uint_32 level, uint_32 params, const 
   uint_32 ebp_hold = ebp;
   uint_32 i, j;
   vga_write(f++, c, "Backtrace:", VGA_BC_CYAN | VGA_FC_WHITE | VGA_FC_LIGHT);
-  vga_printf(f++, c, "  %x : ", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, last_eip);
+  vga_printf(f, c, "  %x : ", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, last_eip);
+  for (j = 0; j < params; j++) {
+     vga_printf(f, c+12+10*j, "%x", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, (ebp_hold+8+(j*4)));
+  }
+  f++;
   for (i = 0; i < level; i++) {
     vga_printf(f+i, c, "  %x : ", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, (uint_32)obtain_prev_func(&ebp_hold));
     for (j = 0; j < params; j++) {
