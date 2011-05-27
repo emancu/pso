@@ -77,9 +77,16 @@
 #define DMAIO_MODE       0x00B
 #define DMAIO_INIT       0x00A
 
+/* Error codes */
+#define FDD_ERROR_TIMEOUT -2
+#define FDD_ERROR_VERSION_NOT_CORRECT -3
+
+/* Device variables */
+
+fdc_stat fdc;
+
 
 /* Block device */
-
 
 sint_32 fdd_block_read(blockdev* this, uint_32 pos, void* buf, uint_32 size) {
 	return 0;
@@ -97,21 +104,74 @@ blockdev* fdd_open(int nro) {
 }
 
 
-int fdd_send_byte(char byte) {
+int fdd_send_byte(uint_8 byte) {
 	uint_32 timeout = DEFAULT_TIMEOUT;
-	char msr;
-	char success = 0;
-	while (timeout-- && !success) {
-		msr = inb(PORT_MSR);
-		if (msr == FDD_MSR_MRQ) {
-			
-		}
+	char msr = 0;
+	while (timeout-- && !((msr & FDD_MSR_MRQ) && !(msr & FDD_MSR_DIO))) {
+    //TODO: Faltaría un sleep
+		msr = inb(FDD_PORT+PORT_MSR);
 	}
+  if (!timeout)
+    return FDD_ERROR_TIMEOUT;
+
+  outb(FDD_PORT+PORT_DATA, byte);
+  return 0;
 }
 
+uint_8 fdd_get_byte(int* stat) {
+  uint_32 timeout = DEFAULT_TIMEOUT;
+  char msr = 0;
+  while (timeout-- && !((msr & FDD_MSR_MRQ) && (msr & FDD_MSR_DIO))) {
+    //TODO: Faltaría un sleep
+    msr = inb(FDD_PORT+PORT_MSR);
+  }
+  if (!timeout) {
+    *stat = FDD_ERROR_TIMEOUT;
+    return 0;
+  }
+
+  *stat = 0;
+  return inb(FDD_PORT+PORT_DATA);
+}
+
+
+int fdd_version() {
+  int st;
+  uint_8 ver;
+  st = fdd_send_byte(FDD_CMD_VERSION);
+  if (st < 0)
+    return st;
+  ver = fdd_get_byte(&st);
+  return ver;
+}
+
+
+void fdd_mot_en(fdc_stat* fdc, uint_8 motor, char st) {
+  uint_8 dor = fdc->dor;
+  if (st)
+    dor &= (1 << (motor+4));
+  else
+    dor &= ~(1 << (motor+4));
+  outb(FDD_PORT+PORT_DOR, dor);
+}
 
 /** Init **/
 
 void fdd_init(void) {
-	
+	//Chequeo la versión
+  uint_8 ver = fdd_version();
+  if (ver != 0x90) {
+    if (ver == FDD_ERROR_TIMEOUT) {
+      printf("! FDC: Error de timeout al chequear versión.");
+    } else {
+      printf("! FDC: Error de fdc, versión inválida.");
+    }
+  }
+  printf("FDC: Version check complete.");
+
+  //Establezco el estado del fdc
+  fdc.dor = 0x03;
+
+
+  // fdd_mot_en(&fdc, 1, 0);
 }

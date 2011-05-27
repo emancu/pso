@@ -12,7 +12,7 @@
 #include <con.h>
 #include <proc.h>
 #include <fs.h>
-
+#include <fdd.h>
 
 #include "klib_machine.h"
 #include "scheduler_test.c"
@@ -35,6 +35,8 @@ void kernel_init(void) {
   fs_init();
   device_init();
   con_init();
+  fdd_init();
+  breakpoint();
 
   //load tasks
   loader_load(&task_task1_pso,0);
