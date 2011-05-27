@@ -145,15 +145,30 @@ int fdd_version() {
   return ver;
 }
 
-
 void fdd_mot_en(fdc_stat* fdc, uint_8 motor, char st) {
   uint_8 dor = fdc->dor;
   if (st)
-    dor &= (1 << (motor+4));
+    dor |= (1 << (motor+4));
   else
     dor &= ~(1 << (motor+4));
   outb(FDD_PORT+PORT_DOR, dor);
   fdc->dor = dor;
+}
+
+//En duda... al parecer hay que usar configure
+void fdd_dma_en(fdc_stat* fdc, char st) {
+  uint_8 dor = fdc->dor;
+  if (st)
+    dor &= ~0x8;
+  else
+    dor |= 0x8;
+  outb(FDD_PORT+PORT_DOR, dor);
+  fdc->dor = dor;
+}
+
+char get_dma_st() {
+  uint_8 msr = inb(FDD_PORT+PORT_MSR);
+  return (msr & 0x20)? 0 : 1;
 }
 
 /** Init **/
@@ -170,9 +185,15 @@ void fdd_init(void) {
   }
   printf("FDC: Version check complete.");
 
+  // printf("1 << 0 (%x) | 1 << 1 (%x) | 1 << 2 (%x) | 1 << 3 (%x) | 1 << 4 (%x)", 1 << 0, 1 << 1, 1 << 2, 1 << 3, 1 << 4);
+
   //Establezco el estado del fdc
-  fdc.dor = 0x03;
+  fdc.dor = 0x04;
+  outb(FDD_PORT+PORT_DOR, fdc.dor); //Actualizo el fdc con mi dor actual
 
-
+  //Activo el modo DMA
+  printf("FDC: Is dma on? %d", get_dma_st());
+  fdd_dma_en(&fdc, 0);
+  printf("FDC: Is dma on? %d", get_dma_st());
   // fdd_mot_en(&fdc, 1, 0);
 }
