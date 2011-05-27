@@ -153,6 +153,7 @@ void fdd_mot_en(fdc_stat* fdc, uint_8 motor, char st) {
   else
     dor &= ~(1 << (motor+4));
   outb(FDD_PORT+PORT_DOR, dor);
+  fdc->dor = dor;
 }
 
 /** Init **/
