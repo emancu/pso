@@ -16,8 +16,8 @@ typedef struct str_chardev_console {
   chardev dev;                      //dejar siempre primero
   struct str_chardev_console* next; //in order to switch between opened consoles. go here? or another struct??
   struct str_chardev_console* prev;
-  uint_16 fila;
-  uint_16 columna;
+  uint_8 fila;
+  uint_8 columna;
   uint_8  style;
   //Buffer con las teclas ingresadas mientras la consola estaba activa
   char buff[CON_BUFF_SIZE];

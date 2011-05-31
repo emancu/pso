@@ -17,6 +17,11 @@ static uint_8* calculate_video_position(const chardev_console* this_chardev_cons
 chardev_console* current_console;
 chardev_console* empty_console;
 
+char block[1] = { 219 };
+
+//	*video++ = 219; // ASCII for a block (full-filled '_')
+//	*video++ = VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT | VGA_FC_BLINK;
+
 void con_init() {
 	// NOTE: Borrar linea al pedo
 	// current_console = 0x0;
@@ -67,36 +72,18 @@ sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
 
 	int str = 0;
 	uint_8* video = calculate_video_position(this_chardev_console);
-	// DUDA: Porque +4000 ? no entiendo
 	uint_8* screen_limit = (uint_8*) (this_chardev_console->console_screen + 4000);
 
 	while (str < size && video < screen_limit) {
-		if (char_buf[str] == '\n') { //Avanzo una línea el puntero
-			this_chardev_console->fila++;
-			this_chardev_console->columna = 0;
-			video = calculate_video_position(this_chardev_console);
-		} else { //Escribo en pantalla
-			//si es la current escribo tambien en la pantalla
-			//!todo ver este vga_write escribe hasta el final de la palabra.. hacer funcion que reciba cuanto imprimir??
-			if (current_console == this_chardev_console)
-				vga_write(this_chardev_console->fila, this_chardev_console->columna, &char_buf[str], this_chardev_console->style);
-			*video++ = char_buf[str];
-			*video++ = this_chardev_console->style;
-			if (this_chardev_console->columna + 1 == vga_cols)
-				this_chardev_console->fila++;
-			this_chardev_console->columna = (this_chardev_console->columna + 1) % vga_cols;
+		//!todo no se si este manejo va aca o si lo tiene que tener el vga_write??
+		if (current_console == this_chardev_console) {
+			vga_write_cant(&this_chardev_console->fila, &this_chardev_console->columna, &char_buf[str], this_chardev_console->style, 1);
+		} else {
+			vga_write_in_memory((char *) &this_chardev_console->console_screen, &this_chardev_console->fila, &this_chardev_console->columna, &char_buf[str],
+					this_chardev_console->style, 1);
 		}
 		str++;
 	}
-
-	//!todo no funciona porque no copio la pantalla
-	//!todo ver con martin el tema de vga!!!
-	*video++ = 219; // ASCII for a block (full-filled '_')
-	*video++ = VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT | VGA_FC_BLINK;
-
-	//!todo esto es muy costosooo!! se escribe
-	//if (current_console == this_chardev_console)
-	//  copy_memory_to_screen((uint_8*) current_console->console_screen);
 
 	return str;
 }
@@ -152,6 +139,7 @@ chardev* con_open(void) {
 		current_console->next = new_chardev_console;
 	}
 
+	copy_screen_to_memory((uint_8*) current_console->console_screen);
 	current_console = new_chardev_console;
 	copy_memory_to_screen((uint_8*) current_console->console_screen);
 	return (chardev*) new_chardev_console;
@@ -162,12 +150,14 @@ chardev* con_open(void) {
 
 void move_to_right_console() {
 	if (current_console != 0x0) {
+		copy_screen_to_memory((uint_8*) current_console->console_screen);
 		copy_memory_to_screen((uint_8*) current_console->next->console_screen);
 		current_console = current_console->next;
 	}
 }
 
 void move_to_left_console() {
+	copy_screen_to_memory((uint_8*) current_console->console_screen);
 	if (current_console != 0x0) {
 		copy_memory_to_screen((uint_8*) current_console->prev->console_screen);
 		current_console = current_console->prev;
@@ -275,11 +265,14 @@ uint_8 getc(uint_16 scan_code) {
 	case 0x2c:
 		return 'z';
 	case 0x39:
-		return ' '; //Enter
+		return ' ';
+		//Enter
 	case 0x1c:
-		return '\n'; //tab
+		return '\n';
+		//tab
 	case 0x0f:
-		return '\t'; //Backspace
+		return '\t';
+		//Backspace
 	case 0x0e:
 		return 0x08;
 	case 0x38:
@@ -299,4 +292,3 @@ uint_8 getc(uint_16 scan_code) {
 		return ((scan_code >= 0x3b && scan_code <= 0x44) || (scan_code >= 0x57 && scan_code <= 0x58)) ? '_' : 0;
 	}
 }
-

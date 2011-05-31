@@ -16,6 +16,7 @@ extern uint_16 fila;
 
 void vga_init(void);
 
+void vga_write_cant(uint_8* f, uint_8* c, const char* msg, uint_8 attr ,uint_8 cant);
 void vga_write(uint_16 f, uint_16 c, const char* msg, uint_8 attr);
 void vga_printf(uint_16 f, uint_16 c, const char* format, uint_8 attr, ...) __attribute__ ((format (printf, 3, 5)));
 
