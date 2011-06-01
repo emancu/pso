@@ -17,7 +17,11 @@ static uint_8* calculate_video_position(const chardev_console* this_chardev_cons
 chardev_console* current_console;
 chardev_console* empty_console;
 
-char block[1] = { 219 };
+char block[2] = { 219, ' ' };
+char blanck[1] = { ' ' };
+
+#define BLOCK_NO_BLINK VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT | VGA_FC_WHITE
+#define BLOCK_BLINK VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT | VGA_FC_BLINK
 
 //	*video++ = 219; // ASCII for a block (full-filled '_')
 //	*video++ = VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT | VGA_FC_BLINK;
@@ -66,7 +70,6 @@ sint_32 con_read(chardev* this, void* buf, uint_32 size) {
 }
 
 sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
-	//!TODO: Chequear no pasarse de la pantalla y el uso de \n.
 	char* char_buf = (char*) buf;
 	chardev_console* this_chardev_console = (chardev_console *) this;
 
@@ -75,24 +78,52 @@ sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
 	uint_8* screen_limit = (uint_8*) (this_chardev_console->console_screen + 4000);
 
 	while (str < size && video < screen_limit) {
-		//!todo no se si este manejo va aca o si lo tiene que tener el vga_write??
-		if (current_console == this_chardev_console) {
-			vga_write_in_memory((char *) vga_addr, &this_chardev_console->fila, &this_chardev_console->columna, &char_buf[str],
-								this_chardev_console->style, 1);
+		if (char_buf[str] == '\n') { //Avanzo una línea el puntero
+			this_chardev_console->fila++;
+			this_chardev_console->columna = 0;
+		} else if (char_buf[str] == 0x08) { //Backspace
+			if (this_chardev_console->columna >= 13) {//depende de la longitud del ps1.
+				if (this_chardev_console->columna == 0) {
+					this_chardev_console->columna = vga_cols - 1;
+					this_chardev_console->fila--;
+				} else {
+					this_chardev_console->columna--;
+				}
+
+				//escribo en la consola el block (cursor)
+				write_in_console(this_chardev_console, &block[0], BLOCK_NO_BLINK, 2);
+			}
+
 		} else {
-			vga_write_in_memory((char *) &this_chardev_console->console_screen, &this_chardev_console->fila, &this_chardev_console->columna, &char_buf[str],
-					this_chardev_console->style, 1);
+			//escribo en la pantalla
+			write_in_console(this_chardev_console, &char_buf[str], this_chardev_console->style, 1);
+
+			//actualizo fila y columna
+			if (this_chardev_console->columna + 1 == vga_cols)
+				this_chardev_console->fila++;
+			this_chardev_console->columna = (this_chardev_console->columna + 1) % vga_cols;
+
+			write_in_console(this_chardev_console, &block[0], BLOCK_NO_BLINK, 1);
 		}
 
+		//efecto consola
 		if (this_chardev_console->fila == vga_rows) {
 			this_chardev_console->fila--;
-			move_scr_up( &this_chardev_console->console_screen);
-			move_scr_up( (uint_8*) 0xB8000);
+			move_scr_up(&this_chardev_console->console_screen);
+			move_scr_up((uint_8*) 0xB8000);
 		}
 		str++;
 	}
 
 	return str;
+}
+
+void write_in_console(chardev_console* this_chardev_console, const char* msg, uint_8 style, uint_8 cant) {
+	if (current_console == this_chardev_console) {
+		vga_write_in_memory((char *) vga_addr, &this_chardev_console->fila, &this_chardev_console->columna, msg, style, cant);
+	} else {
+		vga_write_in_memory((char *) &this_chardev_console->console_screen, &this_chardev_console->fila, &this_chardev_console->columna, msg, style, cant);
+	}
 }
 
 uint_32 con_flush(chardev* this) {

@@ -15,38 +15,24 @@ uint_16 fila = 0;
 void vga_init(void) {
 }
 
-//!todo video es siempre donde empieza la memoria. dps se hace la cuenta con fila columna
+//video es siempre donde empieza la memoria. dps se hace la cuenta con fila columna
+//esta funcion solo imprime lo que le viene en el bufer. NO se encarga de manejar los caracteres especiales: \n, \t. etc
 void vga_write_in_memory(char* video, uint_8* fila, uint_8* col, const char* msg, uint_8 attr, uint_8 cant) {
 	video = (char*) (video + vga_cols * 2 * *fila + *col * 2);
 	int str = 0;
 	char* limit = (char*) (video + 4000);
 	while (((cant == 0 && msg[str] != '\0') || (cant != 0 && str < cant)) && video < limit) {
-		if (msg[str] == '\n') { //Avanzo una línea el puntero
-			(*fila)++;
-			(*col) = 0;
-			video = video + *col * 2 * *fila;
-		} else if (msg[str] == 0x08) { //Backspace
-			if (*col == 0) {
-				*col = vga_cols - 1;
-				(*fila)--;
-			} else {
-				(*col)--;
-			}
+		//Escribo en pantalla
+		*video++ = msg[str];
+		*video++ = attr;
 
-			*(video - 2) = ' ';
-			video = video + *col * 2 * *fila;
-		} else { //Escribo en pantalla
-			*video++ = msg[str];
-			*video++ = attr;
+//		if (*col + 1 == vga_cols)
+//			(*fila)++;
+//		*col = (*col + 1) % vga_cols;
 
-			if (*col + 1 == vga_cols)
-				(*fila)++;
-			*col = (*col + 1) % vga_cols;
-		}
 		str++;
 	}
 }
-
 
 void vga_write(uint_16 f, uint_16 c, const char* msg, uint_8 attr) {
 	uint_8 fila = f, col = c;
@@ -65,7 +51,6 @@ void vga_printf(uint_16 f, uint_16 c, const char* format, uint_8 attr, ...) {
 	//Ahora no tiene razón de fallar
 	vga_write(f, c, buff, attr);
 }
-
 
 void move_scr_up(uint_8* video_addr) {
 	uint_8* video = video_addr;
