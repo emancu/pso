@@ -10,10 +10,6 @@ uint_32 cur_pid;
 static int free_pids[MAX_PID];
 static int next_free;
 
-// TODO: Borrar variables y printf de debug!
-// static int enqueue_as=0;
-// static int unqueue_as=0;
-
 void loader_init(void) {
   int i;
   // Inicializamos la cola de peeds libres
@@ -99,11 +95,7 @@ void loader_tick() {
 }
 
 void loader_enqueue(int* cola) {
-  // printf("  Enqueue cola= %d  next= %d  prev=%d",*cola, task_table[*cola].next, task_table[*cola].prev);
-  // printf("  Enqueue cur= %d  next= %d  prev=%d",cur_pid, task_table[cur_pid].next, task_table[cur_pid].prev);
-  // printf("  Enqueue N %d  Unqueue N %d", ++enqueue_as, unqueue_as);
   if (*cola == -1) {
-    // printf("    Vacia");
     // Esta vacia, hay que agregar el primer elemento
     task_table[cur_pid].next = cur_pid;
     task_table[cur_pid].prev = cur_pid;
@@ -118,27 +110,20 @@ void loader_enqueue(int* cola) {
   }
 
   int i = sched_block();
-  // printf("  *Enqueue cola= %d  next= %d  prev=%d",*cola, task_table[*cola].next, task_table[*cola].prev);
-  // printf("  *Enqueue cur= %d  next= %d  prev=%d",cur_pid, task_table[cur_pid].next, task_table[cur_pid].prev);
   loader_switchto(i);
 }
 
 void loader_unqueue(int* cola) {
   int old_cola = *cola;
-  // printf("  Enqueue N %d  Unqueue N %d", enqueue_as ,++unqueue_as);
+
   if (*cola != -1) {
     int next_node = task_table[*cola].next;
     int prev_node = task_table[*cola].prev;
-    // printf("  Unqueue cola= %d  next= %d  prev=%d",*cola, next_node, prev_node);
-    // printf("  Unqueue cur= %d  next= %d  prev=%d",cur_pid, task_table[cur_pid].next, task_table[cur_pid].prev);
 
     task_table[next_node].prev = prev_node;
     task_table[prev_node].next = next_node;
     task_table[*cola].next = -1;
     task_table[*cola].prev = -1;
-    // printf("  *Unqueue cola= %d  next= %d  prev=%d",*cola, task_table[*cola].next, task_table[*cola].prev);
-    // printf("  *Unqueue cur= %d  next= %d  prev=%d",cur_pid, task_table[cur_pid].next, task_table[cur_pid].prev);
-    // *cola = -1;
     *cola = ((next_node == *cola)? -1 : next_node);
     sched_unblock(old_cola);
   }

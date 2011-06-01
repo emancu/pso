@@ -12,6 +12,7 @@
 #include <con.h>
 #include <proc.h>
 #include <fs.h>
+#include <pit.h>
 
 
 #include "klib_machine.h"
@@ -30,6 +31,7 @@ void kernel_init(void) {
   //init all modules
   idt_init();
   debug_init();
+  pit_init();
   mm_init();
   loader_init();
   fs_init();
