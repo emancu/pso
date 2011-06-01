@@ -5,7 +5,7 @@
 #include <tipos.h>
 #include <device.h>
 
-#define DEFAULT_TIMEOUT 2000
+#define FDD_DEFAULT_TIMEOUT 2000
 
 /* Esta estructura se utiliza para almacenar los resultados
  * de los comandos del fdc. */
@@ -18,6 +18,18 @@ typedef struct str_fdc_stat {
 } __attribute__((packed)) fdc_stat;
 
 blockdev* fdd_open(int nro);
+
+/**********************/
+/* Exported Functions */
+/**********************/
+
+int fdd_read_sector(uint_32 sector, void* dest);
+
+void fdd_init(void);
+
+/**********************/
+/* Internal Functions */
+/**********************/
 
 /* Función para captura de interrupciones en floppy */
 extern void isr_fdd();
@@ -130,7 +142,6 @@ void fdd_print_status(fdc_stat* fdc);
  * que es el más probable que se use. De usarse otro drive debe ser seleccionado. */
 int fdd_full_reset(fdc_stat* fdc);
 
-void fdd_init(void);
 #endif
 
 #endif

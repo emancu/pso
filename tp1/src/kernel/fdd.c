@@ -66,17 +66,6 @@
 #define FDD_CMD_MFM  0x40
 #define FDD_CMD_SKIP 0x20
 
-/* DMA options */
-#define DMA_READ        0x46
-#define DMA_WRITE       0x4A
-#define DMA_RESET_VAL   0x06
-
-#define DMAIO_ADDR       0x004
-#define DMAIO_TOP        0x081
-#define DMAIO_COUNT      0x005
-#define DMAIO_FLIPFLOP   0x00C
-#define DMAIO_MODE       0x00B
-#define DMAIO_INIT       0x00A
 
 /* Error codes */
 #define FDD_ERROR_TIMEOUT -2
@@ -133,7 +122,7 @@ void fdd_wait_for_interrupt(uint_32 timeout) {
 /**************************************************/
 
 int fdd_send_byte(uint_8 byte) {
-	uint_32 timeout = DEFAULT_TIMEOUT;
+	uint_32 timeout = FDD_DEFAULT_TIMEOUT;
 	char msr = 0;
 	while (timeout-- && !((msr & FDD_MSR_MRQ) && !(msr & FDD_MSR_DIO))) {
     //TODO: Faltaría un sleep
@@ -147,7 +136,7 @@ int fdd_send_byte(uint_8 byte) {
 }
 
 uint_8 fdd_get_byte(int* stat) {
-  uint_32 timeout = DEFAULT_TIMEOUT;
+  uint_32 timeout = FDD_DEFAULT_TIMEOUT;
   char msr = 0;
   while (timeout-- && !((msr & FDD_MSR_MRQ) && (msr & FDD_MSR_DIO))) {
     //TODO: Faltaría un sleep
@@ -467,6 +456,7 @@ void fdd_init(void) {
   }
   printf("FDC: Version check complete.");
 
+  //Registro la interrupción
   printf("FDC: Registering floppy interrupt");
   idt_register(38, &isr_fdd, 0);
 
@@ -474,6 +464,7 @@ void fdd_init(void) {
   st = 0;
 
   // breakpoint();
+  // Reseteo el fdc 
   printf("FDC: Reseting fdc...");
   st = fdd_full_reset(&fdc);
   if (st < 0)
@@ -482,4 +473,16 @@ void fdd_init(void) {
     printf("FDC: Reset successful.");
 
   fdd_print_status(&fdc);
+
+  //Seteo el dma
+  printf("FDC: Initializing DMA controller.");
+  dma_setup();
+  printf("FDC: DMA initialization done.");
+
+  char floppy_buf[512];
+
+  //Test de lectura del floppy
+  printf("Floppy test read: buffer = %x", &floppy_buf);
+  dma_set_floppy_read(&floppy_buf, 512);
+
 }
