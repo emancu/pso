@@ -19,6 +19,12 @@ typedef struct str_fdc_stat {
 
 blockdev* fdd_open(int nro);
 
+/* Función para captura de interrupciones en floppy */
+extern void isr_fdd();
+
+/* Función en c para captura de interrupciones en floppy */
+void isr_fdd_c();
+
 /* Esta función envía un byte al fifo del fdc. Maneja timeout y chequeo de MSR. 
  * Devuelve 0 en caso de éxito. Sino devuelve un código de error. */
 int fdd_send_byte(uint_8 byte);
@@ -36,6 +42,9 @@ int fdd_version();
  * Se espera 0 <= 'motor' <= 3. Recibe como parámetro 'fdc' del cual 
  * obtener el último valor del dor para así mantener el resto de los campos. */
 void fdd_mot_en(fdc_stat* fdc, uint_8 motor, char st);
+
+/* Esta función selecciona el device 'dev' en el registro dor. */
+void fdd_dev_sel(fdc_stat* fdc, uint_8 dev);
 
 /* Esta funcion habilita o desabilita el dma según el parámetro 'st'. 
  * Recibe el parámetro 'fdc' para obtener de allí el último valor de dor. 
@@ -65,6 +74,15 @@ int fdd_configure(fdc_stat* fdc, char eis, char efifo, char poll, char fifothr, 
  * Devuelve 0 en caso de éxito, sino devuelve un código de error negativo. */
 int fdd_specify(fdc_stat* fdc, char srt, char hut, char hlt, char nd);
 
+/* Esta función envía una señal de recalibración de devices and device 'ds'
+ * con 0 <= 'ds' <= 3. Esta función no solo envía el comando recalibrate, 
+ * sino que también se encarga de la terminación, esto es:
+ * hacer polling sobre msr para saber cuando terminó, y ejecutar el 
+ * sense interrupt para sacar al floppy de estado busy. 
+ * Además prende el motor si no estaba prendido y selecciona el dispostivo. 
+ * Esta función no maneja la situación en la que el recalibrate no llegó al trk 0. */
+int fdd_recalibrate(fdc_stat* fdc, char ds);
+
 /* Esta función ejecuta el comando lock estableciendo
  * el valor según 'lock'. Además verifica que el byte
  * de retorno concuerde con el lock enviado. 
@@ -75,6 +93,10 @@ int fdd_lock(fdc_stat* fdc, char lock);
 /* Este función ejecuta el comando 'dumpreg' en el fdc y completa 
  * la estructura con la información recibida. */
 int fdd_dumpreg(fdc_stat* fdc);
+
+/* Esta función ejecuta el comando 'sense interrupt status' y
+ * completa la estructura con la información recibida. */
+int fdd_sense_interrupt_status(fdc_stat* fdc);
 
 /* Esta función actualiza el valor de los registros de lectura en 'fdc' */
 void fdd_update_R_regs(fdc_stat* fdc);
@@ -100,7 +122,9 @@ void fdd_print_status(fdc_stat* fdc);
  * (Ver http://wiki.osdev.org/Floppy_Disk_Controller#CCR_and_DSR). 
  * DOR se establece en 0x40. Esto apaga los motores y deshabilita las interrupciones,
  * se pretende evitar la IRQ6 que sucede luego del reset.
- * (Ver http://wiki.osdev.org/Floppy_Disk_Controller#Controller_Reset) */
+ * (Ver http://wiki.osdev.org/Floppy_Disk_Controller#Controller_Reset) }
+ * Finalmente también apaga todos los motores y deja seleccionado el drive 0
+ * que es el más probable que se use. De usarse otro drive debe ser seleccionado. */
 int fdd_full_reset(fdc_stat* fdc);
 
 void fdd_init(void);

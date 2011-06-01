@@ -82,6 +82,9 @@
 #define FDD_ERROR_TIMEOUT -2
 #define FDD_ERROR_VERSION_NOT_CORRECT -3
 #define FDD_ERROR_LOCKCMD -4
+#define FDD_ERROR_SENSE_INT_INVALID -5
+#define FDD_ERROR_RECALIBRATE_NOTRK0 -6
+#define FDD_ERROR_RECALIBRATE_WDEV -7
 
 /* Device variables */
 
@@ -103,6 +106,16 @@ sint_32 fdd_block_write(blockdev* this, uint_32 pos, const void* buf, uint_32 si
 /* Devuelve un blockdev de la disketera en cuesti'on */
 blockdev* fdd_open(int nro) {
 	return NULL;
+}
+
+/******************/
+/* Interrupciones */
+/******************/
+
+void isr_fdd_c() {
+  printf("Fdd interrupt!");
+  breakpoint();
+  return;
 }
 
 /**************************************************/
@@ -150,6 +163,8 @@ int fdd_version() {
   if (st < 0)
     return st;
   ver = fdd_get_byte(&st);
+  if (st < 0)
+    return st;
   return ver;
 }
 
@@ -161,6 +176,14 @@ void fdd_mot_en(fdc_stat* fdc, uint_8 motor, char st) {
     dor &= ~(1 << (motor+4));
   outb(FDD_PORT+PORT_DOR, dor);
   fdc->dor = dor;
+}
+
+void fdd_dev_sel(fdc_stat* fdc, uint_8 dev) {
+  uint_8 dor = fdc->dor;
+  dor &= ~0x3; //Limpio los primeros dos bits
+  dor |= (dev & 0x3); //Seteo los primeros dos bits filtrando 'dev'
+  fdc->dor = dor;
+  outb(FDD_PORT+PORT_DOR, dor);
 }
 
 //En duda... al parecer hay que usar configure
@@ -249,7 +272,7 @@ int fdd_dumpreg(fdc_stat* fdc) {
   return 0;
 }
 
-int fdc_lock(fdc_stat* fdc, char lock) {
+int fdd_lock(fdc_stat* fdc, char lock) {
   int st, ret;
   st = fdd_send_byte(FDD_CMD_LOCK | ((lock > 0) << 7));
   if (st < 0)
@@ -262,6 +285,41 @@ int fdc_lock(fdc_stat* fdc, char lock) {
   return 0;
 }
 
+int fdd_sense_interrupt_status(fdc_stat* fdc) {
+  int st;
+  uint_8 pnc, st0;
+  st = fdd_send_byte(FDD_CMD_SENSE_INT);
+  if (st < 0) return st;
+  st0 = fdd_get_byte(&st);
+  if (st < 0) return st;
+  pnc = fdd_get_byte(&st);
+  if (st < 0) return st;
+  if (st0 == 0x80) return FDD_ERROR_SENSE_INT_INVALID;
+  fdc->st0 = st0;
+  return 0;
+}
+
+int fdd_recalibrate(fdc_stat* fdc, char ds) {
+  int st;
+  uint_8 msr;
+  fdd_mot_en(fdc, ds, 1);
+  fdd_dev_sel(fdc, ds);
+  st = fdd_send_byte(FDD_CMD_RECALIBRATE); //Envío el comando
+  if (st < 0) return st;
+  msr = inb(FDD_PORT+PORT_MSR);
+  //TODO: Tengo que chequear que termine la sección de commando?
+  while (msr & (1 << (ds & 0x3))) { //Armo la máscara con un 1 en el DRV x BUSY
+    //TODO: Falta sleep (o manejar esto por interrupciones)
+    msr = inb(FDD_PORT+PORT_MSR);
+  }
+  st = fdd_sense_interrupt_status(fdc);
+  if (st < 0) return st;
+  if (fdc->st0 & (1 << 4))
+    return FDD_ERROR_RECALIBRATE_NOTRK0;
+  if ((fdc->st0 & 0x3) != ds)
+    return FDD_ERROR_RECALIBRATE_WDEV;
+  return 0;
+}
 
 /****************************/
 /* Lectura de stado del fdc */
@@ -308,19 +366,44 @@ int fdd_full_reset(fdc_stat* fdc) {
   fdc->dor = 0x40;
 
   int st;
+  uint_8 count = 4;
   //Senseo los drives
-
+  printf(" >FDC_RESET: Sensing drivers.");
+  while(count--) {
+    st = fdd_sense_interrupt_status(fdc);
+    if (st < 0) return st;
+  }
+  
+  printf(" >FDC_RESET: Configuring fdc.");
   //Configuro el fdc con *configure*
   st = fdd_configure(fdc, 1, 1, 0, 8, 0x0);
   if (st < 0)
     return st;
+
+  printf(" >FDC_RESET: Specifing fdc.");
   //Especifico el fdc con *specify*
   st = fdd_specify(fdc, 8, 5, 15, 0);
   if (st < 0)
     return st;
-  //Recalibro los drives
+
+  printf(" >FDC_RESET: Recalibrating devices.");
+  //Recalibro los devices
+  count = 4;
+  while(count--) {
+    st = fdd_recalibrate(fdc, count);
+    if (st < 0) return st;
+  }
+  
+  printf(" >FDC_RESET: Shutting motors.");
   //Apago todos los motores
+  count = 4;
+  while(count--) {
+    fdd_mot_en(fdc, count, 0);
+  }
+
+  printf(" >FDC_RESET: Choosing drive 0.");
   //Eligo el drive 0
+  fdd_dev_sel(fdc, 0);
   return 0;
 }
 
@@ -341,7 +424,12 @@ void fdd_init(void) {
   }
   printf("FDC: Version check complete.");
 
+  printf("FDC: Registering floppy interrupt");
+  idt_register(32+6, &isr_fdd, 0);
+
   // printf("1 << 0 (%x) | 1 << 1 (%x) | 1 << 2 (%x) | 1 << 3 (%x) | 1 << 4 (%x)", 1 << 0, 1 << 1, 1 << 2, 1 << 3, 1 << 4);
+  fdd_print_status(&fdc);
+  st = 0;
 
   printf("FDC: Reseting fdc...");
   st = fdd_full_reset(&fdc);
