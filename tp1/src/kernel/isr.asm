@@ -9,7 +9,7 @@ syscall_dir: resq 1
 
 isr_define_ep isr_timerTick, isr_timerTick_c
 isr_define_ep isr_keyboard, isr_keyboard_c
-isr_define_ep isr_fdd, isr_fdd_c
+isr_define_ep isr_fdd, isr_fdd_c, 38
 
 
 isr_dkp_e isr_0_DE, 0

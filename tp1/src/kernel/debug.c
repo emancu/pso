@@ -27,20 +27,20 @@ const char* exp_name[] = {
   "Reserved",
   "Floating point exception",
   "Alignment check",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
+  "Undefined 18",
+  "Undefined 19",
+  "Undefined 20",
+  "Undefined 21",
+  "Undefined 22",
+  "Undefined 23",
+  "Undefined 24",
+  "Undefined 25",
+  "Undefined 26",
+  "Undefined 27",
+  "Undefined 28",
+  "Undefined 29",
+  "Undefined 30",
+  "Undefined 31",
   "Timer Tick",
   "Keyboard"
 };
@@ -135,7 +135,7 @@ void debug_kernelpanic(const uint_32* stack, const exp_state* expst) {
   if (error_num > 0 && error_num < sizeof(exp_name)) {
     vga_printf(0, vga_cols-strlen(exp_name[error_num])-13, " Exception: %s ", VGA_BC_MAGENTA | VGA_FC_WHITE | VGA_FC_LIGHT, exp_name[error_num]);
   } else {
-    vga_write(0, vga_cols-strlen(" Exception Undefined "), " Undefined Exception ", VGA_BC_MAGENTA | VGA_FC_WHITE | VGA_FC_LIGHT);
+    vga_printf(0, vga_cols-strlen(" Exception Undefined  ")-dec_into_string_len(error_num), " Undefined Exception %d", VGA_BC_MAGENTA | VGA_FC_WHITE | VGA_FC_LIGHT, error_num);
   }
   error_num = -1;
 

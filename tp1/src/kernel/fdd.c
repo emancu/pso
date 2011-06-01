@@ -115,12 +115,13 @@ blockdev* fdd_open(int nro) {
 char fdd_int_recv = 0;
 
 void isr_fdd_c() {
-  printf("* FDD: interrupt!");
+  printf("* FDD: interrupt! (%d)", error_num);
   fdd_int_recv = 1;
   // breakpoint();
   return;
 }
 
+//TODO: Puede ser necesario implementarlo con bloqueo del timer tick
 void fdd_wait_for_interrupt(uint_32 timeout) {
   //TODO: implementar timeout
   while(fdd_int_recv == 0); //TODO: implementar con sleep
@@ -467,8 +468,7 @@ void fdd_init(void) {
   printf("FDC: Version check complete.");
 
   printf("FDC: Registering floppy interrupt");
-  for (st = 2; st < 50; st++) 
-    idt_register(32+st, &isr_fdd, 0);
+  idt_register(38, &isr_fdd, 0);
 
   // fdd_print_status(&fdc);
   st = 0;
