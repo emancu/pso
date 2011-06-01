@@ -77,10 +77,17 @@ sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
 	while (str < size && video < screen_limit) {
 		//!todo no se si este manejo va aca o si lo tiene que tener el vga_write??
 		if (current_console == this_chardev_console) {
-			vga_write_cant(&this_chardev_console->fila, &this_chardev_console->columna, &char_buf[str], this_chardev_console->style, 1);
+			vga_write_in_memory((char *) vga_addr, &this_chardev_console->fila, &this_chardev_console->columna, &char_buf[str],
+								this_chardev_console->style, 1);
 		} else {
 			vga_write_in_memory((char *) &this_chardev_console->console_screen, &this_chardev_console->fila, &this_chardev_console->columna, &char_buf[str],
 					this_chardev_console->style, 1);
+		}
+
+		if (this_chardev_console->fila == vga_rows) {
+			this_chardev_console->fila--;
+			move_scr_up( &this_chardev_console->console_screen);
+			move_scr_up( (uint_8*) 0xB8000);
 		}
 		str++;
 	}

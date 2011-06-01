@@ -47,10 +47,6 @@ void vga_write_in_memory(char* video, uint_8* fila, uint_8* col, const char* msg
 	}
 }
 
-//!TODO hacer otro vga para que reciba cuanto quiero imprimir??
-void vga_write_cant(uint_8* f, uint_8* c, const char* msg, uint_8 attr, uint_8 cant) {
-	vga_write_in_memory((char*) vga_addr, f, c, msg, attr, cant);
-}
 
 void vga_write(uint_16 f, uint_16 c, const char* msg, uint_8 attr) {
 	uint_8 fila = f, col = c;
@@ -70,14 +66,16 @@ void vga_printf(uint_16 f, uint_16 c, const char* format, uint_8 attr, ...) {
 	vga_write(f, c, buff, attr);
 }
 
-void move_scr_up() {
-	uint_8* video = vga_addr;
-	while (video < (vga_limit - (vga_cols * 2))) {
+
+void move_scr_up(uint_8* video_addr) {
+	uint_8* video = video_addr;
+	uint_8* screen_limit = (uint_8*) (video_addr + 4000);
+	while (video < (screen_limit - (vga_cols * 2))) {
 		*video = *(video + (vga_cols * 2));
 		video++;
 	}
 	char bkg = *(video - 1);
-	while (video < vga_addr + vga_rows * vga_cols * 2) {
+	while (video < video_addr + vga_rows * vga_cols * 2) {
 		*video++ = 0x00;
 		*video++ = bkg;
 	}
@@ -92,7 +90,7 @@ void printf(const char* fmt, ...) {
 
 	if (fila == vga_rows) {
 		fila--;
-		move_scr_up();
+		move_scr_up(vga_addr);
 	}
 
 	if (sprintf_in(buff, fmt, argp) < 0) {
