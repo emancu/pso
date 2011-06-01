@@ -25,6 +25,9 @@ extern void isr_fdd();
 /* Función en c para captura de interrupciones en floppy */
 void isr_fdd_c();
 
+/* Esta función espera al suceso de la interrupción de floppy */
+void fdd_wait_for_interrupt(uint_32 timeout);
+
 /* Esta función envía un byte al fifo del fdc. Maneja timeout y chequeo de MSR. 
  * Devuelve 0 en caso de éxito. Sino devuelve un código de error. */
 int fdd_send_byte(uint_8 byte);

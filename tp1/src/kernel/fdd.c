@@ -112,10 +112,19 @@ blockdev* fdd_open(int nro) {
 /* Interrupciones */
 /******************/
 
+char fdd_int_recv = 0;
+
 void isr_fdd_c() {
-  printf("Fdd interrupt!");
-  breakpoint();
+  printf("* FDD: interrupt!");
+  fdd_int_recv = 1;
+  // breakpoint();
   return;
+}
+
+void fdd_wait_for_interrupt(uint_32 timeout) {
+  //TODO: implementar timeout
+  while(fdd_int_recv == 0); //TODO: implementar con sleep
+  fdd_int_recv = 0;
 }
 
 /**************************************************/
@@ -306,16 +315,31 @@ int fdd_recalibrate(fdc_stat* fdc, char ds) {
   fdd_dev_sel(fdc, ds);
   st = fdd_send_byte(FDD_CMD_RECALIBRATE); //Envío el comando
   if (st < 0) return st;
+  st = fdd_send_byte(ds & 0x3); //Envío el drive
+  if (st < 0) return st;
+  
   msr = inb(FDD_PORT+PORT_MSR);
-  //TODO: Tengo que chequear que termine la sección de commando?
-  while (msr & (1 << (ds & 0x3))) { //Armo la máscara con un 1 en el DRV x BUSY
-    //TODO: Falta sleep (o manejar esto por interrupciones)
+  //TODO: Tengo que chequear que termine la sección de commando? Aparentemente si.
+  while (msr & 0x10) {
     msr = inb(FDD_PORT+PORT_MSR);
   }
+
+  //TODO: las interrupciones podrían estar desactivadas
+  fdd_wait_for_interrupt(0); //Ver de trabajar con sleep (might take up to 3s)
+
+
+  //TODO: Esto loopea por siempre
+  // while (msr & (1 << (ds & 0x3))) { //Armo la máscara con un 1 en el DRV x BUSY
+    // //TODO: Falta sleep (o manejar esto por interrupciones)
+    // msr = inb(FDD_PORT+PORT_MSR);
+  // }
+
   st = fdd_sense_interrupt_status(fdc);
   if (st < 0) return st;
-  if (fdc->st0 & (1 << 4))
+  if ((fdc->st0 & 0xC0) == 0x4) { //TODO: Verificar EC da error siempre, verifico IC.
+    printf("* FDC: Recalibrate NOTRK0");
     return FDD_ERROR_RECALIBRATE_NOTRK0;
+  }
   if ((fdc->st0 & 0x3) != ds)
     return FDD_ERROR_RECALIBRATE_WDEV;
   return 0;
@@ -356,14 +380,18 @@ void fdd_print_status(fdc_stat* fdc) {
 int fdd_full_reset(fdc_stat* fdc) {
   //Establezco DOR en 0x40 para dehabilitar los motores y las interrupciones.
   //De otra forma el reset provocará un IRQ6 (la datasheet no dice nada, pero esto aparece en wiki osdev)
-  outb(FDD_PORT+PORT_DOR, 0x40);
+  outb(FDD_PORT+PORT_DOR, 0x0C);
   //Establezco DSR en 0x80, provocando un reset
   outb(FDD_PORT+PORT_DSR, 0x80);
   //Establezco el CCR en 0
   outb(FDD_PORT+PORT_CCR, 0x0);
+  
   fdc->ccr = 0x0;
   fdc->dsr = 0x0; //El bit 8 se desactiva luego del reset
-  fdc->dor = 0x40;
+  fdc->dor = 0x0C;
+
+  printf(" >FDC_RESET: Waiting for interrupt.");
+  fdd_wait_for_interrupt(0);
 
   int st;
   uint_8 count = 4;
@@ -373,26 +401,34 @@ int fdd_full_reset(fdc_stat* fdc) {
     st = fdd_sense_interrupt_status(fdc);
     if (st < 0) return st;
   }
+   // fdd_print_status(fdc);
+   // breakpoint();
   
   printf(" >FDC_RESET: Configuring fdc.");
   //Configuro el fdc con *configure*
   st = fdd_configure(fdc, 1, 1, 0, 8, 0x0);
   if (st < 0)
     return st;
+  // fdd_print_status(fdc);
+  // breakpoint();
 
   printf(" >FDC_RESET: Specifing fdc.");
   //Especifico el fdc con *specify*
   st = fdd_specify(fdc, 8, 5, 15, 0);
   if (st < 0)
     return st;
+  // fdd_print_status(fdc);
+  // breakpoint();
 
   printf(" >FDC_RESET: Recalibrating devices.");
   //Recalibro los devices
   count = 4;
   while(count--) {
     st = fdd_recalibrate(fdc, count);
-    if (st < 0) return st;
+    if (st < 0 && st != FDD_ERROR_RECALIBRATE_NOTRK0) return st;
   }
+  // fdd_print_status(fdc);
+  // breakpoint();
   
   printf(" >FDC_RESET: Shutting motors.");
   //Apago todos los motores
@@ -400,15 +436,21 @@ int fdd_full_reset(fdc_stat* fdc) {
   while(count--) {
     fdd_mot_en(fdc, count, 0);
   }
+  // fdd_print_status(fdc);
+  // breakpoint();
 
   printf(" >FDC_RESET: Choosing drive 0.");
   //Eligo el drive 0
   fdd_dev_sel(fdc, 0);
+  // breakpoint();
+  // fdd_print_status(fdc);
+
   return 0;
 }
 
 /** Init **/
 
+//TODO: Parecería andar bien... dir, srA y srB tienen valores extraños al final. 
 void fdd_init(void) {
   int st;
 	//Chequeo la versión
@@ -425,21 +467,19 @@ void fdd_init(void) {
   printf("FDC: Version check complete.");
 
   printf("FDC: Registering floppy interrupt");
-  idt_register(32+6, &isr_fdd, 0);
+  for (st = 2; st < 50; st++) 
+    idt_register(32+st, &isr_fdd, 0);
 
-  // printf("1 << 0 (%x) | 1 << 1 (%x) | 1 << 2 (%x) | 1 << 3 (%x) | 1 << 4 (%x)", 1 << 0, 1 << 1, 1 << 2, 1 << 3, 1 << 4);
-  fdd_print_status(&fdc);
+  // fdd_print_status(&fdc);
   st = 0;
 
+  // breakpoint();
   printf("FDC: Reseting fdc...");
   st = fdd_full_reset(&fdc);
-  printf("FDC: Reset successful.");
+  if (st < 0)
+    printf("! FDC: Error during fdc reset: %d", st);
+  else
+    printf("FDC: Reset successful.");
 
   fdd_print_status(&fdc);
-
-  //Activo el modo DMA
-  printf("FDC: Is dma on? %d", get_dma_st());
-  fdd_dma_en(&fdc, 0);
-  printf("FDC: Is dma on? %d", get_dma_st());
-  // fdd_mot_en(&fdc, 1, 0);
 }
