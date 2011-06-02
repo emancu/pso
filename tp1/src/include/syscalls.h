@@ -22,6 +22,8 @@ extern int open(const char* filename, uint_32 flags);
 
 
 
+
+
 #ifdef __KERNEL__
 
 // Sólo se compila en modo "kernel"

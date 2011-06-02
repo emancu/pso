@@ -78,7 +78,9 @@ sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
 	uint_8* screen_limit = (uint_8*) (this_chardev_console->console_screen + 4000);
 
 	while (str < size && video < screen_limit) {
+		//en realidad este \n no va a venir en la consola porque se va a mandar a ejecutar...
 		if (char_buf[str] == '\n') { //Avanzo una línea el puntero
+			write_in_console(this_chardev_console, &block[1], BLOCK_NO_BLINK, 1);
 			this_chardev_console->fila++;
 			this_chardev_console->columna = 0;
 		} else if (char_buf[str] == 0x08) { //Backspace
@@ -109,7 +111,7 @@ sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
 		//efecto consola
 		if (this_chardev_console->fila == vga_rows) {
 			this_chardev_console->fila--;
-			move_scr_up(&this_chardev_console->console_screen);
+			move_scr_up((uint_8*) &this_chardev_console->console_screen);
 			move_scr_up((uint_8*) 0xB8000);
 		}
 		str++;
@@ -150,6 +152,8 @@ chardev* con_open(void) {
 	chardev_console* new_chardev_console = (chardev_console *) mm_mem_kalloc();
 	new_chardev_console->fila = 0;
 	new_chardev_console->columna = 0;
+	new_chardev_console->last_ps1_fila = 0;
+	new_chardev_console->ps1_width = 12; //!todo alemata esto esta cableado. ver cuando se puede setear
 	new_chardev_console->buff_index_start = 0;
 	new_chardev_console->buff_index_end = 0;
 	new_chardev_console->buff_cant = 0;

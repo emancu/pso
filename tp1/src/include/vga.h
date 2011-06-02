@@ -38,6 +38,8 @@ void printf(const char* fmt, ...);
 /*Creates a format byte with the given options.*/
 uint_8 make_format(char blink, char front, char back, char bright);
 
+void move_scr_up(uint_8* video_addr);
+
 void copy_memory_to_screen(uint_8* initial_position);
 void copy_screen_to_memory(uint_8* initial_position);
 
