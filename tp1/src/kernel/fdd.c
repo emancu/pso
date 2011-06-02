@@ -74,11 +74,15 @@
 #define FDD_ERROR_SENSE_INT_INVALID -5
 #define FDD_ERROR_RECALIBRATE_NOTRK0 -6
 #define FDD_ERROR_RECALIBRATE_WDEV -7
+#define FDD_ERROR_READ_WRESPARAM -8
+#define FDD_ERROR_READ_ABNORM -9
+#define FDD_ERROR_READ_DE -10
+#define FDD_ERROR_READ_ND -11
+#define FDD_ERROR_READ_DD -12
 
 /* Device variables */
 
 fdc_stat fdc;
-
 
 /* Block device */
 
@@ -97,6 +101,116 @@ blockdev* fdd_open(int nro) {
 	return NULL;
 }
 
+/************************/
+/* Funciones exportadas */
+/************************/
+
+int fdd_read_sector(fdc_stat* fdc, char c, char h, char r, char eot, char mt, void* dest, char drv) {
+  uint_32 count = FDD_DEFAULT_TIMEOUT;
+  uint_8 cmd = 0x0 | FDD_CMD_READ | FDD_CMD_MFM | ((mt > 0) << 7);
+  uint_8 cmd2 = 0x0 | ((h & 0x1) << 2) | (drv & 0x3);
+  uint_8 st0, st1, st2, ret_c, ret_h, ret_r, ret_n;
+  uint_8 msr;
+  int st;
+
+  if (!(fdc->dor & ((drv & 0xF) << 4))) { //Verifico si no está prendido el motor
+    fdd_mot_en(fdc, drv, 1);
+    while(count--); //TODO: Sleep para esperar 300ms
+  }
+  outb(FDD_PORT+PORT_CCR, 0x0); //Se establece el data rate en ccr (default es 0)
+  fdd_dev_sel(fdc, drv);
+  //TODO: Recalibrar?
+  fdd_recalibrate(fdc, drv);
+
+  dma_set_floppy_read(dest);
+
+  fdd_print_status(fdc);
+  breakpoint();
+
+  //Se envían los comandos
+  st = fdd_send_byte(cmd);
+  if (st < 0) return st;
+  st = fdd_send_byte(cmd2);
+  if (st < 0) return st;
+  st = fdd_send_byte(c);
+  if (st < 0) return st;
+  st = fdd_send_byte(h);
+  if (st < 0) return st;
+  st = fdd_send_byte(r);
+  if (st < 0) return st;
+  st = fdd_send_byte(2);
+  if (st < 0) return st;
+  st = fdd_send_byte(eot);
+  if (st < 0) return st;
+  st = fdd_send_byte(0x1b);
+  if (st < 0) return st;
+  st = fdd_send_byte(0xff);
+  if (st < 0) return st;
+
+  //Actualizo fdc
+  fdc->c = c;
+  fdc->h = h;
+  fdc->r = r;
+  fdc->n = 2;
+
+  msr = inb(FDD_PORT+PORT_MSR);
+  printf(" >FDC: reading - msr = %x", msr);
+
+  fdd_wait_for_interrupt(0); //TODO: Interrupt no maneja timeout ni sleep
+
+  // breakpoint();
+  msr = inb(FDD_PORT+PORT_MSR);
+  // printf(" >FDC: reading - msr = %x", msr);
+  // while (!(msr & FDD_MSR_MRQ) || (msr & FDD_MSR_BUSY) || (msr & (1 << drv))) {
+    // msr = inb(FDD_PORT+PORT_MSR);
+    // printf(" >FDC: reading - msr = %x", msr);
+    // breakpoint();
+  // }
+
+  //TODO: Se deberían manejar reintentos
+
+  //Obtengo resultados
+  st0 = fdd_get_byte(&st);
+  if (st < 0) return st;
+  st1 = fdd_get_byte(&st);
+  if (st < 0) return st;
+  st2 = fdd_get_byte(&st);
+  if (st < 0) return st;
+  ret_c = fdd_get_byte(&st);
+  if (st < 0) return st;
+  ret_h = fdd_get_byte(&st);
+  if (st < 0) return st;
+  ret_r = fdd_get_byte(&st);
+  if (st < 0) return st;
+  ret_n = fdd_get_byte(&st);
+  if (st < 0) return st;
+
+  //Actualizo fdc
+  fdc->st0 = st0;
+  fdc->st1 = st1;
+  fdc->st2 = st2;
+
+  //Verifico situaciones de error
+  //Verifico igualdad de parámetros
+  if (ret_c != c || ret_r != r || ret_h != h || ret_n != 2)
+    return FDD_ERROR_READ_WRESPARAM;
+
+  //Verifico errores en los registros de estado
+  if ((st0 & 0xC0) != 0)
+    return FDD_ERROR_READ_ABNORM;
+
+  if (st1 & 0x20)
+    return FDD_ERROR_READ_DE;
+
+  if (st1 & 0x04)
+    return FDD_ERROR_READ_ND;
+
+  if (st2 & 0x20)
+    return FDD_ERROR_READ_DD;
+
+  return 0;
+}
+
 /******************/
 /* Interrupciones */
 /******************/
@@ -106,6 +220,7 @@ char fdd_int_recv = 0;
 void isr_fdd_c() {
   printf("* FDD: interrupt! (%d)", error_num);
   fdd_int_recv = 1;
+  outb(0x20, 0x20);
   // breakpoint();
   return;
 }
@@ -375,13 +490,24 @@ int fdd_full_reset(fdc_stat* fdc) {
   outb(FDD_PORT+PORT_DSR, 0x80);
   //Establezco el CCR en 0
   outb(FDD_PORT+PORT_CCR, 0x0);
-  
+ 
+  outb(FDD_PORT+PORT_DSR, 0x0);
+
+  printf("Just reset: msr %x | dir %x", inb(FDD_PORT+PORT_MSR), inb(FDD_PORT+PORT_DIR));
+  breakpoint();
+
   fdc->ccr = 0x0;
   fdc->dsr = 0x0; //El bit 8 se desactiva luego del reset
   fdc->dor = 0x0C;
 
   printf(" >FDC_RESET: Waiting for interrupt.");
   fdd_wait_for_interrupt(0);
+
+  outb(FDD_PORT+PORT_CCR, 0x0);
+  outb(FDD_PORT+PORT_DSR, 0x0);
+  outb(FDD_PORT+PORT_DOR, 0x0C);
+  printf("Just reset - after int: msr %x | dir %x", inb(FDD_PORT+PORT_MSR), inb(FDD_PORT+PORT_DIR));
+  breakpoint();
 
   int st;
   uint_8 count = 4;
@@ -463,7 +589,7 @@ void fdd_init(void) {
   // fdd_print_status(&fdc);
   st = 0;
 
-  // breakpoint();
+  breakpoint();
   // Reseteo el fdc 
   printf("FDC: Reseting fdc...");
   st = fdd_full_reset(&fdc);
@@ -483,6 +609,8 @@ void fdd_init(void) {
 
   //Test de lectura del floppy
   printf("Floppy test read: buffer = %x", &floppy_buf);
-  dma_set_floppy_read(&floppy_buf, 512);
-
+  st = fdd_read_sector(&fdc, 0, 0, 1, 1, 0, &floppy_buf, 0);
+  if (st < 0)
+    printf("! FDC: Error reading sector 1 (%d)", st);
+  breakpoint();
 }

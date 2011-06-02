@@ -1,10 +1,9 @@
 #ifndef __DMA_H__
 #define __DMA_H__
 
-#ifdef __KERNEL__
 #include <tipos.h>
 #include <device.h>
-
+#include <i386.h>
 
 /* El siguiente módulo de DMA posee las funciones para trabajar 
  * con el mismo. Ese está considerando que el DMA se utilizará 
@@ -42,16 +41,16 @@ int dma_setup();
  * listo para que el floppy realize una lectura. 
  * El dma transferirá los datos a la dirección 
  * 'dest', de la cual solo se usarán los primeros
- * 20 bits. De 'count' se utilizan solo los primeros 16. */
-void dma_set_for_read(uint_32 dest, uint_32 count);
+ * 20 bits. La cantidad es siempre 512. */
+void dma_set_floppy_read(void* dest);
 
 /* Esta función, que considera el dma ya inicializado,
  * completa los registros de forma que el dma este
  * listo para realizar una escritura en el floppy.
  * El dma transferirá los datos a la dirección 
  * 'src', de la cual solo se usarán los primeros
- * 20 bits. De 'count' se utilizan solo los primeros 16. */
-void dma_set_for_write(uint_32 src, count);
+ * 20 bits. La cantidad es siempre 512. */
+void dma_set_floppy_write(void* src);
 
 /**********************/
 /* Internal functions */
@@ -73,5 +72,6 @@ int dma_set_mode(char ch, char tra, char auto_init, char down, char mode);
 int dma_read_mask();
 
 /* Setea el valor del la maácara del dma */
-void dma_set_mask();
+void dma_set_mask(uint_8 mask);
 
+#endif

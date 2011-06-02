@@ -4,6 +4,7 @@
 #ifdef __KERNEL__
 #include <tipos.h>
 #include <device.h>
+#include <dma.h>
 
 #define FDD_DEFAULT_TIMEOUT 2000
 
@@ -23,7 +24,17 @@ blockdev* fdd_open(int nro);
 /* Exported Functions */
 /**********************/
 
-int fdd_read_sector(uint_32 sector, void* dest);
+/* Esta función se encarga de la lectura de un sector del disquette.
+ * Prende el motor si no estaba encendido y, en ese caso, espera un tiempo
+ * para que el mismo tenga el ritmo necesario para lectura. 
+ * Se establece el data rate por defecto y se selecciona el dispositivo 'drv'.
+ * Luego se inicializa el dma y se envía el comando de lectura.
+ * Finalmente se espera a la interrupción del floppy.
+ * Por último, se revisan los bytes de resultado y se devuelve
+ * un estado de error en caso de haberlo. Se devuelve 0 de otra forma. 
+ * Las varibles GPL y DTL toman valores por defecto. MFM toma valor 1. 
+ * (Ver http://wiki.osdev.org/Floppy_Disk_Controller#Read.2FWrite) */
+int fdd_read_sector(fdc_stat* fdc, char c, char h, char r, char eot, char mt, void* dest, char drv);
 
 void fdd_init(void);
 
