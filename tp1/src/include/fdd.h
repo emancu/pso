@@ -6,7 +6,7 @@
 #include <device.h>
 #include <dma.h>
 
-#define FDD_DEFAULT_TIMEOUT 2000
+#define FDD_DEFAULT_TIMEOUT 8000000
 
 /* Esta estructura se utiliza para almacenar los resultados
  * de los comandos del fdc. */

@@ -9,23 +9,23 @@ int dma_setup() {
   // paging must map this _physical_ memory elsewhere and _pin_ it from paging to disk!
   // set the counter to 0x23ff, the length of a track on a 1.44 MiB floppy - 1 (assuming 512 byte sectors)
   // transfer length = counter + 1
-      outb(0x0a,0x06);      // mask DMA channel 2 and 0 (assuming 0 is already masked)
+      outb(0x0F,0x06);      // mask DMA channel 2 and 0 (assuming 0 is already masked)
       outb(0x0c,0xFF);      // reset the master flip-flop
       outb(0x04,0xc8);         // address to 0 (low byte)
-      outb(0x04,0xfc);      // address to 0x10 (high byte)
+      outb(0x04,0xfd);      // address to 0x10 (high byte)
       outb(0x0c,0xFF);      // reset the master flip-flop (again!!!)
       outb(0x05,512 & 0xF);      // count to 0x23ff (low byte)
       outb(0x05,512 >> 8);      // count to 0x23ff (high byte),
       outb(0x81,0x9);        // external page register to 0 for total address of 00 10 00
-      outb(0x0a,0x01);      // unmask DMA channel 2
+      outb(0x0F,0x01);      // unmask DMA channel 2
       return 0; 
 }
 
 void dma_set_floppy_read(void* dest) {
-    outb(0x0a,0x06);     // mask DMA channel 2 and 0 (assuming 0 is already masked)
+    outb(0x0F,0x06);     // mask DMA channel 2 and 0 (assuming 0 is already masked)
     outb(0x0b,0x56);     // 01010110
-                      // single transfer, address increment, autoinit, read, channel2)
-    outb(0x0a,0x01);     // unmask DMA channel 2
+                     	 // single transfer, address increment, autoinit, read, channel2)
+    outb(0x0F,0x01);     // unmask DMA channel 2
 }
 
 /*
@@ -72,6 +72,7 @@ int dma_set_cmd_reg(char ce, char dreq_low, char dack_high) {
   cmd |= ((ce > 0) << 2);
   cmd |= ((dreq_low > 0) << 6);
   cmd |= ((dack_high > 0) << 7);
+  outb(DMA_
   return 0;
 }
 

@@ -118,14 +118,15 @@ int fdd_read_sector(fdc_stat* fdc, char c, char h, char r, char eot, char mt, vo
     while(count--); //TODO: Sleep para esperar 300ms
   }
   outb(FDD_PORT+PORT_CCR, 0x0); //Se establece el data rate en ccr (default es 0)
+  outb(FDD_PORT+PORT_DOR, 0x4); //Se establece el data rate en ccr (default es 0)
   fdd_dev_sel(fdc, drv);
   //TODO: Recalibrar?
   fdd_recalibrate(fdc, drv);
 
   dma_set_floppy_read(dest);
 
-  fdd_print_status(fdc);
-  breakpoint();
+  //~ fdd_print_status(fdc);
+  //breakpoint();
 
   //Se envían los comandos
   st = fdd_send_byte(cmd);
@@ -147,6 +148,7 @@ int fdd_read_sector(fdc_stat* fdc, char c, char h, char r, char eot, char mt, vo
   st = fdd_send_byte(0xff);
   if (st < 0) return st;
 
+  //~ fdd_print_status(fdc);
   //Actualizo fdc
   fdc->c = c;
   fdc->h = h;
@@ -154,17 +156,22 @@ int fdd_read_sector(fdc_stat* fdc, char c, char h, char r, char eot, char mt, vo
   fdc->n = 2;
 
   msr = inb(FDD_PORT+PORT_MSR);
-  printf(" >FDC: reading - msr = %x", msr);
+  printf(" >FDC: reading - msr = %x - dma_status = %x", msr, inb(0x08));
+
+	//~ count = FDD_DEFAULT_TIMEOUT;
+	//~ while(count-- );
 
   fdd_wait_for_interrupt(0); //TODO: Interrupt no maneja timeout ni sleep
 
-  // breakpoint();
   msr = inb(FDD_PORT+PORT_MSR);
+  printf(" >FDC: after interrupt - msr = %x - dma_status = %x", msr, inb(0x08));
+  breakpoint();
+  //~ msr = inb(FDD_PORT+PORT_MSR);
   // printf(" >FDC: reading - msr = %x", msr);
   // while (!(msr & FDD_MSR_MRQ) || (msr & FDD_MSR_BUSY) || (msr & (1 << drv))) {
     // msr = inb(FDD_PORT+PORT_MSR);
     // printf(" >FDC: reading - msr = %x", msr);
-    // breakpoint();
+    // //breakpoint();
   // }
 
   //TODO: Se deberían manejar reintentos
@@ -221,7 +228,7 @@ void isr_fdd_c() {
   printf("* FDD: interrupt! (%d)", error_num);
   fdd_int_recv = 1;
   outb(0x20, 0x20);
-  // breakpoint();
+  // //breakpoint();
   return;
 }
 
@@ -494,7 +501,7 @@ int fdd_full_reset(fdc_stat* fdc) {
   outb(FDD_PORT+PORT_DSR, 0x0);
 
   printf("Just reset: msr %x | dir %x", inb(FDD_PORT+PORT_MSR), inb(FDD_PORT+PORT_DIR));
-  breakpoint();
+  ////breakpoint();
 
   fdc->ccr = 0x0;
   fdc->dsr = 0x0; //El bit 8 se desactiva luego del reset
@@ -507,7 +514,7 @@ int fdd_full_reset(fdc_stat* fdc) {
   outb(FDD_PORT+PORT_DSR, 0x0);
   outb(FDD_PORT+PORT_DOR, 0x0C);
   printf("Just reset - after int: msr %x | dir %x", inb(FDD_PORT+PORT_MSR), inb(FDD_PORT+PORT_DIR));
-  breakpoint();
+  ////breakpoint();
 
   int st;
   uint_8 count = 4;
@@ -518,7 +525,7 @@ int fdd_full_reset(fdc_stat* fdc) {
     if (st < 0) return st;
   }
    // fdd_print_status(fdc);
-   // breakpoint();
+   // //breakpoint();
   
   printf(" >FDC_RESET: Configuring fdc.");
   //Configuro el fdc con *configure*
@@ -526,7 +533,7 @@ int fdd_full_reset(fdc_stat* fdc) {
   if (st < 0)
     return st;
   // fdd_print_status(fdc);
-  // breakpoint();
+  // //breakpoint();
 
   printf(" >FDC_RESET: Specifing fdc.");
   //Especifico el fdc con *specify*
@@ -534,7 +541,7 @@ int fdd_full_reset(fdc_stat* fdc) {
   if (st < 0)
     return st;
   // fdd_print_status(fdc);
-  // breakpoint();
+  // //breakpoint();
 
   printf(" >FDC_RESET: Recalibrating devices.");
   //Recalibro los devices
@@ -544,7 +551,7 @@ int fdd_full_reset(fdc_stat* fdc) {
     if (st < 0 && st != FDD_ERROR_RECALIBRATE_NOTRK0) return st;
   }
   // fdd_print_status(fdc);
-  // breakpoint();
+  // //breakpoint();
   
   printf(" >FDC_RESET: Shutting motors.");
   //Apago todos los motores
@@ -553,12 +560,12 @@ int fdd_full_reset(fdc_stat* fdc) {
     fdd_mot_en(fdc, count, 0);
   }
   // fdd_print_status(fdc);
-  // breakpoint();
+  // //breakpoint();
 
   printf(" >FDC_RESET: Choosing drive 0.");
   //Eligo el drive 0
   fdd_dev_sel(fdc, 0);
-  // breakpoint();
+  // //breakpoint();
   // fdd_print_status(fdc);
 
   return 0;
@@ -589,7 +596,7 @@ void fdd_init(void) {
   // fdd_print_status(&fdc);
   st = 0;
 
-  breakpoint();
+  //breakpoint();
   // Reseteo el fdc 
   printf("FDC: Reseting fdc...");
   st = fdd_full_reset(&fdc);
@@ -598,8 +605,6 @@ void fdd_init(void) {
   else
     printf("FDC: Reset successful.");
 
-  fdd_print_status(&fdc);
-
   //Seteo el dma
   printf("FDC: Initializing DMA controller.");
   dma_setup();
@@ -607,10 +612,13 @@ void fdd_init(void) {
 
   char floppy_buf[512];
 
+
+	fdd_print_status(&fdc);
   //Test de lectura del floppy
   printf("Floppy test read: buffer = %x", &floppy_buf);
-  st = fdd_read_sector(&fdc, 0, 0, 1, 1, 0, &floppy_buf, 0);
+  st = fdd_read_sector(&fdc, 0d, 0, 1, 1, 0, &floppy_buf, 0);
+  breakpoint();
   if (st < 0)
     printf("! FDC: Error reading sector 1 (%d)", st);
-  breakpoint();
+  
 }
