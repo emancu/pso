@@ -25,6 +25,7 @@ void isr_keyboard_c();
 extern void debug_kernel_panic();
 extern void isr_timerTick();
 extern void isr_keyboard();
+extern void isr_serial();
 extern void isr_0_DE();
 extern void isr_1_DB();
 extern void isr_2_NMI();

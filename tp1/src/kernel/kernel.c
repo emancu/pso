@@ -12,6 +12,7 @@
 #include <con.h>
 #include <proc.h>
 #include <fs.h>
+#include <serial.h>
 
 
 #include "klib_machine.h"
@@ -35,10 +36,11 @@ void kernel_init(void) {
   fs_init();
   device_init();
   con_init();
+  serial_init();
 
   //load tasks
-  loader_load(&task_task1_pso,0);
-  loader_load(&task_task1_pso,1);
+  // loader_load(&task_task1_pso,0);
+  // loader_load(&task_task1_pso,1);
 
 
   sti();

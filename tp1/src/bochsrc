@@ -481,7 +481,8 @@ debugger_log: -
 #   com4: enabled=1, mode=pipe-client, dev=\\.\pipe\mypipe
 #   com4: enabled=1, mode=pipe-server, dev=\\.\pipe\mypipe
 #=======================================================================
-#com1: enabled=1, mode=term, dev=/dev/ttyp9
+#com1: enabled=1, mode=term, dev=/dev/pts/2
+com1: enabled=1, mode=socket-server, dev=localhost:8888
 
 
 #=======================================================================

@@ -6,6 +6,7 @@
 #include <i386.h>
 #include <loader.h>
 #include <con.h>
+#include <serial.h>
 
 const char* exp_name[] = {
   "Divide Error",
@@ -112,6 +113,7 @@ int tick = 0;
 
 void debug_init(void) {
   /* Registra todas las excepciones para sí */
+  idt_register(36, &isr_serial, 0);
   idt_register(33, &isr_keyboard, 0);
   idt_register(32, &isr_timerTick, 0);
   idt_register(0, &isr_0_DE, 0);
@@ -154,8 +156,6 @@ void isr_timerTick_c() {
 
 }
 
-
-
 void isr_keyboard_c() {
     sint_16 tecla=0;
     // printf("Tecladooo!!! \n");
@@ -164,15 +164,3 @@ void isr_keyboard_c() {
     //printf("tecla recibida: %x", tecla);
     outb(0x20,0x20);
 }
-
-
-
-
-
-
-
-
-
-
-
-

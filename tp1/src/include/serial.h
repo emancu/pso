@@ -7,6 +7,7 @@
 #ifdef __KERNEL__
 
 void serial_init();
+void isr_serial_c();
 
 chardev* serial_open(int nro);
 
