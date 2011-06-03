@@ -157,23 +157,12 @@ int fdd_read_sector(fdc_stat* fdc, char c, char h, char r, char eot, char mt, vo
   fdc->n = 2;
 
   msr = inb(FDD_PORT+PORT_MSR);
-  printf(" >FDC: reading - msr = %x - dma_status = %x", msr, inb(0x08));
-
-	//~ count = FDD_DEFAULT_TIMEOUT;
-	//~ while(count-- );
+  // printf(" >FDC: reading - msr = %x - dma_status = %x", msr, inb(0x08));
 
   fdd_wait_for_interrupt(0); //TODO: Interrupt no maneja timeout ni sleep
 
   msr = inb(FDD_PORT+PORT_MSR);
-  printf(" >FDC: after interrupt - msr = %x - dma_status = %x", msr, inb(0x08));
-  breakpoint();
-  //~ msr = inb(FDD_PORT+PORT_MSR);
-  // printf(" >FDC: reading - msr = %x", msr);
-  // while (!(msr & FDD_MSR_MRQ) || (msr & FDD_MSR_BUSY) || (msr & (1 << drv))) {
-    // msr = inb(FDD_PORT+PORT_MSR);
-    // printf(" >FDC: reading - msr = %x", msr);
-    // //breakpoint();
-  // }
+  // printf(" >FDC: after interrupt - msr = %x - dma_status = %x", msr, inb(0x08));
 
   //TODO: Se deberían manejar reintentos
 
@@ -432,15 +421,8 @@ int fdd_recalibrate(fdc_stat* fdc, char ds) {
     msr = inb(FDD_PORT+PORT_MSR);
   }
 
-  //TODO: las interrupciones podrían estar desactivadas
+  //TODO: las interrupciones podrían estar desactivadas (El controlador está en AT, dudoso)
   fdd_wait_for_interrupt(0); //Ver de trabajar con sleep (might take up to 3s)
-
-
-  //TODO: Esto loopea por siempre
-  // while (msr & (1 << (ds & 0x3))) { //Armo la máscara con un 1 en el DRV x BUSY
-    // //TODO: Falta sleep (o manejar esto por interrupciones)
-    // msr = inb(FDD_PORT+PORT_MSR);
-  // }
 
   st = fdd_sense_interrupt_status(fdc);
   if (st < 0) return st;
@@ -570,6 +552,7 @@ int fdd_full_reset(fdc_stat* fdc) {
 /** Init **/
 
 //TODO: Parecería andar bien... dir, srA y srB tienen valores extraños al final. 
+//Suena que el controlador está en modo AT.
 void fdd_init(void) {
   int st;
 	//Chequeo la versión
