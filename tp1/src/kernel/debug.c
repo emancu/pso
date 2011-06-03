@@ -46,6 +46,7 @@ const char* exp_name[] = {
 };
 
 uint_32 error_num = -1;
+bool in_panic = FALSE;
 
 
 uint_32* obtain_prev_func(uint_32* ebp) {
@@ -108,7 +109,6 @@ void print_stack(uint_32 f, uint_32 c, uint_32 dwords, uint_32 cols, const uint_
   }
 }
 
-bool in_panic = FALSE;
 void debug_kernelpanic(const uint_32* stack, const exp_state* expst) {
   /* No permite panics anidados */
   if (in_panic) while(1) hlt();
@@ -143,12 +143,10 @@ void debug_kernelpanic(const uint_32* stack, const exp_state* expst) {
   print_backtrace(PANIC_BT_ROW, PANIC_BT_COL, 4, 4, expst->ebp, expst->org_eip);
 }
 
-int tick = 0;
-
+// TODO: El que las registra es el debug ? o deberia ser otro ?!
 void debug_init(void) {
   /* Registra todas las excepciones para sí */
   idt_register(33, &isr_keyboard, 0);
-  idt_register(32, &isr_timerTick, 0);
   idt_register(0, &isr_0_DE, 0);
   idt_register(1, &isr_1_DB, 0);
   idt_register(2, &isr_2_NMI, 0);
@@ -170,6 +168,7 @@ void debug_init(void) {
   idt_register(19, &isr_13_XM, 0);
 }
 
+<<<<<<< HEAD
 int i = 0;
 
 void isr_timerTick_c() {
@@ -190,23 +189,12 @@ void isr_timerTick_c() {
 
 
 
+=======
+>>>>>>> origin/sleep
 void isr_keyboard_c() {
     sint_16 tecla=0;
-    // printf("Tecladooo!!! \n");
     __asm__ __volatile__("inb $0x60, %%al" : "=a" (tecla));
     console_keyPressed(tecla);
-    //printf("tecla recibida: %x", tecla);
     outb(0x20,0x20);
 }
-
-
-
-
-
-
-
-
-
-
-
 

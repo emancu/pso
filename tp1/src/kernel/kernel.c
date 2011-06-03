@@ -13,6 +13,7 @@
 #include <proc.h>
 #include <fs.h>
 #include <fdd.h>
+#include <pit.h>
 
 #include "klib_machine.h"
 #include "scheduler_test.c"
@@ -21,35 +22,22 @@ extern void* _end;
 extern pso_file task_task1_pso;
 extern pso_file task_task2_pso;
 
-void subsubfunc() {
-  printf("subsubfunc: %x", &subsubfunc);
-  while(1);
-}
-
-void subfunc() {
-  printf("subfunc: %x", &subfunc);
-  subsubfunc();
-}
-
 /* Entry-point del modo protegido luego de cargar los registros de
  * segmento y armar un stack */
 void kernel_init(void) {
   gdt_init();
   clear_screen();
 
-
   // breakpoint();
   //init all modules
   idt_init();
   debug_init();
+  pit_init();
   mm_init();
   loader_init();
   fs_init();
   device_init();
   con_init();
-
-
-  
 
   sti();
   fdd_init();
@@ -57,5 +45,5 @@ void kernel_init(void) {
   //load tasks
   loader_load(&task_task1_pso,0);
   loader_load(&task_task1_pso,1);
-	return;
+  return;
 }

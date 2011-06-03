@@ -2,10 +2,13 @@
 #define __DEBUG_H__
 
 #include <isr.h>
+#include <vga.h>
+#include <i386.h>
 
 /* En esta variable se almacena el número de error
  * actual. */ 
 extern uint_32 error_num;
+extern bool in_panic;
 
 /* Estas variables tienen el principio y el final
  * del espacio donde se encuentran las etiquetas 
@@ -33,11 +36,9 @@ void print_stack(uint_32 f, uint_32 c, uint_32 dwords, uint_32 cols, const uint_
  * that function call frame. */
 void print_backtrace(uint_32 f, uint_32 c, uint_32 level, uint_32 params, const uint_32 ebp, const uint_32 eip);
 
-void isr_timerTick_c();
 void isr_keyboard_c();
 
 extern void debug_kernel_panic();
-extern void isr_timerTick();
 extern void isr_keyboard();
 extern void isr_0_DE();
 extern void isr_1_DB();
@@ -61,9 +62,6 @@ extern void isr_13_XM();
 
 extern char exp_msg[];
 extern uint_32 exp_num;
-
-#include <vga.h>
-#include <i386.h>
 
 #ifndef NDEBUG
 #define __mac_xstr(s) #s
