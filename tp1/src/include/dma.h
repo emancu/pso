@@ -25,8 +25,8 @@
 /* Constants */
 
 #define DMA_DEFAULT_TIMEOUT 2000
-#define DMA_MASK_ALL 0xF
-#define DMA_MASK_CH2 0xB
+#define DMA_MASK_ALL 0x6 //0xF
+#define DMA_MASK_CH2 0x1 //0xB
 
 /**********************/
 /* Exported functions */
@@ -62,7 +62,9 @@ void dma_set_floppy_write(void* src);
  * con valores por defecto.
  * Algunas fuentes dicen que no tienen ningún efecto:
  * (http://wiki.osdev.org/DMA#The_Other_Registers) 
- * Los valores para sense funcionan igual que en el floppy. */
+ * Los valores para sense funcionan igual que en el floppy. 
+ * El valor de 'ce' es inverso la floppy. 'ce' == 1 pone el bit en 0 
+ * para habilitar el dma.*/
 int dma_set_cmd_reg(char ce, char dreq_low, char dack_high);
 
 /* Esta función setea el registro de modo */

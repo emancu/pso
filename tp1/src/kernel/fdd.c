@@ -83,6 +83,7 @@
 /* Device variables */
 
 fdc_stat fdc;
+char floppy_buf[512];
 
 /* Block device */
 
@@ -196,11 +197,6 @@ int fdd_read_sector(fdc_stat* fdc, char c, char h, char r, char eot, char mt, vo
   fdc->st0 = st0;
   fdc->st1 = st1;
   fdc->st2 = st2;
-
-  //Verifico situaciones de error
-  //Verifico igualdad de parámetros
-  if (ret_c != c || ret_r != r || ret_h != h || ret_n != 2)
-    return FDD_ERROR_READ_WRESPARAM;
 
   //Verifico errores en los registros de estado
   if ((st0 & 0xC0) != 0)
@@ -610,13 +606,10 @@ void fdd_init(void) {
   dma_setup();
   printf("FDC: DMA initialization done.");
 
-  char floppy_buf[512];
-
-
 	fdd_print_status(&fdc);
   //Test de lectura del floppy
   printf("Floppy test read: buffer = %x", &floppy_buf);
-  st = fdd_read_sector(&fdc, 0d, 0, 1, 1, 0, &floppy_buf, 0);
+  st = fdd_read_sector(&fdc, 0, 0, 1, 1, 0, &floppy_buf, 0);
   breakpoint();
   if (st < 0)
     printf("! FDC: Error reading sector 1 (%d)", st);
