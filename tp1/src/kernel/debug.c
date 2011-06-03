@@ -7,6 +7,7 @@
 #include <loader.h>
 #include <con.h>
 
+
 const char* exp_name[] = {
   "Divide Error",
   "Debug Interrupt",
@@ -26,25 +27,56 @@ const char* exp_name[] = {
   "Reserved",
   "Floating point exception",
   "Alignment check",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
-  "Undefined",
+  "Undefined 18",
+  "Undefined 19",
+  "Undefined 20",
+  "Undefined 21",
+  "Undefined 22",
+  "Undefined 23",
+  "Undefined 24",
+  "Undefined 25",
+  "Undefined 26",
+  "Undefined 27",
+  "Undefined 28",
+  "Undefined 29",
+  "Undefined 30",
+  "Undefined 31",
   "Timer Tick",
   "Keyboard"
 };
 
 uint_32 error_num = -1;
+
+
+uint_32* obtain_prev_func(uint_32* ebp) {
+  uint_32* old_ebp_dir = (uint_32*)(*ebp);
+  uint_32* old_eip_dir = (uint_32*)(*ebp + 4); 
+  *ebp = *old_ebp_dir;
+  return (uint_32*)*old_eip_dir;
+}
+
+// char* find_function_name(uint_32 eip) {
+  // char* kernel_sym = (char*)&kernel_syme;
+  // char* kernel_sym_end = (char*)&kernel_sym_ende;
+  // return "h"; 
+// }
+
+void print_backtrace(uint_32 f, uint_32 c, uint_32 level, uint_32 params, const uint_32 ebp, const uint_32 last_eip){ 
+  uint_32 ebp_hold = ebp;
+  uint_32 i, j;
+  vga_write(f++, c, "Backtrace:", VGA_BC_CYAN | VGA_FC_WHITE | VGA_FC_LIGHT);
+  vga_printf(f, c, "  %x : ", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, last_eip);
+  for (j = 0; j < params; j++) {
+     vga_printf(f, c+12+10*j, "%x", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, (ebp_hold+8+(j*4)));
+  }
+  f++;
+  for (i = 0; i < level; i++) {
+    vga_printf(f+i, c, "  %x : ", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, (uint_32)obtain_prev_func(&ebp_hold));
+    for (j = 0; j < params; j++) {
+      vga_printf(f+i, c+12+10*j, "%x", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, (ebp_hold+8+(j*4)));
+    }
+  }
+}
 
 void print_expst(const exp_state* expst) {
   printf("exp_state @ %x\n", expst);
@@ -103,9 +135,12 @@ void debug_kernelpanic(const uint_32* stack, const exp_state* expst) {
   if (error_num > 0 && error_num < sizeof(exp_name)) {
     vga_printf(0, vga_cols-strlen(exp_name[error_num])-13, " Exception: %s ", VGA_BC_MAGENTA | VGA_FC_WHITE | VGA_FC_LIGHT, exp_name[error_num]);
   } else {
-    vga_write(0, vga_cols-strlen(" Exception Undefined "), " Undefined Exception ", VGA_BC_MAGENTA | VGA_FC_WHITE | VGA_FC_LIGHT);
+    vga_printf(0, vga_cols-strlen(" Exception Undefined  ")-dec_into_string_len(error_num), " Undefined Exception %d", VGA_BC_MAGENTA | VGA_FC_WHITE | VGA_FC_LIGHT, error_num);
   }
   error_num = -1;
+
+  //Imprimo el backtrace
+  print_backtrace(PANIC_BT_ROW, PANIC_BT_COL, 4, 4, expst->ebp, expst->org_eip);
 }
 
 int tick = 0;
@@ -151,7 +186,6 @@ void isr_timerTick_c() {
       vga_printf(vga_rows-1, vga_cols-2, "!H", VGA_FC_BLACK | VGA_BC_RED);
 
     outb(0x20,0x20);
-
 }
 
 
