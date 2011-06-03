@@ -1,5 +1,5 @@
-global kernel_sym
-kernel_sym:
+global kernel_syme
+kernel_syme:
 incbin "../bin/kernel.sym"
-global kernel_sym_end
-kernel_sym_end:
+global kernel_sym_ende
+kernel_sym_ende:

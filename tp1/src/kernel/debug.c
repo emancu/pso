@@ -56,26 +56,76 @@ uint_32* obtain_prev_func(uint_32* ebp) {
   return (uint_32*)*old_eip_dir;
 }
 
-// char* find_function_name(uint_32 eip) {
-  // char* kernel_sym = (char*)&kernel_syme;
-  // char* kernel_sym_end = (char*)&kernel_sym_ende;
-  // return "h"; 
-// }
+char* find_function_name(uint_32 eip) {
+  char* kernel_sym = (char*)&kernel_syme;
+  char* kernel_sym_end = (char*)&kernel_sym_ende;
+  char* closest_name = kernel_sym;
+  uint_32 closest_dir = 0x7FFFFFFF, ret;
+  unsigned int dir;
+  //Busco el máximo número de función que no sea más grande que la pasada
+  while (kernel_sym < kernel_sym_end) {     
+    ret = str_into_hex(kernel_sym, 0, &dir);
+    // printf("dir = %x | kernel_sym = %x | closest_name = %x", dir, kernel_sym, closest_name);
+    // breakpoint();
+
+    if (eip - dir < 0) continue; //Si la dirección leída del archivo es mayor que el parámetro no sirve
+    // if (eip - dir < eip - closest_dir) { //Sino actualizo las variables
+      // closest_dir = dir;
+    // }
+    if (ret < 0) break;
+    kernel_sym += ret; 
+    //Luego avanzo más allá de los caracteres buscando un espacio o \n
+    while (isDigit(*kernel_sym)) {
+      kernel_sym++;
+    }
+    kernel_sym++;
+    //Luego paso los espacios o \n que haya hasta llegar a caracteres
+    while (isSpace(*kernel_sym)) {
+      kernel_sym++;
+    }
+    if (eip - dir < eip - closest_dir) { //Sino actualizo las variables
+      closest_dir = dir;
+      closest_name = kernel_sym; //Actualizo el nombre de la función
+    }
+    //Como estos caracteres son el nombre de la función, también los salteo hasta llegar a un número
+    while(!isSpace(*kernel_sym)) kernel_sym++;
+    while (!isDigit(*kernel_sym)) kernel_sym++;
+  }
+  
+  // printf("*ffn: %x, %x, %x  ", kernel_sym, closest_name, closest_dir);
+  kernel_sym = closest_name; //NOTE: Trucho, muy trucho
+  while (isCharacter(*kernel_sym) || *kernel_sym == '_') kernel_sym++;
+  *kernel_sym = '\0';
+  return closest_name;
+}
 
 void print_backtrace(uint_32 f, uint_32 c, uint_32 level, uint_32 params, const uint_32 ebp, const uint_32 last_eip){ 
   uint_32 ebp_hold = ebp;
-  uint_32 i, j;
+  uint_32 i, j, func_name_len;
+  char* func_name;
+  uint_32 eip;
+  //Imprimo el título
   vga_write(f++, c, "Backtrace:", VGA_BC_CYAN | VGA_FC_WHITE | VGA_FC_LIGHT);
-  vga_printf(f, c, "  %x : ", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, last_eip);
+  //Imprimo la primera función
+  func_name = find_function_name(last_eip);
+  vga_printf(f, c, " (%x) %s( ", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, last_eip, func_name);
+  func_name_len = strlen(func_name);
   for (j = 0; j < params; j++) {
-     vga_printf(f, c+12+10*j, "%x", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, (ebp_hold+8+(j*4)));
+     vga_printf(f, c+func_name_len+10+10*j, "%x", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, (ebp_hold+8+(j*4)));
   }
+  vga_write(f, c+func_name_len+10+10*j, ")", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT);
+
+  //Imprimo el resto de las funciones
   f++;
   for (i = 0; i < level; i++) {
-    vga_printf(f+i, c, "  %x : ", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, (uint_32)obtain_prev_func(&ebp_hold));
+    eip = (uint_32)obtain_prev_func(&ebp_hold);
+    func_name = find_function_name(eip);
+    func_name_len = strlen(func_name);
+    vga_printf(f+i, c, " (%x) %s( ", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, eip, func_name);
     for (j = 0; j < params; j++) {
-      vga_printf(f+i, c+12+10*j, "%x", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, (ebp_hold+8+(j*4)));
+      vga_printf(f+i, c+func_name_len+10+10*j, "%x", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT, (ebp_hold+8+(j*4)));
     }
+    vga_write(f+i, c+func_name_len+10+10*j, ")", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT);
   }
 }
 
@@ -133,14 +183,17 @@ void debug_kernelpanic(const uint_32* stack, const exp_state* expst) {
 
   //Imprimo texto de error
   if (error_num > 0 && error_num < sizeof(exp_name)) {
-    vga_printf(0, vga_cols-strlen(exp_name[error_num])-13, " Exception: %s ", VGA_BC_MAGENTA | VGA_FC_WHITE | VGA_FC_LIGHT, exp_name[error_num]);
+    vga_printf(0, vga_cols-strlen(exp_name[error_num])-13, " Exception: %s ", \
+        VGA_BC_MAGENTA | VGA_FC_WHITE | VGA_FC_LIGHT, exp_name[error_num]);
   } else {
-    vga_printf(0, vga_cols-strlen(" Exception Undefined  ")-dec_into_string_len(error_num), " Undefined Exception %d", VGA_BC_MAGENTA | VGA_FC_WHITE | VGA_FC_LIGHT, error_num);
+    vga_printf(0, vga_cols-strlen(" Exception Undefined  ")-dec_into_string_len(error_num), \
+        " Undefined Exception %d", VGA_BC_MAGENTA | VGA_FC_WHITE | VGA_FC_LIGHT, error_num);
   }
   error_num = -1;
 
+  breakpoint();
   //Imprimo el backtrace
-  print_backtrace(PANIC_BT_ROW, PANIC_BT_COL, 4, 4, expst->ebp, expst->org_eip);
+  print_backtrace(PANIC_BT_ROW, PANIC_BT_COL, 4, 5, expst->ebp, expst->org_eip);
 }
 
 // TODO: El que las registra es el debug ? o deberia ser otro ?!

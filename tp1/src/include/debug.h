@@ -36,6 +36,9 @@ void print_stack(uint_32 f, uint_32 c, uint_32 dwords, uint_32 cols, const uint_
  * that function call frame. */
 void print_backtrace(uint_32 f, uint_32 c, uint_32 level, uint_32 params, const uint_32 ebp, const uint_32 eip);
 
+/* This function uses 'kernel_syme' and 'kernel_sym_ende' to find the name of the function referenced by eip. */
+char* find_function_name(uint_32 eip);
+
 void isr_keyboard_c();
 
 extern void debug_kernel_panic();
