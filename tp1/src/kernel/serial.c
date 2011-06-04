@@ -1,11 +1,9 @@
 #include <serial.h>
-#include <tipos.h>
-#include <i386.h>
-#include <isr.h>
-#include <pic.h>
-#include <debug.h>
 
-#define SP_PORT 0x03F8
+#define COM1 0x03F8
+#define COM2 0x02F8
+#define COM3 0x03E8
+#define COM4 0x02E8
 
 /* Serial Controler sub-SP_PORTs */
 #define PORT_DATA  0 /* R/W - DATA flow */
@@ -77,26 +75,39 @@
 #define IE_MODEM 0x08 /* Int Enable: MODEM Status */
 
 /** Private functions **/
-static int serial_received(){
-  return inb(SP_PORT + 5) & 1;
+static int serial_received(int port){
+  return inb(port + PORT_LSTAT) & 1;
 }
 
-static int is_transmit_empty() {
-   return inb(SP_PORT + 5) & 0x20;
+static int is_transmit_empty(int port) {
+   return inb(port + PORT_LSTAT) & 0x20;
 }
+
+static int port_addr(int com){
+  if(com == 0) return COM1;
+  if(com == 1) return COM2;
+  if(com == 2) return COM3;
+  return COM4;
+}
+
+static unsigned char serial_buffer[SERIAL_BUFF_SIZE];
+static int serial_buf_pos;
+static int serial_buf_end;
 
 /** Char device **/
-
 sint_32 serial_read(chardev* this, void* buf, uint_32 size) {
+  // Verificamos que no se esté tratando de leer más de lo que permite el buffer
+  printf("Te vacio el buffer capoo");
+  breakpoint();
+  if (size > SERIAL_BUFF_SIZE)
+    return SERIAL_ERROR_READTOOLARGE;
+
+  int i;
   char * buff = (char *) buf;
-  int i=0, rec;
-
-  while ( serial_received() == 0 );
-
-  for(i=0; i < size; i++){
-    rec = inb(SP_PORT ) ;
-    // printf("rec %c", rec);
-    buff[i] = rec;
+  // Quizas un semaforo para copiar data ?
+  for(i=0; i < size && serial_buf_pos != serial_buf_end ; i++){
+    buff[i] = serial_buffer[serial_buf_pos++];
+    serial_buf_pos %= SERIAL_BUFF_SIZE;
   }
 
   return i;
@@ -104,73 +115,96 @@ sint_32 serial_read(chardev* this, void* buf, uint_32 size) {
 
 sint_32 serial_write(chardev* this, const void* buf, uint_32 size) {
   uint_32 i;
+  int port = ((chardev_serial*) this)->port;
   char * buff = (char *) buf;
-  while (is_transmit_empty() == 0);
+
+  while (is_transmit_empty(port) == 0);
 
   for(i=0; i< size;i++)
-    outb(SP_PORT, (uint_8)(buff[i]));
+    outb(port + PORT_DATA, buff[i]);
 
-  return 0;
+  return i;
 }
 
 uint_32 serial_flush(chardev* this) {
   return 0;
 }
 
-chardev* serial_open(int nro) { /* 0 para COM1, 1 para COM2, ... */
+void isr_serial_c(){
+  uint_8 c;
+  inb(COM1 + PORT_IIR);
+  printf("INT!!!");
+  /* if the buffer is full, exit */
+  if ((serial_buf_end + 1) % SERIAL_BUFF_SIZE == serial_buf_pos){
+    printf("Buffer full");
+    return;
+  }
+  printf(" pos %d    end %d", serial_buf_pos, serial_buf_end);
+  //
+// FIXME: Como se de que puerto viene ?
+  while (serial_received(COM1)) {
+    c = inb(COM1 + PORT_DATA);
+    serial_buffer[serial_buf_end++] = c;
+    serial_buf_end %= SERIAL_BUFF_SIZE;
 
-  return NULL;
+    if ((serial_buf_end +1) % SERIAL_BUFF_SIZE == serial_buf_pos){
+      printf("se lleno.. deberia leer un poquito..");
+      break;
+    }
+  }
+
+  printf("ilei %s", serial_buffer);
+  printf(" pos %d    end %d", serial_buf_pos, serial_buf_end);
+  outb(0x20,0x20);
+}
+
+
+/* 0 para COM1, 1 para COM2, ... */
+chardev* serial_open(int nro) {
+  char* buf[50];
+  int port = port_addr(nro);
+  chardev_serial* new_serial = (chardev_serial *) mm_mem_kalloc();
+
+  new_serial->port = port;
+  new_serial->dev.read = &serial_read;
+  new_serial->dev.write = &serial_write;
+  new_serial->dev.flush = &serial_flush;
+
+  configure_serial_port(port);
+
+  // serial_write((chardev*)new_serial, "Emiliano_campeon", 16);
+  printf("serial_read => %d", serial_read((chardev*)new_serial, buf, 20));
+
+  printf("Leimos %s", buf);
+
+  return (chardev*)new_serial;
 }
 
 /** Init **/
 void serial_init() {
-  // char* buf[100];
-
-// #define PORT_DATA  0 /* R/W - DATA flow */
-// #define PORT_IER   1 /* R/W - Interrupt Enable Register */
-// #define PORT_IIR   2 /* R   - Interrupt Id Register */
-// #define PORT_FCTRL 2 /*   W - FIFO Control */
-// #define PORT_LCTRL 3 /* R/W - Line Control */
-// #define PORT_MCTRL 4 /* R/W - MODEM Control */
-// #define PORT_LSTAT 5 /* R/W - Line Status */
-// #define PORT_MSTAT 6 /* R/W - MODEM Status */
-// #define PORT_SCRAT 7 /* R/W - Scratch ¿eh? */
-// #define PORT_DL_LSB 0 /* Divisor latch - LSB (need DLAB=1) */
-// #define PORT_DL_MSB 1 /* Divisor latch - MSB (need DLAB=1)  */
-  // Reset configuration
-  outb(SP_PORT + PORT_IER, 0x01);    // Disable all interrupts
-  // outb(SP_PORT + PORT_IIR, 0x01);    // Clear Interrupt Id Register
-  // outb(SP_PORT + PORT_FCTRL, 0x00);    // Reset FIFO Control
-  // outb(SP_PORT + PORT_LSTAT, 0x60);    // Line status register
-
-  // Read configuration
-  outb(SP_PORT + 3, 0x80);    // Enable DLAB (set baud rate divisor)
-  outb(SP_PORT + 0, 0x03);    // Set divisor to 3 (lo byte) 38400 baud
-  outb(SP_PORT + 1, 0x00);    //                  (hi byte)
-  outb(SP_PORT + PORT_LCTRL, 0x03);    // 8 bits, no parity, one stop bit. Disable DLAB
-  outb(SP_PORT + PORT_IIR, 0xC7);    // Enable FIFO, clear them, with 14-byte threshold
-  outb(SP_PORT + 4, 0x0B);    // IRQs enabled, RTS/DSR set
-
-  printf("Serial configurado");
-  // serial_write((chardev*) SP_PORT, "ls", 3);
+  idt_register(36, &isr_serial, 0);
+  serial_buf_pos = serial_buf_end = 0;
+  reset_serial_port(COM1);
+  reset_serial_port(COM2);
+  reset_serial_port(COM3);
+  reset_serial_port(COM4);
 }
 
-void isr_serial_c(){
-  char buf[100];
-  uint_8 c;
+void reset_serial_port(int serial_port){
+  outb(serial_port + PORT_IER,    0x00);    // Disable all interrupts
+  outb(serial_port + PORT_IIR,    0x01);    // Clear Interrupt Id Register
+  outb(serial_port + PORT_FCTRL,  0x00);    // Reset FIFO Control
+  outb(serial_port + PORT_LSTAT,  0x60);    // Line status register
+}
 
-  int aux, count=0;
-  c = inb(SP_PORT + PORT_LSTAT);
-  while ((c & 1)) {
-    aux = inb(SP_PORT + PORT_DATA);
-    buf[count++] = aux;
-    // printf("lei una letra: %x", a);
-    c = inb(SP_PORT + PORT_LSTAT);
-  }
-
-  printf("ilei %s", buf);
-  // breakpoint();
-  outb(0x20,0x20);
-  outb(0xA0,0x20);
+void configure_serial_port(int serial_port){
+  outb(serial_port + PORT_IER, 0x01);       // Enable all interrupts
+  outb(serial_port + PORT_LCTRL, 0x80);     // Enable DLAB (set baud rate divisor)
+  outb(serial_port + PORT_DL_LSB, 0x03);    // Set divisor to 3 (lo byte) 38400 baud
+  outb(serial_port + PORT_DL_MSB, 0x00);    // (hi byte)
+  outb(serial_port + PORT_LCTRL, 0x03);     // 8 bits, no parity, one stop bit. Disable DLAB
+  outb(serial_port + PORT_FCTRL, 0xC7);    // Enable FIFO, clear them, with 14-byte threshold
+  outb(serial_port + PORT_MCTRL, 0x0B);    // IRQs enabled, RTS/DSR set
+  printf("Puerto %x Serial configurado", serial_port);
 }
 

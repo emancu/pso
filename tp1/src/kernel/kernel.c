@@ -39,7 +39,7 @@ void kernel_init(void) {
   serial_init();
 
   //load tasks
-  // loader_load(&task_task1_pso,0);
+  loader_load(&task_task1_pso,0);
   // loader_load(&task_task1_pso,1);
 
 

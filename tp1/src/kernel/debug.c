@@ -113,7 +113,6 @@ int tick = 0;
 
 void debug_init(void) {
   /* Registra todas las excepciones para sí */
-  idt_register(36, &isr_serial, 0);
   idt_register(33, &isr_keyboard, 0);
   idt_register(32, &isr_timerTick, 0);
   idt_register(0, &isr_0_DE, 0);
@@ -140,20 +139,15 @@ void debug_init(void) {
 int i = 0;
 
 void isr_timerTick_c() {
-    //breakpoint();
     outb(0x20,0x20);
-    // printf("Tick! %d \n", tick++);
     char clock[] = {'\\', '-', '/', '|'};
     if (!in_panic) {
       vga_printf(vga_rows-1, vga_cols-1, "%c", VGA_BC_BLACK | VGA_FC_GREEN | VGA_FC_LIGHT ,clock[tick++%4]);
-      i++;
-      i = 0;
       loader_tick();
     } else
       vga_printf(vga_rows-1, vga_cols-2, "!H", VGA_FC_BLACK | VGA_BC_RED);
 
     outb(0x20,0x20);
-
 }
 
 void isr_keyboard_c() {
