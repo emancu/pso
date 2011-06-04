@@ -97,18 +97,17 @@ static int serial_buf_end;
 /** Char device **/
 sint_32 serial_read(chardev* this, void* buf, uint_32 size) {
   // Verificamos que no se esté tratando de leer más de lo que permite el buffer
-  printf("Te vacio el buffer capoo");
-  breakpoint();
   if (size > SERIAL_BUFF_SIZE)
     return SERIAL_ERROR_READTOOLARGE;
 
   int i;
   char * buff = (char *) buf;
+    printf("En el buffer habia: %s", serial_buffer);
   // Quizas un semaforo para copiar data ?
-  for(i=0; i < size && serial_buf_pos != serial_buf_end ; i++){
-    buff[i] = serial_buffer[serial_buf_pos++];
+  do{
+    buff[i++] = serial_buffer[serial_buf_pos++];
     serial_buf_pos %= SERIAL_BUFF_SIZE;
-  }
+  }while(i < size && serial_buf_pos != serial_buf_end );
 
   return i;
 }
@@ -139,7 +138,7 @@ void isr_serial_c(){
     printf("Buffer full");
     return;
   }
-  printf(" pos %d    end %d", serial_buf_pos, serial_buf_end);
+  // printf(" pos %d    end %d", serial_buf_pos, serial_buf_end);
   //
 // FIXME: Como se de que puerto viene ?
   while (serial_received(COM1)) {
@@ -153,15 +152,15 @@ void isr_serial_c(){
     }
   }
 
-  printf("ilei %s", serial_buffer);
-  printf(" pos %d    end %d", serial_buf_pos, serial_buf_end);
+  // printf("ilei %s", serial_buffer);
+  // printf(" pos %d    end %d", serial_buf_pos, serial_buf_end);
   outb(0x20,0x20);
 }
 
 
 /* 0 para COM1, 1 para COM2, ... */
 chardev* serial_open(int nro) {
-  char* buf[50];
+  // char* buf[50];
   int port = port_addr(nro);
   chardev_serial* new_serial = (chardev_serial *) mm_mem_kalloc();
 
@@ -173,9 +172,9 @@ chardev* serial_open(int nro) {
   configure_serial_port(port);
 
   // serial_write((chardev*)new_serial, "Emiliano_campeon", 16);
-  printf("serial_read => %d", serial_read((chardev*)new_serial, buf, 20));
+  // printf("serial_read => %d", serial_read((chardev*)new_serial, buf, 20));
 
-  printf("Leimos %s", buf);
+  // printf("Leimos %s", buf);
 
   return (chardev*)new_serial;
 }
@@ -184,6 +183,7 @@ chardev* serial_open(int nro) {
 void serial_init() {
   idt_register(36, &isr_serial, 0);
   serial_buf_pos = serial_buf_end = 0;
+  serial_buffer[serial_buf_pos++] = 'H';
   reset_serial_port(COM1);
   reset_serial_port(COM2);
   reset_serial_port(COM3);

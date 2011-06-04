@@ -10,12 +10,11 @@ int main(void) {
   msg[1] = (char)219;
   msg[2] = '\0';
   // char* msg2 = "Hola 2!";
-  int fd = open("/serial", 0x3);
+  int fd = open("/serial0", 0x3);
   //int fd2 = open("/console", 0x3);
   //!todo preguntar de strlen
-  while(1){
+  while(1)
     read(fd,msg,14);
-  }
 
   return 0;
 }
