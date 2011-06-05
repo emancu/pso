@@ -6,6 +6,7 @@
 #include <i386.h>
 #include <loader.h>
 #include <con.h>
+#include <serial.h>
 
 
 const char* exp_name[] = {

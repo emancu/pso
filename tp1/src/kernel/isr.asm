@@ -12,6 +12,8 @@ isr_define_ep isr_keyboard, isr_keyboard_c
 isr_define_ep isr_fdd, isr_fdd_c, 38
 
 
+isr_define_ep isr_serial, isr_serial_c
+
 isr_dkp_e isr_0_DE, 0
 isr_dkp_e isr_1_DB, 1
 isr_dkp_e isr_2_NMI, 2
