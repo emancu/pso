@@ -194,7 +194,8 @@ chardev* con_open(void) {
 }
 
 sint_32 sys_run(const char* archivo){
-	printf("llegue con arg : %s ", archivo);
+//	printf("direccion buffer : %s", archivo);
+	vga_write(0,0,archivo,VGA_BC_BLACK | VGA_FC_GREEN | VGA_FC_LIGHT);
 	return 0;
 }
 

@@ -20,7 +20,6 @@ int main(void) {
 	while (1) {
 		read(fd, msg, 1);
 		if (msg[0] == '\n') {
-			//!todo mandar a ejecutar...
 			run(command);
 			write(fd, enter, 1);
 			write(fd, ps1, 12);
@@ -30,6 +29,7 @@ int main(void) {
 			idx = 0;
 		} else {
 			write(fd, msg, 1);
+			// si no se apreto el Backspace.
 			if (msg[0] != 0x0e) {
 				command[idx++] = msg[0];
 			}
