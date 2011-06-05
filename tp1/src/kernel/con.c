@@ -40,6 +40,9 @@ void con_init() {
 	outb(0x3D5, 0xFFFF >> 8); // Send the high cursor byte.
 	outb(0x3D4, 15); // Tell the VGA board we are setting the low cursor byte.
 	outb(0x3D5, (unsigned char) 0xFFFF); // Send the low cursor byte.
+
+
+	syscall_list[0x38] = (uint_32) &sys_run;
 }
 
 sint_32 con_read(chardev* this, void* buf, uint_32 size) {
@@ -188,6 +191,11 @@ chardev* con_open(void) {
 
 	//TODO: Manejar errores
 	return NULL;
+}
+
+sint_32 sys_run(const char* archivo){
+	printf("llegue con arg : %s ", archivo);
+	return 0;
 }
 
 void move_to_right_console() {

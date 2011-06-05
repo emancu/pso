@@ -18,6 +18,8 @@ extern int write(int fd, const void* buf, uint_32 size);
 extern int seek(int fd, uint_32 size);
 extern int close(int fd);
 
+extern sint_32 run(const char* archivo);
+
 extern int open(const char* filename, uint_32 flags);
 
 

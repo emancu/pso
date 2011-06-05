@@ -47,6 +47,9 @@ void move_to_left_console();
 void move_to_empty_console();
 void set_console_style(chardev_console*, uint_8);
 
+sint_32 sys_run(const char* archivo);
+
+
 void write_in_console(chardev_console* this_chardev_console, const char* msg, uint_8 style, uint_8 cant);
 
 #endif

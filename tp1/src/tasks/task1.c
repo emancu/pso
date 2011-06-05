@@ -9,6 +9,7 @@ int idx;
 
 int main(void) {
 	// char buff[10];
+	int i = 0;
 	char* ps1 = "kernel@pso: ";
 	char* enter = "\n";
 	idx = 0;
@@ -20,10 +21,13 @@ int main(void) {
 		read(fd, msg, 1);
 		if (msg[0] == '\n') {
 			//!todo mandar a ejecutar...
-
+			run(command);
 			write(fd, enter, 1);
 			write(fd, ps1, 12);
-
+			for(i = 0; i < 100 ; i++){
+				command[i] = '\0';
+			}
+			idx = 0;
 		} else {
 			write(fd, msg, 1);
 			if (msg[0] != 0x0e) {
