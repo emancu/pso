@@ -8,8 +8,7 @@ syscall_dir: resq 1
 [EXTERN error_num]
 
 isr_define_ep isr_timerTick, isr_timerTick_c
-;isr_define_ep isr_keyboard, isr_keyboard_c
-isr_dkp_e isr_keyboard, 33
+isr_define_ep isr_keyboard, isr_keyboard_c
 isr_define_ep isr_fdd, isr_fdd_c, 38
 
 

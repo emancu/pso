@@ -22,19 +22,6 @@ extern void* _end;
 extern pso_file task_task1_pso;
 extern pso_file task_task2_pso;
 
-void subsubfunc() {
-  while(1) ;
-}
-
-void subfunc() {
-  subsubfunc();
-}
-
-void func(){
-  subfunc();
-}
-
-
 /* Entry-point del modo protegido luego de cargar los registros de
  * segmento y armar un stack */
 void kernel_init(void) {
@@ -53,7 +40,6 @@ void kernel_init(void) {
   con_init();
 
   sti();
-  func();
   // fdd_init();
 
   //load tasks

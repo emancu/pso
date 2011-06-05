@@ -36,6 +36,7 @@
 
 #define LC_PARITY   0x08
 #define LC_PARITY_E 0x10
+
 #define LC_PARITY_O 0x00
 #define LC_PARITY_ST 0x20
 #define LC_BREAK    0x40

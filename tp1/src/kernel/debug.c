@@ -66,7 +66,6 @@ char* find_function_name(uint_32 eip) {
   while (kernel_sym < kernel_sym_end) {     
     ret = str_into_hex(kernel_sym, 0, &dir);
     // printf("dir = %x | kernel_sym = %x | closest_name = %x", dir, kernel_sym, closest_name);
-    // breakpoint();
 
     if (eip - dir < 0) continue; //Si la dirección leída del archivo es mayor que el parámetro no sirve
     // if (eip - dir < eip - closest_dir) { //Sino actualizo las variables
@@ -191,7 +190,6 @@ void debug_kernelpanic(const uint_32* stack, const exp_state* expst) {
   }
   error_num = -1;
 
-  breakpoint();
   //Imprimo el backtrace
   print_backtrace(PANIC_BT_ROW, PANIC_BT_COL, 4, 5, expst->ebp, expst->org_eip);
 }
