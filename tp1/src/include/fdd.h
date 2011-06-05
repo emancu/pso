@@ -18,6 +18,20 @@ typedef struct str_fdc_stat {
   uint_8 srt_hut, hlt_nd, sc_eot, perpendicular; ///(dumpreg)
 } __attribute__((packed)) fdc_stat;
 
+/* Esta estructura es la representación lógica de un floppy drive. 
+ * Debe mantener información del medio interno para exportar una visión
+ * LBA del disco
+typedef struct str_blockdev_floppy {
+  blockdev dev;
+  //A sector n == cylinder_count * h + sect_per_track * c + s
+  uint_8 cylinder_count; 
+  uint_8 head_count;
+  uint_8 sect_per_track;
+  uint_8 sector_size;
+
+} __attribute__((packed)) blockdev_floppy;
+
+
 blockdev* fdd_open(int nro);
 
 /**********************/
