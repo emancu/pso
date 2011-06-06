@@ -46,6 +46,7 @@ typedef struct str_blockdev blockdev;
 typedef sint_32(blockdev_read_t)(blockdev* this, uint_32 pos, void* buf, uint_32 size);
 typedef sint_32(blockdev_write_t)(blockdev* this, uint_32 pos, const void* buf, uint_32 size);
 typedef uint_32(blockdev_flush_t)(blockdev* this);
+typedef sint_32(blockdev_ioctl_t)(blockdev* this, uint_32 cmd, sint_32 value);
 
 struct str_blockdev {
   uint_32 clase;
@@ -53,6 +54,7 @@ struct str_blockdev {
   blockdev_flush_t* flush;
   blockdev_read_t* read;
   blockdev_write_t* write;
+  blockdev_ioctl_t* ioctl;
   uint_32 size;
 } __attribute__((packed));
 

@@ -150,7 +150,7 @@ uint_32 con_flush(chardev* this) {
 chardev* con_open(void) {
 	// Pedimos pagina nueva del kernel para la consola y la inicializamos
 	chardev_console* new_chardev_console = (chardev_console *) mm_mem_kalloc();
-  new_chardev_console->clase = DEV_ID_CHAR_CON;
+  new_chardev_console->dev.clase = DEV_ID_CHAR_CON;
 	new_chardev_console->fila = 0;
 	new_chardev_console->columna = 0;
 	new_chardev_console->last_ps1_fila = 0;

@@ -6,6 +6,11 @@
 #include <device.h>
 #include <dma.h>
 
+/* IOCTL Commands */
+#define FDD_IOCTL_CYL 1 // Utilizado para configurar cantidad de cilindros
+#define FDD_IOCTL_HEAD 2 // Utilizado para configurar cantidad de cabezas
+#define FDD_IOCTL_SECT 3 // Utilizado para configurar cantidad de sectores
+
 #define FDD_DEFAULT_TIMEOUT 8000000
 
 /* Esta estructura se utiliza para almacenar los resultados
