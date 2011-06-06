@@ -6,6 +6,11 @@
 #include <device.h>
 #include <dma.h>
 
+/* IOCTL Commands */
+#define FDD_IOCTL_CYL 1 // Utilizado para configurar cantidad de cilindros
+#define FDD_IOCTL_HEAD 2 // Utilizado para configurar cantidad de cabezas
+#define FDD_IOCTL_SECT 3 // Utilizado para configurar cantidad de sectores
+
 #define FDD_DEFAULT_TIMEOUT 8000000
 
 /* Esta estructura se utiliza para almacenar los resultados
@@ -17,6 +22,20 @@ typedef struct str_fdc_stat {
   uint_8 pcn0, pcn1, pcn2, pcn3; //Present cilinder number (dumpreg)
   uint_8 srt_hut, hlt_nd, sc_eot, perpendicular; ///(dumpreg)
 } __attribute__((packed)) fdc_stat;
+
+/* Esta estructura es la representación lógica de un floppy drive. 
+ * Debe mantener información del medio interno para exportar una visión
+ * LBA del disco. El tamaño de sector se considera constante en 512 bytes. */
+typedef struct str_blockdev_floppy {
+  blockdev dev;
+  uint_8 drive; //Floppy drive number (0 to 3)
+  //A sector n == cylinder_count * h + sect_per_track * c + s - 1
+  uint_8 cylinder_count; //Cylinder count of inserted disk
+  uint_8 head_count; //Head count of the device
+  uint_8 sect_per_track; //Sectors per track of inserted disk
+  char buffer[512];
+} __attribute__((packed)) blockdev_floppy;
+
 
 blockdev* fdd_open(int nro);
 

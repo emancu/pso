@@ -15,7 +15,7 @@
 #include <fdd.h>
 #include <pit.h>
 #include <serial.h>
-
+#include <fat12.h>
 
 #include "klib_machine.h"
 #include "scheduler_test.c"
@@ -42,6 +42,8 @@ void kernel_init(void) {
   con_init();
   // serial_init();
   sti();
+  fdd_init();
+  fat12_init();
 
   //load tasks
   // loader_load(&task_task1_pso,0);
