@@ -20,15 +20,15 @@ typedef struct str_fdc_stat {
 
 /* Esta estructura es la representación lógica de un floppy drive. 
  * Debe mantener información del medio interno para exportar una visión
- * LBA del disco
+ * LBA del disco. El tamaño de sector se considera constante en 512 bytes. */
 typedef struct str_blockdev_floppy {
   blockdev dev;
-  //A sector n == cylinder_count * h + sect_per_track * c + s
-  uint_8 cylinder_count; 
-  uint_8 head_count;
-  uint_8 sect_per_track;
-  uint_8 sector_size;
-
+  uint_8 drive; //Floppy drive number (0 to 3)
+  //A sector n == cylinder_count * h + sect_per_track * c + s - 1
+  uint_8 cylinder_count; //Cylinder count of inserted disk
+  uint_8 head_count; //Head count of the device
+  uint_8 sect_per_track; //Sectors per track of inserted disk
+  char buffer[512];
 } __attribute__((packed)) blockdev_floppy;
 
 

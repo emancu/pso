@@ -80,26 +80,80 @@
 #define FDD_ERROR_READ_ND -11
 #define FDD_ERROR_READ_DD -12
 
+#define FDD_ERROR_NOCONFIG -13
+
 /* Device variables */
 
+/* Semáforo que regula todas las comunicaciones con el fdc. */
+sem_t fdc_sem;
+
+/* Variable utilizada para guardar el estado del FDC. */
 fdc_stat fdc;
-char floppy_buf[512];
 
+/* Los cuatro posibles blockdev_floppy, uno por drive posible. */
+blockdev_floppy floppy_devs[4];
+
+/****************/
 /* Block device */
+/****************/
 
+/* Permite escribir un sector del block device. */
 sint_32 fdd_block_read(blockdev* this, uint_32 pos, void* buf, uint_32 size) {
+  blockdev_floppy* floppy = (blockdev_floppy*)this;
+  uint_32 i, c, h, s;
+  
+  //Verifico que el device haya sido configurado
+  if (pos != 0 && (floppy->cylinder_count == 0 || floppy->head_count == 0 || floppy->sect_per_track == 0))
+    return FDD_ERROR_NOCONFIG;
+
+  sem_wait(&fdc_sem); //Acá empieza la sección crítica del trabajo con fdc 
+
+  //Trato el sector 0 como un caso especial, ya que se necesita para la calibración
+  if (pos == 0) fdd_read_sector(&fdc, 0, 0, 1, 1, 0, floppy->buffer, floppy->drive);
+
+
+  //Verifico que el device haya sido configurado
+  if (floppy->cylinder_count == 0 || floppy->head_count == 0 || floppy->sect_per_track == 0)
+    return FDD_ERROR_NOCONFIG;
+
+  //Obtengo el CHS a partir de la geometría del dispositivo y el sector 'pos'
+  if (pos != 0) {
+    h = pos / (floppy->cylinder_count * floppy->sect_per_track);
+    c = (pos % (floppy->cylinder_count * floppy->sect_per_track)) / floppy->sect_per_track;
+    s = (pos % floppy->sect_per_track) + 1;
+    fdd_read_sector(&fdc, c, h, s, 1, 0, floppy->buffer, floppy->drive);
+  }
+
+  //Copio el resultado al buffer de usuario
+  for (i = 0; i < 512; i++)
+    buf[i] = floppy->buffer[i];
+
+  sem_signal(&fdc_sem); //Acá termina la sección crítica del trabajo con fdc
 	return 0;
 }
 
+/* Permite leer un sector del block device. */
 sint_32 fdd_block_write(blockdev* this, uint_32 pos, const void* buf, uint_32 size)  {
-	return -1;
+  // //Verifico que el device haya sido configurado
+  if (floppy->cylinder_count == 0 || floppy->head_count == 0 || floppy->sect_per_track == 0)
+    return FDD_ERROR_NOCONFIG;
+ 
+  return -1;
+
+  sem_wait(&fdc); //Inicia la sección crítica de trabajo con el fdc
+
+  sem_signal(&fdc); //Finaliza la sección crítica
+	return 0;
 }
 
-
+/* Elimina la referencia al blockdev */
+uint_32 fdd_block_flush(blockdev* this) {
+  this->refcount -= 1;
+}
 
 /* Devuelve un blockdev de la disketera en cuesti'on */
 blockdev* fdd_open(int nro) {
-	return NULL;
+	return &floppy_dev[nro];
 }
 
 /************************/
@@ -591,10 +645,25 @@ void fdd_init(void) {
 
 	fdd_print_status(&fdc);
   //Test de lectura del floppy
-  printf("Floppy test read: buffer = %x", &floppy_buf);
-  st = fdd_read_sector(&fdc, 0, 0, 1, 1, 0, &floppy_buf, 0);
-  breakpoint();
-  if (st < 0)
-    printf("! FDC: Error reading sector 1 (%d)", st);
-  
+  // printf("Floppy test read: buffer = %x", &floppy_buf);
+  // st = fdd_read_sector(&fdc, 0, 0, 1, 1, 0, &floppy_buf, 0);
+  // breakpoint();
+  // if (st < 0)
+    // printf("! FDC: Error reading sector 1 (%d)", st);
+
+  printf("FDC: Initializing block devices.");
+  for (st = 0; st < 4; st++) {
+    floppy_devs[st].dev.clase = DEV_ID_BLOCK_FLOPPY;
+    floppy_devs[st].dev.refcount = 0;
+    floppy_devs[st].dev.flush = &fdd_block_flush;
+    floppy_devs[st].dev.read = &fdd_block_read;
+    floppy_devs[st].dev.write = &fdd_block_write;
+    floppy_devs[st].drive = st;
+    floppy_devs[st].cylinder_count = 0;
+    floppy_devs[st].head_count = 0;
+    floppy_devs[st].sect_per_track = 0;
+  }
+  printf("FDC: Block devices initialized.");
+
+  blockdev_floppy* = fdd_open(0);
 }

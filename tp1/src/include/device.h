@@ -5,6 +5,10 @@
 
 //IDs de tipos de device
 #define DEV_ID_PROC_CPUID 0xA
+#define DEV_ID_BLOCK_FLOPPY 0xB
+#define DEV_ID_CHAR_CON 0xC
+#define DEV_ID_CHAR_SERIAL 0xD
+
 #define MAX_FD 32
 
 /* Devices */
