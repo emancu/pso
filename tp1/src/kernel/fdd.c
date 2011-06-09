@@ -710,5 +710,7 @@ void fdd_init(void) {
   }
   printf("FDC: Block devices initialized.");
 
+  //Inicializo el semáforo
+  fdc_sem = SEM_NEW(1);
   // blockdev_floppy* = fdd_open(0);
 }
