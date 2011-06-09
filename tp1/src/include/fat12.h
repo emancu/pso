@@ -71,12 +71,16 @@ typedef struct str_lfn_entry {
 	uint_16 name2[2];
 } __attribute__((__packed__)) lfn_entry;
 
+typedef struct str_fat_entry {
+  uint_16 next:12;
+} __attribute__((__packed__)) fat_entry;
+
 /* Class fat12 */
 typedef struct str_fat12 {
 	blockdev* dev;
 	/* ... completar ...*/
   boot_sector boot_sect;
-  sint_16 fat[512*4];
+  fat_entry* fat;
 } fat12;
 
 /************************/

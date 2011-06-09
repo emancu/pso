@@ -47,12 +47,17 @@ void fat12_create(fat12* this, blockdev* dev) {
   dev->ioctl(dev, FDD_IOCTL_HEAD, head);
   dev->ioctl(dev, FDD_IOCTL_SECT, sect);
 
-  printf(" >fat12_create: reading first 4 sectors of fat @ %x", this->fat);
-  if ((st = dev->read(dev, this->boot_sect.ReservedSectors, (char*)&(this->fat), 512*4)) < 0) {
-    printf("! >fat12_create: Error reading fat sectors from blockdev %x - Errno(%d)", dev, st);
-    return;
-  }
-  printf(" >fat12_create: first 4 sectors of fat read @ %x", &(this->fat));
+  // printf(" >fat12_create: reading first 4 sectors of fat @ %x", this->fat);
+  // if ((st = dev->read(dev, this->boot_sect.ReservedSectors, (char*)&(this->fat), 512*4)) < 0) {
+    // printf("! >fat12_create: Error reading fat sectors from blockdev %x - Errno(%d)", dev, st);
+    // return;
+  // }
+  // printf(" >fat12_create: first 4 sectors of fat read @ %x", &(this->fat));
+  
+  // Creando la fat
+  // Por cada 8 sectores que mide la fat, pido una página
+  // Copio la fat a esas páginas
+  // Apunto this->fat = primera_pagina (asumiendo páginas contiguas)
 }
 
 
