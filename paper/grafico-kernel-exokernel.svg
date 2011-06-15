@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="1116.2214"
+   height="675.80542"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.47 r22583"
+   sodipodi:docname="grafico-kernel-exokernel.pdf">
+  <defs
+     id="defs4">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       id="perspective10" />
+    <inkscape:perspective
+       id="perspective3673"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.7"
+     inkscape:cx="520.21631"
+     inkscape:cy="387.69026"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     showguides="false"
+     inkscape:guide-bbox="true"
+     inkscape:window-width="1280"
+     inkscape:window-height="951"
+     inkscape:window-x="1024"
+     inkscape:window-y="25"
+     inkscape:window-maximized="1">
+    <sodipodi:guide
+       orientation="0,1"
+       position="1030.2204,303.42347"
+       id="guide3782" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(10.220426,-351.40882)">
+    <rect
+       style="fill:#dc0000"
+       id="rect2816"
+       width="302.85715"
+       height="71.428574"
+       x="104.28571"
+       y="569.80878"
+       transform="translate(0,308.2677)" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="138.57144"
+       y="926.64795"
+       id="text2818"><tspan
+         sodipodi:role="line"
+         id="tspan2820"
+         x="138.57144"
+         y="926.64795">Lo Pateable</tspan></text>
+    <rect
+       y="799.50507"
+       x="104.28571"
+       height="71.428574"
+       width="302.85715"
+       id="rect3596"
+       style="fill:#009100" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="178.57143"
+       y="849.505"
+       id="text3598"><tspan
+         sodipodi:role="line"
+         id="tspan3600"
+         x="178.57143"
+         y="849.505">Drivers</tspan></text>
+    <rect
+       style="fill:#005c94"
+       id="rect3602"
+       width="302.85715"
+       height="71.428574"
+       x="104.28571"
+       y="720.93365" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="188.85715"
+       y="773.2193"
+       id="text3604"><tspan
+         sodipodi:role="line"
+         id="tspan3606"
+         x="188.85715"
+         y="773.2193">Kernel</tspan></text>
+    <rect
+       y="643.21936"
+       x="104.28571"
+       height="71.428574"
+       width="302.85715"
+       id="rect3608"
+       style="fill:#19aeff" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="170.00002"
+       y="692.07642"
+       id="text3612"><tspan
+         sodipodi:role="line"
+         id="tspan3614"
+         x="170.00002"
+         y="692.07642">Interfaz</tspan></text>
+    <path
+       style="fill:#ff9900;fill-opacity:1;stroke:#000000;stroke-width:1.05213642px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 104.31062,575.84758 c 0,-199.34214 0,-200.86384 0,-200.86384 0,0 78.68576,-54.78104 154.40223,4.56509 75.71649,59.34613 146.97904,-15.21695 146.97904,-15.21695 l -2.96927,208.47231 c 0,0 -80.17039,47.17257 -142.52513,-4.56508 -62.35475,-51.73766 -158.85614,6.08677 -155.88687,7.60847 z"
+       id="path3624" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="133.71429"
+       y="459.50504"
+       id="text3618"><tspan
+         sodipodi:role="line"
+         x="133.71429"
+         y="459.50504"
+         id="tspan3622">Aplicaciones</tspan><tspan
+         sodipodi:role="line"
+         x="133.71429"
+         y="509.50504"
+         id="tspan3628">de Usuario</tspan></text>
+    <path
+       style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.7908963px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 216.53399,632.31185 c -1.1966,0 36.73015,25.86917 36.73015,25.86917 l 34.47233,-25.60407 -22.73521,0 -0.13535,-65.07699 21.53862,0 -33.50452,-26.67091 -35.89769,26.67091 c 0,0 23.43233,0.0679 23.43233,0.23436 l 1.03009,64.84263 -24.93075,-0.2651 z"
+       id="path3630"
+       sodipodi:nodetypes="ccccccccccc" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:italic;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Charter Italic"
+       x="87.142853"
+       y="1026.6478"
+       id="text3653"><tspan
+         sodipodi:role="line"
+         id="tspan3655"
+         x="87.142853"
+         y="1026.6478">Kernel Monolítico</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 94.285714,568.3802 C 74.856879,538.13719 103.03078,483.84962 58.140693,452.65104 101.22526,427.2471 77.71427,366.87422 97.085935,337.61515"
+       id="path3659"
+       transform="translate(0,308.2677)"
+       sodipodi:nodetypes="ccc" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="-12.857144"
+       y="775.2193"
+       id="text3661"><tspan
+         sodipodi:role="line"
+         id="tspan3663"
+         x="-12.857144"
+         y="775.2193">SO</tspan></text>
+    <rect
+       style="fill:#dc0000"
+       id="rect2816-0"
+       width="302.85715"
+       height="71.428574"
+       x="612.64508"
+       y="879.69855" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="646.93085"
+       y="928.27002"
+       id="text2818-2"><tspan
+         sodipodi:role="line"
+         id="tspan2820-3"
+         x="646.93085"
+         y="928.27002">Lo Pateable</tspan></text>
+    <rect
+       y="801.12714"
+       x="612.64508"
+       height="71.428574"
+       width="302.85715"
+       id="rect3596-5"
+       style="fill:#0084c8" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="668.93079"
+       y="851.12708"
+       id="text3598-4"><tspan
+         sodipodi:role="line"
+         id="tspan3600-3"
+         x="668.93079"
+         y="851.12708">Exokernel</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:italic;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans;-inkscape-font-specification:Bitstream Charter Italic"
+       x="665.50226"
+       y="1019.6985"
+       id="text3653-1"><tspan
+         sodipodi:role="line"
+         id="tspan3655-7"
+         x="665.50226"
+         y="1019.6985">Exokernel</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.7558282;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:40;stroke-opacity:1;stroke-dasharray:none"
+       d="m 602.74962,878.39207 c -19.55064,-17.16947 8.7999,-47.98944 -36.37164,-65.70141 43.3547,-14.42224 19.6963,-48.69695 39.18942,-65.30782"
+       id="path3659-2"
+       sodipodi:nodetypes="ccc" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="499.21652"
+       y="829.41278"
+       id="text3661-6"><tspan
+         sodipodi:role="line"
+         id="tspan3663-3"
+         x="499.21652"
+         y="829.41278">SO</tspan></text>
+    <rect
+       style="fill:#009100"
+       id="rect3750"
+       width="47.14286"
+       height="34.285717"
+       x="612.73175"
+       y="756.38751" />
+    <rect
+       y="756.38751"
+       x="675.43048"
+       height="34.285717"
+       width="47.14286"
+       id="rect3752"
+       style="fill:#009100" />
+    <rect
+       style="fill:#009100"
+       id="rect3756"
+       width="47.14286"
+       height="34.285717"
+       x="741.28119"
+       y="756.38751" />
+    <rect
+       y="756.38751"
+       x="805.93097"
+       height="34.285717"
+       width="47.14286"
+       id="rect3758"
+       style="fill:#009100" />
+    <rect
+       style="fill:#009100"
+       id="rect3760"
+       width="47.14286"
+       height="34.285717"
+       x="868.56042"
+       y="756.38751" />
+    <path
+       sodipodi:nodetypes="ccc"
+       id="path3762"
+       d="m 925.44723,798.5187 c 7.89575,-6.30786 -3.55394,-17.63075 14.6891,-24.13791 -17.50929,-5.29856 -7.95457,-17.89067 -15.82709,-23.99331"
+       style="fill:none;stroke:#000000;stroke-width:0.79100001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="953.58405"
+       y="785.70221"
+       id="text3764"><tspan
+         sodipodi:role="line"
+         id="tspan3766"
+         x="953.58405"
+         y="785.70221"
+         style="font-size:30px">Hardware </tspan><tspan
+         sodipodi:role="line"
+         x="953.58405"
+         y="823.20221"
+         style="font-size:30px"
+         id="tspan2915">Exportado</tspan></text>
+    <rect
+       style="fill:#9ade00;fill-opacity:1;stroke:none"
+       id="rect3770"
+       width="140"
+       height="207.14285"
+       x="612.85718"
+       y="518.07648" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="674.28571"
+       y="600.93359"
+       id="text3772"><tspan
+         sodipodi:role="line"
+         id="tspan3774"
+         x="674.28571"
+         y="600.93359">Bib</tspan><tspan
+         sodipodi:role="line"
+         x="674.28571"
+         y="650.93359"
+         id="tspan3776">SO</tspan></text>
+    <rect
+       y="593.79077"
+       x="838.57147"
+       height="131.42857"
+       width="78.571426"
+       id="rect3778"
+       style="fill:#9ade00;fill-opacity:1;stroke:none" />
+    <rect
+       style="fill:#ffe900;fill-opacity:1;stroke:none"
+       id="rect3780"
+       width="71.428574"
+       height="327.14285"
+       x="760.57147"
+       y="396.64789" />
+    <path
+       id="path3784"
+       d="m 611.15491,482.15205 c 0,-109.80245 0,-110.64065 0,-110.64065 0,0 35.93983,-30.17471 70.52344,2.51457 34.5836,32.68928 67.13288,-8.38186 67.13288,-8.38186 l -1.35622,114.83156 c 0,0 -36.61794,25.9838 -65.09856,-2.51456 -28.48061,-28.49834 -72.55775,3.35274 -71.20154,4.19094 z"
+       style="fill:#ff9900;fill-opacity:1;stroke:#000000;stroke-width:0.52773809px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    <path
+       style="fill:#ff9900;fill-opacity:1;stroke:#000000;stroke-width:0.35503185px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 838.20004,493.3661 c 0,-79.1649 0,-79.76923 0,-79.76923 0,0 22.56072,-21.75523 44.2701,1.81295 21.70938,23.56818 42.14173,-6.04312 42.14173,-6.04312 l -0.85135,82.79077 c 0,0 -22.9864,18.73369 -40.86471,-1.81293 -17.8783,-20.54662 -45.54711,2.41724 -44.69577,3.02156 z"
+       id="path3786" />
+    <text
+       id="text3788"
+       y="646.64789"
+       x="878.57141"
+       style="font-size:40px;font-style:normal;font-weight:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       xml:space="preserve"><tspan
+         y="646.64789"
+         x="878.57141"
+         id="tspan3790"
+         sodipodi:role="line">Bib</tspan><tspan
+         id="tspan3792"
+         y="696.64789"
+         x="878.57141"
+         sodipodi:role="line">SO</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:30px;font-style:normal;font-weight:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="677.14288"
+       y="413.79074"
+       id="text3794"><tspan
+         sodipodi:role="line"
+         id="tspan3796"
+         x="677.14288"
+         y="413.79074">User</tspan><tspan
+         sodipodi:role="line"
+         x="677.14288"
+         y="451.29074"
+         id="tspan3798">App</tspan></text>
+    <text
+       id="text3800"
+       y="439.50504"
+       x="882.85718"
+       style="font-size:30px;font-style:normal;font-weight:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       xml:space="preserve"><tspan
+         y="439.50504"
+         x="882.85718"
+         id="tspan3802"
+         sodipodi:role="line">User</tspan><tspan
+         id="tspan3804"
+         y="477.00504"
+         x="882.85718"
+         sodipodi:role="line">App</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:30px;font-style:normal;font-weight:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
+       x="795.71429"
+       y="532.36218"
+       id="text3806"><tspan
+         sodipodi:role="line"
+         id="tspan3808"
+         x="795.71429"
+         y="532.36218">User</tspan><tspan
+         sodipodi:role="line"
+         x="795.71429"
+         y="569.86218"
+         id="tspan3810">App</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 660,399.80877 -25.71429,61.42857"
+       id="path3812"
+       transform="translate(0,308.2677)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 688.57143,394.09448 8.57143,74.28572"
+       id="path3814"
+       transform="translate(0,308.2677)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 714.28571,394.09448 175.71429,70"
+       id="path3816"
+       transform="translate(0,308.2677)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 790,381.23734 -22.85714,92.85714"
+       id="path3818"
+       transform="translate(0,308.2677)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 812.85714,379.80877 84.28572,88.57143"
+       id="path3820"
+       transform="translate(0,308.2677)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 875.71429,401.23734 708.57143,469.80876"
+       id="path3822"
+       transform="translate(0,308.2677)"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 900,402.66591 -71.42857,62.85714"
+       id="path3824"
+       transform="translate(0,308.2677)" />
+    <path
+       sodipodi:nodetypes="ccccccccccc"
+       id="path3826"
+       d="m 856.44526,579.03721 c -0.71924,0 22.07727,27.7929 22.07727,27.7929 l 20.72018,-27.50809 -13.66538,0 -0.0814,-69.91637 12.94615,0 -20.13845,-28.65426 -21.57692,28.65426 c 0,0 14.0844,0.0729 14.0844,0.25179 l 0.61916,69.66458 -14.98505,-0.28481 z"
+       style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.63556015px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    <path
+       style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.70334274px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 640.77763,526.09241 c -1.27007,0 38.98524,19.27525 38.98524,19.27525 l 36.5888,-19.07772 -24.13107,0 -0.14366,-48.48918 22.86101,0 -35.56157,-19.87263 -38.10167,19.87263 c 0,0 24.87099,0.0506 24.87099,0.17462 l 1.09333,48.31456 -26.4614,-0.19753 z"
+       id="path3828"
+       sodipodi:nodetypes="ccccccccccc" />
+  </g>
+</svg>
