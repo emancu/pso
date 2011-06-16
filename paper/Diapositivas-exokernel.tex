@@ -38,7 +38,7 @@ La mayoría de los SO actuales utilizan kernels monolíticos, esto implica
   \item Interfases de hardware genéricas
   \item Poca flexibilidad para la gran cantidad de aplicaciones existentes
   \item Implementaciones Ad-Hoc de abstracciones (Procesos, IPC, Archivos, etc)
-  \item Las aplicaciones corren en máquinas virtuales cuya base con abstracciones de alto nivel
+  \item Las aplicaciones corren en máquinas virtuales cuya base son abstracciones de alto nivel
   \item Ocultar información del Hardware a la aplicación
   \item Frena la innovación en la implementación de abstracciones
 \end{itemize}
@@ -125,7 +125,7 @@ El \textbf{exokernel} interviene en todos los accesos a recurso.
 
 Como parte del concepto de \emph{que el usuario sabe manejar sus recursos mejor}, se permite a las \textbf{bibliotecas de sistema operativo} participar en el protocolo de revocación de recursos.\\[1em]
 
-Esto significa que, cada vez que el \textbf{exokernel} necesita que se liberen recursos, el protocolo para lograr la liberación implica una conversación entre el kernel y a \textbf{biblioteca OS}. En el mismo, se hace un pedido de liberación a desde el kernel al nivel aplicación.
+Esto significa que, cada vez que el \textbf{exokernel} necesita que se liberen recursos, el protocolo para lograr la liberación implica una conversación entre el kernel y la \textbf{biblioteca SO}. En el mismo, se hace un pedido de liberación desde el kernel al nivel de aplicación.
 
 \end{frame}
 
@@ -214,7 +214,7 @@ Se presentan los beneficios de trabajar con distintas implementaciones de la mis
 \section{Conclusión}
 
 \begin{frame}{Conclusión}
- \begin{itemize}
+\begin{itemize}
   \item El \textbf{exokernel} permite crear abstracciones de alto nivel especializadas para cada tipo de aplicación. Esto lleva a una mejora en rendimiento y flexibilidad.
   \item Los experimentos realizados sobre las implementaciones \textbf{ExOS} y \textbf{Aegis} demostraron las hipotesis.
   \item Basado en los resultados, se concluye que la arquitectura del \textbf{exokernel} es una estructura viable para la implementación de sistemas operativos extensibles y con muy buen rendimiento.
