@@ -159,6 +159,8 @@ Los experimentos prueban estas hipótesis
 \end{itemize}
 \end{frame}
 
+\subsection{Excepciones}
+
 \begin{frame}
 \textbf{Excepciones}\\[2em]
 \begin{table}
@@ -172,6 +174,7 @@ Luego se ejecuta el controlador de interrupciones de la aplicación, dejando a s
 \end{frame}
 
 % \captionsetup[table]{font+={footnotesize}}
+\subsection{IPC}
 
 \begin{frame}
 \textbf{IPC} \\[2em]
@@ -182,6 +185,8 @@ Luego se ejecuta el controlador de interrupciones de la aplicación, dejando a s
 En estos experimentos se hace una prueba de ping-pong entre dos procesos actualizando un contador. \textbf{pipe'} es una implementación más eficiente de \textbf{ExOS} de pipes. En \textbf{lrpc} se mide el tiempo de hacer una llamada remota, actualizar un contador en otro espacio de direcciones y volver al contexto original. 
 \end{frame}
 
+\subsection{Memoria virtual}
+
 \begin{frame}
  \textbf{Memoria virutal} \\[2em]
 \begin{table}
@@ -189,6 +194,8 @@ En estos experimentos se hace una prueba de ping-pong entre dos procesos actuali
 \caption{Comparativa de tiempos de operaciones de memoria virtual en \textbf{ExOS} y \textbf{Ultrix} (Tiempos en milisegundos). \textbf{appel1} y \textbf{appel2} son benchmarks de \emph{Appel and Li} y el tiempo presentado promediado por página.}
 \end{table}
 \end{frame}
+
+\subsection{Flexibilidad}
 
 \begin{frame}
 \textbf{Flexibilidad} \\[2em]
@@ -208,9 +215,9 @@ Se presentan los beneficios de trabajar con distintas implementaciones de la mis
 
 \begin{frame}{Conclusión}
  \begin{itemize}
-  \item El exokernel permite crear abstracciones de alto nivel especializadas para cada tipo de aplicación. Esto lleva a una mejora en rendimiento y 			  flexibilidad.
+  \item El \textbf{exokernel} permite crear abstracciones de alto nivel especializadas para cada tipo de aplicación. Esto lleva a una mejora en rendimiento y flexibilidad.
   \item Los experimentos realizados sobre las implementaciones \textbf{ExOS} y \textbf{Aegis} demostraron las hipotesis.
-  \item Basado en los resultados,se concluye que la arquitectura del exokernel es una estructura viable para la implementacion de sistemas operativos extensibles y con muy buen rendimiento.
+  \item Basado en los resultados, se concluye que la arquitectura del \textbf{exokernel} es una estructura viable para la implementación de sistemas operativos extensibles y con muy buen rendimiento.
 \end{itemize}
 \end{frame}
 
