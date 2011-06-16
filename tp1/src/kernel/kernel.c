@@ -12,7 +12,10 @@
 #include <con.h>
 #include <proc.h>
 #include <fs.h>
-
+#include <fdd.h>
+#include <pit.h>
+#include <serial.h>
+#include <fat12.h>
 
 #include "klib_machine.h"
 #include "scheduler_test.c"
@@ -27,20 +30,24 @@ void kernel_init(void) {
   gdt_init();
   clear_screen();
 
+  // breakpoint();
   //init all modules
   idt_init();
   debug_init();
+  pit_init();
   mm_init();
   loader_init();
-  fs_init();
   device_init();
   con_init();
+  // serial_init();
+  sti();
+  fdd_init();
+  fat12_init();
+  fs_init();
 
   //load tasks
-  loader_load(&task_task1_pso,0);
+   loader_load(&task_task1_pso,0);
 //  loader_load(&task_task2_pso,0);
 
-
-  sti();
   return;
 }

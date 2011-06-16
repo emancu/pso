@@ -12,9 +12,9 @@ void sem_wait(sem_t* s) {
 }
 
 void sem_signaln(sem_t* s) {
-  if (s->vl == 0) {
+  if (s->vl == 0 && s->q != -1) { //FIXME: Y si no hay a quién desencolar?
     loader_unqueue((int*)&(s->q));
-  }else
+  } else
     s->vl++;
 }
 

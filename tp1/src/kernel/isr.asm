@@ -8,8 +8,11 @@ syscall_dir: resq 1
 [EXTERN error_num]
 
 isr_define_ep isr_timerTick, isr_timerTick_c
-
 isr_define_ep isr_keyboard, isr_keyboard_c
+isr_define_ep isr_fdd, isr_fdd_c, 38
+
+
+isr_define_ep isr_serial, isr_serial_c
 
 isr_dkp_e isr_0_DE, 0
 isr_dkp_e isr_1_DB, 1
@@ -34,7 +37,7 @@ isr_dkp_e isr_13_XM, 19
 [EXTERN syscall_list]
 [GLOBAL isr_syscall]
 isr_syscall:
-
+  sti ;FIXME: Necesario??
   ;xchg bx, bx
   ;con esto se puede pasar hasta 4 parametros en las syscalls
   push edi

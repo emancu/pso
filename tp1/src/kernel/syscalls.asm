@@ -1,10 +1,11 @@
 ; Tabla de syscalls
 ;
 %define PUSHAD_LEN 8*4
+
 ; Este macro genera la definicion de una syscall y hace la interrupcion
 ; Recibe el nombre de la funcion de usuario de la syscall y el
 ; número de syscall
-%macro sys_def 2
+%macro sys_def 2-3
 %1:
 [EXTERN sys_%1]
 ;para que es esta declaracion martin??? ale (10/5)
@@ -48,5 +49,5 @@ sys_def close, 0x36
 
 sys_def open, 0x37
 
-sys_def run, 0x38
+sys_def run, 0x39
 

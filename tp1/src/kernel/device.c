@@ -45,11 +45,9 @@ int sys_write(int fd, const void* buf, uint_32 size) {
   return char_dev->write(char_dev, buf, size);;
 }
 
-int sys_seek(int fd, uint_32 size) {
-  printf("SEEK");
-  printf("llamaron a FD: %d", fd);
-  printf("llamaron a SIZE: %d", size);
-  return 2;
+int sys_seek(int fd, uint_32 pos) {
+  chardev* char_dev = (chardev*) char_devices[cur_pid][fd];
+  return char_dev->seek(char_dev, pos);
 }
 
 int sys_close(int fd) {

@@ -2,29 +2,48 @@
 #define __DEBUG_H__
 
 #include <isr.h>
+#include <vga.h>
+#include <i386.h>
 
+/* En esta variable se almacena el número de error
+ * actual. */ 
 extern uint_32 error_num;
+extern bool in_panic;
+
+/* Estas variables tienen el principio y el final
+ * del espacio donde se encuentran las etiquetas 
+ * de las funciones. El archivo se encuentra 
+ * definido en kernel_sym.asm*/
+extern void* kernel_syme;
+extern void* kernel_sym_ende;
 
 void debug_init(void);
 
 void debug_kernelpanic(const uint_32* stack, const exp_state* expst);
+
+/* Esta función obtien el valor de ebp en *'ebp' para obtener
+ * el valor previo de ebp (y lo guarda en la variable 'ebp')
+ * y el eip de la función llamante. */
+uint_32* obtain_prev_func(uint_32* ebp);
 
 /* Prints the stack content in the screen starting at row 'f' and column 'c', writing a total
  * of 'dwords' dwords in 'cols' columns starting from memmory position 'stack' and going
  * upwards. */
 void print_stack(uint_32 f, uint_32 c, uint_32 dwords, uint_32 cols, const uint_32* stack);
 
-/* Prints the backtrace of 'level' number of cunctions using a starting frame given by 'ebp'.
+/* Prints the backtrace of 'level' number of functions using a starting frame given by 'ebp'.
  * With each call backtraced the function it prints the first 'params' dwords in the stack of
  * that function call frame. */
-void print_backtrace(uint_32 f, uint_32 c, uint_32 level, uint_32 params, const uint_32 ebp);
+void print_backtrace(uint_32 f, uint_32 c, uint_32 level, uint_32 params, const uint_32 ebp, const uint_32 eip);
 
-void isr_timerTick_c();
+/* This function uses 'kernel_syme' and 'kernel_sym_ende' to find the name of the function referenced by eip. */
+char* find_function_name(uint_32 eip);
+
 void isr_keyboard_c();
 
 extern void debug_kernel_panic();
-extern void isr_timerTick();
 extern void isr_keyboard();
+extern void isr_serial();
 extern void isr_0_DE();
 extern void isr_1_DB();
 extern void isr_2_NMI();
@@ -48,11 +67,6 @@ extern void isr_13_XM();
 extern char exp_msg[];
 extern uint_32 exp_num;
 
-
-
-#include <vga.h>
-#include <i386.h>
-
 #ifndef NDEBUG
 #define __mac_xstr(s) #s
 #define __mac_str(s) __mac_xstr(s)
@@ -69,3 +83,5 @@ extern uint_32 exp_num;
 #define PANIC_GEN_ROW 2
 #define PANIC_STACK_COL 0
 #define PANIC_STACK_ROW 7
+#define PANIC_BT_ROW 20 
+#define PANIC_BT_COL 0

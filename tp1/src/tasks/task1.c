@@ -34,9 +34,8 @@ int main(void) {
 				command[idx++] = msg[0];
 			}
 		}
+  }
 
-	}
-
-	// void* p = palloc();
-	return 0;
+  // void* p = palloc();
+  return 0;
 }
