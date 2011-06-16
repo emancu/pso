@@ -4,10 +4,13 @@
 \usepackage{color}
 \usepackage{framed}
 \usepackage{endnotes}
-\usepackage{graphicx}
 \usepackage{multicol}
+\usepackage{graphicx}
+\usepackage{caption}
 
 \usetheme{Hannover}
+
+\captionsetup[table]{font+=footnotesize, labelfont+=footnotesize}
 
 \title{Exokernel}
 \subtitle{An Operating System Architecture for \\  Application-Level Resource Managment}
@@ -35,22 +38,22 @@ La mayoría de los SO actuales utilizan kernels monolíticos, esto implica
   \item Interfases de hardware genéricas
   \item Poca flexibilidad para la gran cantidad de aplicaciones existentes
   \item Implementaciones Ad-Hoc de abstracciones (Procesos, IPC, Archivos, etc)
-  \item Ocultar informacion del Hardware a la aplicación
-  \item Frena la innovacion en la implementación de abstracciones
+  \item Las aplicaciones corren en máquinas virtuales cuya base con abstracciones de alto nivel
+  \item Ocultar información del Hardware a la aplicación
+  \item Frena la innovación en la implementación de abstracciones
 \end{itemize}
 \end{frame}
 
 \subsection{Exokernel}
 \begin{frame}
 
-Es muy dificil implementar una abstracción que de un excelente rendimiento para toda aplicación existente y por ser desarrollada.\\[1em]
+Es muy difícil implementar una abstracción que de un excelente rendimiento para toda aplicación existente y por ser desarrollada.\\[1em]
 
 Por eso el exokernel propone cambiar la arquitectura monolítica por la siguiente \\[1em]
 
 \begin{itemize}
-  \item \textbf{Exokernel}: multiplexa los servicios de hardware de manera segura
-  \item Primitivas de muy bajo nivel
-  \item \textbf{Biblioteca SO}: Implementacion de abstracciones de alto nivel
+  \item \textbf{Exokernel}: multiplexa los servicios de hardware de manera segura mediante primitivas de muy bajo nivel
+  \item \textbf{Biblioteca SO}: Implementacion de abstracciones de alto nivel en espacio de usuario.
 \end{itemize}
 \end{frame}
 
@@ -66,11 +69,13 @@ Por eso el exokernel propone cambiar la arquitectura monolítica por la siguient
 \subsection{Ventajas}
 \begin{frame}
 \begin{itemize}
+  \item \emph{A menor nivel de la primitiva, más eficientemente puede esta implementarse}
   \item Interfaces más específicas
-  \item Exportar el Hardware al usuario (programador de aplicaciones)
-  \item La interfaz se define en el espacio de usuario.
-  \item Controlar recursos desde nivel de usuario.
-  \item Las aplicaciones conocen mejor que el SO qué recursos necesitan
+  \item Exportar el Hardware al usuario (programador de aplicaciones) en lugar de emularlo
+  \item Se hace visible todo estado del hardware y se exportan las instrucciones privilegiadas (con protecciones)
+  \item La interfaz se define en el espacio de usuario
+  \item Controlar recursos desde nivel de usuario
+  \item Las aplicaciones conocen mejor que el SO qué recursos necesitan y cómo administrarlos
 \end{itemize}
 \end{frame}
 
@@ -110,28 +115,32 @@ Las bibliotecas de Sistema Operativo pueden unirse o \textit{'bindiarse'} al Har
 La autorización se realiza sólo en el \textit{binding time}, esto permite separar la administración de la protección.\\[1em]
 
 El \textbf{exokernel} interviene en todos los accesos a recurso.
+
 \end{frame}
 
-\subsection{Visible resource revocation}
+\subsubsection{Visible resource revocation}
 
 \begin{frame}
 \textbf{Visible resource revocation} \\[2em]
 
-Permite a las \textbf{bibliotecas de sistema operativo} participar en el protocolo de revocación de recursos.\\[1em]
+Como parte del concepto de \emph{que el usuario sabe manejar sus recursos mejor}, se permite a las \textbf{bibliotecas de sistema operativo} participar en el protocolo de revocación de recursos.\\[1em]
 
-MARTIN: No se bien como explicarlo
+Esto significa que, cada vez que el \textbf{exokernel} necesita que se liberen recursos, el protocolo para lograr la liberación implica una conversación entre el kernel y a \textbf{biblioteca OS}. En el mismo, se hace un pedido de liberación a desde el kernel al nivel aplicación.
 
 \end{frame}
 
 
-\subsection{Abort protocol}
+\subsubsection{Abort protocol}
 
 \begin{frame}
 \textbf{Abort protocol} \\[2em]
 
 Es un protocolo para romper, a la fuerza, \textit{secure bindings} con las \textbf{bibliotecas de sistema operativo} que no cooperan o fallan al responder una solicitud de revocación.\\[1em]
 
-El \textbf{exokernel} utiliza rompe todos los \textit{secure bindings} existentes con el recurso e informa a la \textbf{biblioteca de sistema operativo}. Ésta acción es registrada en un \textit{vector de recuperación} y la biblioteca recibe una excepción de \textbf{recuperación} para actualizar a quienes utilizan el recurso.
+El \textbf{exokernel} rompe todos los \textit{secure bindings} existentes con el recurso e informa a la \textbf{biblioteca de sistema operativo}. Ésta acción es registrada en un \textit{vector de recuperación} y la biblioteca recibe una excepción de \textbf{recuperación} para actualizar a quienes utilizan el recurso.
+
+A las \textbf{bibliotecas de sistema operativo} se les asegura un mínimo de recursos que no le serán revocados. 
+
 \end{frame}
 
 
@@ -150,8 +159,16 @@ Los experimentos prueban estas hipótesis
 \end{itemize}
 \end{frame}
 
-\begin{frame}
-Aca tendriamos que poner las pruebas y esas cosas.... quizas algunos ejemplos 
+\begin{frame}{Excepciones}
+\begin{table}
+\includegraphics[scale=0.8]{grafico-excepciones.pdf}
+\caption{Tiempo de envío de excepciones en \textbf{Aegis} y \textbf{Ultrix} (tiempos en milisegundos).}
+\end{table}
+
+En \textbf{Aegis}, al producirse una excepción, el estado se guarda en un área de memoria ya acordada con el usuario, con accesos directos a memoria física. Esto evita \emph{TLB misses}.
+
+Luego se ejecuta el controlador de interrupciones de la aplicación, dejando a su disposición la información necesaria para que pueda reconstruir el estado necesario y vuelva a ejecutar sin pasar nuevamente por el kernel. 
+
 \end{frame}
 
 \section{Conclusión}
