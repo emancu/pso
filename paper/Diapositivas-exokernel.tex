@@ -159,7 +159,8 @@ Los experimentos prueban estas hipótesis
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Excepciones}
+\begin{frame}
+\textbf{Excepciones}\\[2em]
 \begin{table}
 \includegraphics[scale=0.8]{grafico-excepciones.pdf}
 \caption{Tiempo de envío de excepciones en \textbf{Aegis} y \textbf{Ultrix} (tiempos en milisegundos).}
@@ -168,7 +169,39 @@ Los experimentos prueban estas hipótesis
 En \textbf{Aegis}, al producirse una excepción, el estado se guarda en un área de memoria ya acordada con el usuario, con accesos directos a memoria física. Esto evita \emph{TLB misses}.
 
 Luego se ejecuta el controlador de interrupciones de la aplicación, dejando a su disposición la información necesaria para que pueda reconstruir el estado necesario y vuelva a ejecutar sin pasar nuevamente por el kernel. 
+\end{frame}
 
+% \captionsetup[table]{font+={footnotesize}}
+
+\begin{frame}
+\textbf{IPC} \\[2em]
+\begin{table}
+\includegraphics[scale=0.8]{grafico-ipc.pdf}
+\caption{Comparativas de implementaciones de \textbf{IPC} en \textbf{ExOS} sobre \textbf{Aegis} y \textbf{Ultrix} (tiempos en milisegundos). Para pipe y memoria compartida las mediciones son unidireccionales, para LRPC es bidireccional.}
+\end{table}
+En estos experimentos se hace una prueba de ping-pong entre dos procesos actualizando un contador. \textbf{pipe'} es una implementación más eficiente de \textbf{ExOS} de pipes. En \textbf{lrpc} se mide el tiempo de hacer una llamada remota, actualizar un contador en otro espacio de direcciones y volver al contexto original. 
+\end{frame}
+
+\begin{frame}
+ \textbf{Memoria virutal} \\[2em]
+\begin{table}
+\includegraphics[scale=0.8]{grafico-vm.pdf}
+\caption{Comparativa de tiempos de operaciones de memoria virtual en \textbf{ExOS} y \textbf{Ultrix} (Tiempos en milisegundos). \textbf{appel1} y \textbf{appel2} son benchmarks de \emph{Appel and Li} y el tiempo presentado promediado por página.}
+\end{table}
+\end{frame}
+
+\begin{frame}
+\textbf{Flexibilidad} \\[2em]
+Se presentan los beneficios de trabajar con distintas implementaciones de la mismas abstracciones. 
+\begin{table}
+ \includegraphics[scale=0.8]{grafico-pages.pdf}
+\caption{Operaciones de memoria virtual usando distintas estructuras de tablas de página (tiempos en milisegundos).}
+\end{table}
+
+\begin{table}
+\includegraphics[scale=0.8]{grafico-tlrpc.pdf}
+\caption{Comparación de ejecuciones de \emph{lightweight remote procedure call} contra \emph{trusted lightweight remote procedure call} (tiempos en milisegundos).}
+\end{table}
 \end{frame}
 
 \section{Conclusión}
