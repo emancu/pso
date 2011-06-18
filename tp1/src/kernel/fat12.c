@@ -283,11 +283,11 @@ void fat12_create(fat12* this, blockdev* dev) {
 	printf(" >fat12_create: Fat successfully read.");
 
 	// Pido una página para el caché de disco
-	this->cache = mm_mem_kalloc(); //FIXME: Si me quedo sin páginas??
+	this->cache = mm_mem_kalloc(); //FIXME: Si me quedo sin páginas?
 	mm_mem_kalloc(); // NOTE: Asumo contiguas
-	this->cache->root_dir = (dir_entry*) (this->cache + 512); // Guardo donde empieza el root directory
+	this->cache->root_dir = (dir_entry*) ((char*)this->cache + 512); // Guardo donde empieza el root directory
 
-	printf(" >fat12_create: Reading root directory from sector %d", this->boot_sect.ReservedSectors + this->boot_sect.FATcount * this->boot_sect.SectorsPerFAT);
+	printf(" >fat12_create: Reading root directory from sector %d to addrs %x", this->boot_sect.ReservedSectors + this->boot_sect.FATcount * this->boot_sect.SectorsPerFAT);
 	// Leo el root directory (uso sectPerFact para calcular la cantidad de sectores del root)
 	sectPerRoot = (this->boot_sect.MaxRootEntries * sizeof(dir_entry)) / 512;
 	// FIXME: El root tiene que medir menos de 7 sectores
