@@ -46,10 +46,7 @@ void kernel_init(void) {
 	fs_init();
 
 	//load tasks
-	//	loader_load(&task_task1_pso, 0);
-	chardev_file* ale = (chardev_file*) fs_open("/disk/TASK1.PSO", 0x3);
-	char * dir = ((char *) ale) + 0x200;
-	loader_load((pso_file *) dir, 0);
+	loader_load(&task_task1_pso, 0);
 
 	//	int i = 0;
 	//	int j;

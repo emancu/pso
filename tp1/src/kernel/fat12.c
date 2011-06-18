@@ -223,7 +223,8 @@ chardev* fat12_open(fat12* this, const char* filename, uint_32 flags) {
 	file->dev.seek = &chardev_file_seek;
 
 	//Empiezo a copiar la información del diskette
-  dataStart = this->boot_sect.ReservedSectors + (this->boot_sect.FATcount * this->boot_sect.SectorsPerFAT) +((this->boot_sect.MaxRootEntries *32) / FAT12_SECT_SIZE) - 2;
+	dataStart = this->boot_sect.ReservedSectors + (this->boot_sect.FATcount * this->boot_sect.SectorsPerFAT) + ((this->boot_sect.MaxRootEntries * 32)
+			/ FAT12_SECT_SIZE) - 2;
 	sector = file_entry.FstClusLO;
 	size = file->size;
 	//Primeros 7
@@ -236,7 +237,7 @@ chardev* fat12_open(fat12* this, const char* filename, uint_32 flags) {
 			return NULL;
 		}
 		sector = fat12_next_sector(this->fat, sector);
-    printf(" >fat12_open: next sector = %d", sector);
+		printf(" >fat12_open: next sector = %d", sector);
 	}
 
 	printf(" >fat12_open: File %s opened on chardev_file @ %x", filename, file);
@@ -441,9 +442,6 @@ int fat12_find_file(fat12* fat, const char* filename, dir_entry* entry) {
 		// for (j = 0; j < 3; j++)
 		// name[9+j] = dir[i].Extension[j];
 		// printf(" >fat12_find_dir: Es archivo %s", name);
-		printf("name is: %s", filename);
-		printf("name is: %s", dir[i].Filename);
-		printf("file ext: %s", filename + strchr(filename, '.') + 1);
 		if (!strncmp(filename, dir[i].Filename, min(8, strchr(filename, '.'))) && !strncmp(filename + strchr(filename, '.') + 1, dir[i].Extension, 3)) {
 			// ) {
 			//Si es el que busco termino
