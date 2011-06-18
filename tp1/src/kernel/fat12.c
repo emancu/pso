@@ -442,7 +442,7 @@ int fat12_find_file(fat12* fat, const char* filename, dir_entry* entry) {
 		printf("name is: %s", filename);
 		printf("name is: %s", dir[i].Filename);
 		printf("file ext: %s", filename + strchr(filename, '.') + 1);
-		if (!strncmp(filename, dir[i].Filename, min(8, strchr(filename, '.')-1)) && !strncmp(filename + strchr(filename, '.') + 1, dir[i].Extension, 3)) {
+		if (!strncmp(filename, dir[i].Filename, min(8, strchr(filename, '.'))) && !strncmp(filename + strchr(filename, '.') + 1, dir[i].Extension, 3)) {
 			// ) {
 			//Si es el que busco termino
 			*entry = fat->cache->root_dir[i];

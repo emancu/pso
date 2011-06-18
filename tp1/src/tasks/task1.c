@@ -10,33 +10,36 @@ int idx;
 
 int main(void) {
 	// char buff[10];
-	int i = 0;
+//	int i = 0;
+//	while (1) {
+//		i = 4;
+//	};
 	char* ps1 = "kernel@pso: ";
-	char* enter = "\n";
-	idx = 0;
+//	char* enter = "\n";
+//	idx = 0;
 	char msg[3];
 	int fd = open("/console", 0x3);
 
 	write(fd, ps1, 12);
 	while (1) {
 		read(fd, msg, 1);
-		if (msg[0] == '\n') {
-			run(command);
-			write(fd, enter, 1);
-			write(fd, ps1, 12);
-			for(i = 0; i < 100 ; i++){
-				command[i] = '\0';
-			}
-			idx = 0;
-		} else {
+//		if (msg[0] == '\n') {
+//			run(command);
+//			write(fd, enter, 1);
+//			write(fd, ps1, 12);
+//			for (i = 0; i < 100; i++) {
+//				command[i] = '\0';
+//			}
+//			idx = 0;
+//		} else {
 			write(fd, msg, 1);
-			// si no se apreto el Backspace.
-			if (msg[0] != 0x0e) {
-				command[idx++] = msg[0];
-			}
-		}
-  }
+//			// si no se apreto el Backspace.
+//			if (msg[0] != 0x0e) {
+//				command[idx++] = msg[0];
+//			}
+//		}
+	}
 
-  // void* p = palloc();
-  return 0;
+	// void* p = palloc();
+	return 0;
 }

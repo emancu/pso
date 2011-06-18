@@ -4,6 +4,7 @@
 
 int main(void) {
 //	char buff[10];
+
 	char* msg = "Hola run";
 //	char* msg2 = "222";
 	int fd = open("/console", 0x3);
