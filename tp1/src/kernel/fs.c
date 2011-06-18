@@ -81,7 +81,7 @@ chardev* fs_open(const char* filename, uint_32 flags) {
  	/*
 	 * Pedido para el disco 1: Usamos fat12 para abrirlo
 	 */
-	if (!strncmp(filename, "/disk/",6)) return fat12_open(&disk, filename+5, flags);
+	if (!strncmp(filename, "/disk/",6)) return fat12_open(&disk, filename+6, flags);
 
 	return NULL;
 }

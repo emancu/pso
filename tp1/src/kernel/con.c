@@ -197,6 +197,14 @@ chardev* con_open(void) {
 sint_32 sys_run(const char* archivo){
 //	printf("direccion buffer : %s", archivo);
 	vga_write(0,0,archivo,VGA_BC_BLACK | VGA_FC_GREEN | VGA_FC_LIGHT);
+
+	chardev_file* ale = (chardev_file*) fs_open("/disk/TASK2.PSO", 0x3);
+	char * dir = ((char *)ale) + 0x200;
+	loader_load((pso_file *) dir , 0);
+//	printf("dir de datos = %x" , ((char *)ale) + 0x200);
+
+
+
 	return 0;
 }
 

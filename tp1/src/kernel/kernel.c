@@ -27,27 +27,36 @@ extern pso_file task_task2_pso;
 /* Entry-point del modo protegido luego de cargar los registros de
  * segmento y armar un stack */
 void kernel_init(void) {
-  gdt_init();
-  clear_screen();
+	gdt_init();
+	clear_screen();
 
-  // breakpoint();
-  //init all modules
-  idt_init();
-  debug_init();
-  pit_init();
-  mm_init();
-  loader_init();
-  device_init();
-  con_init();
-  // serial_init();
-  sti();
-  fdd_init();
-  fat12_init();
-  fs_init();
+	// breakpoint();
+	//init all modules
+	idt_init();
+	debug_init();
+	pit_init();
+	mm_init();
+	loader_init();
+	device_init();
+	con_init();
+	// serial_init();
+	sti();
+	fdd_init();
+	fat12_init();
+	fs_init();
 
-  //load tasks
-   loader_load(&task_task1_pso,0);
-//  loader_load(&task_task2_pso,0);
+	//load tasks
+	//	loader_load(&task_task1_pso, 0);
+	chardev_file* ale = (chardev_file*) fs_open("/disk/TASK2.PSO", 0x3);
+	char * dir = ((char *) ale) + 0x200;
+	loader_load((pso_file *) dir, 0);
 
-  return;
+	//	int i = 0;
+	//	int j;
+	//	for (i = 0; i < 18000000; i++) {
+	//		j++;
+	//	}
+	//	loader_load(&task_task2_pso, 0);
+
+	return;
 }

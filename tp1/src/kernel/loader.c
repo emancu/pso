@@ -38,6 +38,9 @@ pid loader_load(pso_file* f, int pl) {
   //cargo el cr3 con el nuevo directorio.
   lcr3((uint_32) task_dir);
 
+  //puede ser que quiera acceder a la pila de anillo 0 de la otra tarea!!
+
+
   //TODO VER CUANTA MEMORIA NESECITA REALMENTE
   void* puntero_page_tarea = mm_mem_alloc();
 
@@ -48,6 +51,8 @@ pid loader_load(pso_file* f, int pl) {
   //ver esto donde van mapeados los stacks
   mm_page_map(0x00401000, task_dir, (uint_32) task_stack3, 0, USR_STD_ATTR);
   mm_page_map(0xFFFFF000, task_dir, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
+
+  //me parece que el problema esta en que no esta mapeada la pila
 
   //inicializamos la pila de nivel 0 para que tenga el contexto para
   //poder volver del switchto
@@ -70,6 +75,7 @@ pid loader_load(pso_file* f, int pl) {
   uint_8* task_to_copy = (uint_8*) f;
   uint_32 cant_to_copy = f->mem_end_disk - f->mem_start;
   int i;
+
   for (i = 0; i < cant_to_copy; i++) {
     *addr_to_copy++ = *task_to_copy++;
   }

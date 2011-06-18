@@ -1,5 +1,6 @@
 #include <syscalls.h>
 #include <tipos.h>
+#include <fs.h>
 // #include <lib_str.h>
 
 //para guardar el comando que voy escribiendo

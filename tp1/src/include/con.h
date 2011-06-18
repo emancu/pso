@@ -7,6 +7,7 @@
 #include <vga.h>
 #include <mm.h>
 #include <i386.h>
+#include <fs.h>
 
 #define CON_BUFF_SIZE 30
 #define CON_ERROR_READTOOLARGE -5
