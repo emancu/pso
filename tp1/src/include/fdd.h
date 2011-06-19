@@ -11,7 +11,7 @@
 #define FDD_IOCTL_HEAD 2 // Utilizado para configurar cantidad de cabezas
 #define FDD_IOCTL_SECT 3 // Utilizado para configurar cantidad de sectores
 
-#define FDD_DEFAULT_TIMEOUT 400000
+#define FDD_DEFAULT_TIMEOUT 40000
 
 /* Esta estructura se utiliza para almacenar los resultados
  * de los comandos del fdc. */

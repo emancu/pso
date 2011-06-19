@@ -35,9 +35,6 @@ pid loader_load(pso_file* f, int pl) {
 
 	//pido un directorio para la nueva tarea
 	void* task_dir = mm_dir_new();
-	//cargo el cr3 con el nuevo directorio.
-	breakpoint();
-	lcr3((uint_32) task_dir);
 
 	//TODO VER CUANTA MEMORIA NESECITA REALMENTE
 	void* puntero_page_tarea = mm_mem_alloc();
@@ -50,9 +47,13 @@ pid loader_load(pso_file* f, int pl) {
 	mm_page_map(0x00401000, task_dir, (uint_32) task_stack3, 0, USR_STD_ATTR);
 	mm_page_map(0xFFFFF000, task_dir, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
 
+
+	mm_page_map(0x55555000, old_cr3, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
+
+
 	//inicializamos la pila de nivel 0 para que tenga el contexto para
 	//poder volver del switchto
-	uint_32* stack0 = (uint_32*) 0xFFFFFFFC;
+	uint_32* stack0 = (uint_32*) 0x55555ffC;
 	*stack0-- = 0x23;
 	*stack0-- = 0x00402000;
 	*stack0-- = 0x202;
@@ -67,8 +68,12 @@ pid loader_load(pso_file* f, int pl) {
 	//mapeo la direccion virtual 0x00400000 en la pagina que recien se me asigno.
 	mm_page_map((uint_32) f->mem_start, task_dir, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
 
+
+	//mapeo la direccion virtual temporal para copiar en la pagina que recien se me asigno.
+	mm_page_map((uint_32) 0x00700000, old_cr3, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
+
 	//copio la tarea desde donde esta a la pagina que acabo de mapear.
-	uint_8* addr_to_copy = (uint_8*) f->mem_start;
+	uint_8* addr_to_copy = (uint_8*) 0x00700000;
 	uint_8* task_to_copy = (uint_8*) f;
 	uint_32 cant_to_copy = f->mem_end_disk - f->mem_start;
 	int i;
@@ -84,8 +89,6 @@ pid loader_load(pso_file* f, int pl) {
 
 	sched_load(requested_pid);
 
-	//vuelvo al directorio de la tarea actual
-	lcr3((uint_32) old_cr3);
 
 	return 0;
 }
