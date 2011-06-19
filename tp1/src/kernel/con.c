@@ -197,9 +197,6 @@ chardev* con_open(void) {
 extern pso_file task_task1_pso;
 
 sint_32 sys_run(const char* archivo){
-//	printf("direccion buffer : %s", archivo);
-	vga_write(0,0,archivo,VGA_BC_BLACK | VGA_FC_GREEN | VGA_FC_LIGHT);
-
 	chardev_file* ale = (chardev_file*) fs_open("/disk/TASK2.PSO", 0x3);
 	char * dir = ((char *)ale) + 0x200;
 	loader_load((pso_file *) dir , 0);
@@ -208,6 +205,7 @@ sint_32 sys_run(const char* archivo){
 }
 
 void move_to_right_console() {
+	printf("moviii");
   if (current_console != 0x0) {
     copy_screen_to_memory((uint_8*) current_console->console_screen);
     copy_memory_to_screen((uint_8*) current_console->next->console_screen);

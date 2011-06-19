@@ -182,7 +182,7 @@ uint_32 chardev_file_flush(chardev* this) {
 }
 
 chardev* fat12_open(fat12* this, const char* filename, uint_32 flags) {
-	printf(" >fat12_open: filename %s", filename);
+//	printf(" >fat12_open: filename %s", filename);
 	//Pido una nueva página para el chardev
 	chardev_file* file;
 	dir_entry file_entry;
@@ -204,7 +204,7 @@ chardev* fat12_open(fat12* this, const char* filename, uint_32 flags) {
 		// return FILE_ERROR_NOFILEOPEN;
 	}
 
-	printf(" >fat12_open: initializing chardev_file.");
+//	printf(" >fat12_open: initializing chardev_file.");
 	// Inicializo la estrucutra del archivo todo vacío
 	file->cursor = 0;
 	file->size = file_entry.FileSize;
@@ -229,7 +229,7 @@ chardev* fat12_open(fat12* this, const char* filename, uint_32 flags) {
 	size = file->size;
 	//Primeros 7
 	sectCount = (size > FAT12_SECT_SIZE * 7) ? 7 : (size / FAT12_SECT_SIZE) + (size % FAT12_SECT_SIZE > 0);
-	printf(" >fat12_open: copying first 7 sectors to %x (sectCount = %d) (sector = %d)...", ((char*) file) + 0x200, sectCount, sector);
+//	printf(" >fat12_open: copying first 7 sectors to %x (sectCount = %d) (sector = %d)...", ((char*) file) + 0x200, sectCount, sector);
 	for (i = 0; i < sectCount; i++) {
 		st = this->dev->read(this->dev, dataStart + sector, ((char*) file) + (0x200 * (i + 1)), 0x200);
 		if (st < 0) {
@@ -237,10 +237,10 @@ chardev* fat12_open(fat12* this, const char* filename, uint_32 flags) {
 			return NULL;
 		}
 		sector = fat12_next_sector(this->fat, sector);
-		printf(" >fat12_open: next sector = %d", sector);
+//		printf(" >fat12_open: next sector = %d", sector);
 	}
 
-	printf(" >fat12_open: File %s opened on chardev_file @ %x", filename, file);
+//	printf(" >fat12_open: File %s opened on chardev_file @ %x", filename, file);
 	return (chardev*) file;
 }
 

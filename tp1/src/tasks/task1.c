@@ -22,16 +22,16 @@ int main(void) {
 	while (1) {
 		read(fd, msg, 1);
 		if (msg[0] == '\n') {
-			run(command);
 			write(fd, enter, 1);
 			write(fd, ps1, 12);
+			run(command);
 			for (i = 0; i < 100; i++) {
 				command[i] = '\0';
 			}
 			idx = 0;
 		} else {
 			write(fd, msg, 1);
-//			 si no se apreto el Backspace.
+			//			 si no se apreto el Backspace.
 			if (msg[0] != 0x0e) {
 				command[idx++] = msg[0];
 			}

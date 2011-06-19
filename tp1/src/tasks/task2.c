@@ -4,12 +4,7 @@
 
 int main(void) {
 //	char buff[10];
-	int i = 0;
-	while(1){
-		i = 4;
-	}
 
-	breakpoint();
 	char* msg = "Hola run";
 //	char* msg2 = "222";
 	int fd = open("/console", 0x3);
