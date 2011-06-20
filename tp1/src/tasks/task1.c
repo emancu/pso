@@ -31,7 +31,7 @@ int main(void) {
 			idx = 0;
 		} else {
 			write(fd, msg, 1);
-			//			 si no se apreto el Backspace.
+//			 si no se apreto el Backspace.
 			if (msg[0] != 0x0e) {
 				command[idx++] = msg[0];
 			}

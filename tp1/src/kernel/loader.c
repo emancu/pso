@@ -30,6 +30,7 @@ void loader_init(void) {
 }
 
 pid loader_load(pso_file* f, int pl) {
+	//	breakpoint();
 	//me guardo el cr3 viejo.
 	uint_32 old_cr3 = rcr3();
 
@@ -47,9 +48,7 @@ pid loader_load(pso_file* f, int pl) {
 	mm_page_map(0x00401000, task_dir, (uint_32) task_stack3, 0, USR_STD_ATTR);
 	mm_page_map(0xFFFFF000, task_dir, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
 
-
 	mm_page_map(0x55555000, old_cr3, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
-
 
 	//inicializamos la pila de nivel 0 para que tenga el contexto para
 	//poder volver del switchto
@@ -67,7 +66,6 @@ pid loader_load(pso_file* f, int pl) {
 
 	//mapeo la direccion virtual 0x00400000 en la pagina que recien se me asigno.
 	mm_page_map((uint_32) f->mem_start, task_dir, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
-
 
 	//mapeo la direccion virtual temporal para copiar en la pagina que recien se me asigno.
 	mm_page_map((uint_32) 0x00700000, old_cr3, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
@@ -87,8 +85,15 @@ pid loader_load(pso_file* f, int pl) {
 	task_table[requested_pid].cr3 = (uint_32) task_dir;
 	task_table[requested_pid].esp0 = 0xFFFFFFD8;
 
-	sched_load(requested_pid);
+	//	mm_mem_free(0x00700000);
+	//	mm_mem_free(0x55555000);
+	mm_page_free(0x00700000, old_cr3);
+	mm_page_free(0x55555000, old_cr3);
+	mm_dir_unmap(0x00700000, old_cr3);
+	mm_dir_unmap(0x55555000, old_cr3);
 
+	breakpoint();
+	sched_load(requested_pid);
 
 	return 0;
 }

@@ -205,7 +205,6 @@ sint_32 sys_run(const char* archivo){
 }
 
 void move_to_right_console() {
-	printf("moviii");
   if (current_console != 0x0) {
     copy_screen_to_memory((uint_8*) current_console->console_screen);
     copy_memory_to_screen((uint_8*) current_console->next->console_screen);
