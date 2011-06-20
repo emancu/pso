@@ -48,7 +48,7 @@ void kernel_init(void) {
 	//load tasks
 	loader_load(&task_task1_pso, 0);
 
-	loader_load(&task_task2_pso, 0);
+//	loader_load(&task_task2_pso, 0);
 	//	int i = 0;
 	//	int j;
 	//	for (i = 0; i < 18000000; i++) {
