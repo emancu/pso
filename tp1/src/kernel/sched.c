@@ -34,26 +34,28 @@ void sched_init(void) {
 //Agregamos despues de
 void sched_load(pid pd) {
   // last esta en 0 significa que la queue esta vacia,
-  if( last == 0){
+  if( current_pid == 0){
     tasks[pd].next = pd;
     tasks[pd].prev = pd;
   }else{
-    tasks[pd].prev = last;
-    tasks[pd].next = tasks[last].next;
-    tasks[tasks[last].next].prev = pd;
-    tasks[last].next = pd;
+    tasks[pd].prev = current_pid;
+    tasks[pd].next = tasks[current_pid].next;
+    tasks[tasks[current_pid].next].prev = pd;
+    tasks[current_pid].next = pd;
   }
   last = pd;
   tasks[pd].state = STATE_RUNNING;
 }
 
 void sched_unblock(pid pd) {
+//	breakpoint();
   tasks[pd].state = STATE_RUNNING;
   if( current_pid == 0){
     tasks[pd].next = pd;
     tasks[pd].prev = pd;
     //si pasa esto salto inmediatamente a la nueva tarea
     current_pid = pd;
+    last = current_pid;
     loader_switchto(pd);
   }else{
     tasks[pd].prev = current_pid;
@@ -85,6 +87,7 @@ int sched_exit() {
 }
 
 int sched_block() {
+//	breakpoint();
   quantum = QUANTUM;
   if (tasks[current_pid].next == current_pid){
     // Es el ultimo elemento en la cola

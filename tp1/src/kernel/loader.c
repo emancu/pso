@@ -30,7 +30,6 @@ void loader_init(void) {
 }
 
 pid loader_load(pso_file* f, int pl) {
-	//	breakpoint();
 	//me guardo el cr3 viejo.
 	uint_32 old_cr3 = rcr3();
 
@@ -48,6 +47,7 @@ pid loader_load(pso_file* f, int pl) {
 	mm_page_map(0x00401000, task_dir, (uint_32) task_stack3, 0, USR_STD_ATTR);
 	mm_page_map(0xFFFFF000, task_dir, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
 
+	//TODO ver estas direcciones temporales donde ponerlas
 	mm_page_map(0x55555000,(mm_page *) old_cr3, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
 
 	//inicializamos la pila de nivel 0 para que tenga el contexto para
@@ -80,24 +80,21 @@ pid loader_load(pso_file* f, int pl) {
 		*addr_to_copy++ = *task_to_copy++;
 	}
 
-	breakpoint();
 	//tengo que armar la estreuctura
 	uint_32 requested_pid = get_new_pid();
 	task_table[requested_pid].cr3 = (uint_32) task_dir;
 	task_table[requested_pid].esp0 = 0xFFFFFFD8;
 
-	//	mm_mem_free(0x00700000);
-	//	mm_mem_free(0x55555000);
-	mm_page_free(0x00700000, old_cr3);
-	mm_page_free(0x55555000, old_cr3);
-//	mm_dir_unmap(0x00700000, old_cr3);
-//	mm_dir_unmap(0x55555000, old_cr3);
+	mm_page_free(0x00700000,(mm_page *) old_cr3);
+	mm_page_free(0x55555000,(mm_page *) old_cr3);
+//	mm_dir_unmap(0x00700000,(mm_page *) old_cr3);
+//	mm_dir_unmap(0x55555000,(mm_page *) old_cr3);
 
 	tlbflush();
 
 	sched_load(requested_pid);
 
-	return 0;
+	return requested_pid;
 }
 
 void loader_tick() {

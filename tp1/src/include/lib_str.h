@@ -56,7 +56,9 @@ int char_into_string(char* str, int* index, char c);
  * that doing so will not exceed 'lim'. If so, function returns -1.
  * Otherwise it copies 'str2' into 'str' moving 'index'. 
  * Function expects a null terminated string in 'str2'.*/
-int str_into_string(char* str, int* index, char* str2);
+int str_into_string(char* str, int* index,const char* str2);
+
+void str_convert_to_mayus(char* str, int from, int to);
 
 /* Returns the length of 'str'. Lenght is the number of characters
  * from str[0] until the first '\0'. */
