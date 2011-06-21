@@ -24,7 +24,7 @@ int main(void) {
 		read(fd, msg, 1);
 		if (msg[0] == '\n') {
 			runResult = run(command);
-			if (runResult){
+			if (runResult < 0){
 				write(fd, enter, 1);
 				write(fd, invalidCommand,17);
 			}
