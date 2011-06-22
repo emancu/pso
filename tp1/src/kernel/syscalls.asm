@@ -49,5 +49,6 @@ sys_def close, 0x36
 
 sys_def open, 0x37
 
+sys_def fork, 0x38
 sys_def run, 0x39
 

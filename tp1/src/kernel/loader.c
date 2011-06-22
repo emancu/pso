@@ -159,9 +159,60 @@ void free_pid(uint_32 pid) {
  */
 
 uint_32 sys_getpid(void) {
-	return cur_pid;
+  return cur_pid;
 }
 
-void sys_exit(void) {
-	loader_exit();
+/*
+uint_32 sys_fork(void){
+  //me guardo el cr3 viejo.
+  uint_32 old_cr3 = rcr3();
+
+  //pido un directorio para la nueva tarea
+  void* new_cr3 = mm_dir_new();
+  //cargo el cr3 con el nuevo directorio.
+  // lcr3((uint_32) task_dir);
+
+  // Copio el CR3
+  for(i=0; i < 1024; i++){
+    *new_cr3++ = *aux_old_cr3 +i;
+  }
+
+  mm_page_copy((uint_32) f->mem_start, new_cr3, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
+
+
+  void* puntero_page_tarea = mm_mem_alloc();
+
+  //ver esto donde van mapeados los stacks
+  // mm_page_map(0x00401000, task_dir, (uint_32) task_stack3, 0, USR_STD_ATTR);
+  // mm_page_map(0xFFFFF000, task_dir, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
+
+  //mapeo la direccion virtual 0x00400000 en la pagina que recien se me asigno.
+  mm_page_map((uint_32) f->mem_start, task_dir, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
+
+  //copio la tarea desde donde esta a la pagina que acabo de mapear.
+  // uint_8* addr_to_copy = (uint_8*) f->mem_start;
+  // uint_8* task_to_copy = (uint_8*) f;
+  // uint_32 cant_to_copy = f->mem_end_disk - f->mem_start;
+  // int i;
+  // for (i = 0; i < cant_to_copy; i++) {
+    // *addr_to_copy++ = *task_to_copy++;
+  // }
+
+  //tengo que armar la estreuctura de proceso
+  uint_32 requested_pid = get_new_pid();
+  task_table[requested_pid].cr3 = (uint_32) new_cr3;
+  task_table[requested_pid].esp0 = 0xFFFFFFD8;
+
+  sched_load(requested_pid);
+
+  //vuelvo al directorio de la tarea actual
+  lcr3((uint_32) old_cr3);
+
+  // esto esta mal.. tiene q decidir q numero devolver creo q necesitamos un semaforo!
+  return requested_pid;
 }
+*/
+void sys_exit(void) {
+  loader_exit();
+}
+
