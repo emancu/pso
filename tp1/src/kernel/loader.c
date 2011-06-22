@@ -44,7 +44,7 @@ pid loader_load(pso_file* f, int pl) {
 	void* task_stack0 = mm_mem_alloc();
 
 	//ver esto donde van mapeados los stacks
-	mm_page_map(0x00401000, task_dir, (uint_32) task_stack3, 0, USR_STD_ATTR);
+	mm_page_map(STACK_3_VIRTUAL, task_dir, (uint_32) task_stack3, 0, USR_STD_ATTR);
 	mm_page_map(STACK_0_VIRTUAL, task_dir, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
 	// mm_page_map(0xFFFFF000, task_dir, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
 
@@ -55,7 +55,7 @@ pid loader_load(pso_file* f, int pl) {
 	//poder volver del switchto
 	uint_32* stack0 = (uint_32*) 0x55555ffC;
 	*stack0-- = 0x23;
-	*stack0-- = 0x00402000;
+	*stack0-- = STACK_3_VIRTUAL + 0x1000;
 	*stack0-- = 0x202;
 	*stack0-- = 0x1B;
 	*stack0-- = (uint_32) f->_main;
