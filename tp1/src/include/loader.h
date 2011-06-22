@@ -8,6 +8,9 @@
 #define PID_IDLE_TASK 0
 #define MAX_PID 32
 
+#define STACK_0_VIRTUAL 0xFFFFE000
+#define STACK_3_VIRTUAL 0xFFFFD000
+
 #ifdef __KERNEL__
 
 typedef struct str_task {

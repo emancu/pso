@@ -45,6 +45,8 @@
 #define CR4_PVI		0x00000002	// Protected-Mode Virtual Interrupts
 #define CR4_VME		0x00000001	// V86 Mode Extensions
 
+#define KERNEL_TEMP_PAGE 0xFFFFF000
+
 typedef struct str_mm_page {
 	uint_32 attr:12;
 	uint_32 base:20;

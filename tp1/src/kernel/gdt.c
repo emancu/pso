@@ -2,6 +2,8 @@
 #include <gdt.h>
 #include <tss.h>
 #include <i386.h>
+#include <vga.h>
+#include <loader.h>
 
 
 /* Macro para crear una entrada de la GDT dando base(32), limit(20) y attr(12). */
@@ -33,7 +35,7 @@ gdt_entry gdt[GDT_COUNT] = {
 gdt_descriptor GDT_DESC = {sizeof(gdt)-1, (uint_32)&gdt};
 
 void gdt_init(void) {
-  tss_entry.esp0 = 0x0;
+  tss_entry.esp0 = STACK_0_VIRTUAL + 0x1000;
   tss_entry.ss0 = 0x10;
   gdt[5] = make_gdt_entry(&tss_entry, sizeof(tss), GDT_ATTR_P | GDT_ATTR_DPL3 | GDT_ATTR_TYPE_TSS); // TSS
 
