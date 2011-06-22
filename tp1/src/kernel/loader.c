@@ -87,8 +87,6 @@ pid loader_load(pso_file* f, int pl) {
 
 	mm_page_free(0x00700000,(mm_page *) old_cr3);
 	mm_page_free(0x55555000,(mm_page *) old_cr3);
-//	mm_dir_unmap(0x00700000,(mm_page *) old_cr3);
-//	mm_dir_unmap(0x55555000,(mm_page *) old_cr3);
 
 	tlbflush();
 
