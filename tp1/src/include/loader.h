@@ -4,6 +4,7 @@
 #include <pso_file.h>
 #include <tss.h>
 #include <syscalls.h>
+#include <device.h>
 
 #define PID_IDLE_TASK 0
 #define MAX_PID 32
@@ -32,6 +33,7 @@ void loader_enqueue(int* cola);
 void loader_unqueue(int* cola);
 extern void loader_switchto(pid pd);
 extern void task_ret(void);
+extern void fork_ret(void);
 void loader_tick();
 void loader_exit(void);
 
@@ -42,9 +44,9 @@ void free_pid(uint_32);
 uint_32 getpid(void);
 uint_32 sys_getpid(void);
 
-void exit(void);
 void sys_exit(void);
 
+uint_32 sys_fork(uint_32 org_eip);
 
 #endif
 #endif

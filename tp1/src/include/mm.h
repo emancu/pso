@@ -47,6 +47,9 @@
 
 #define KERNEL_TEMP_PAGE 0xFFFFF000
 
+/* Errores */
+#define MM_ERROR_NOTALIGNED -5
+
 typedef struct str_mm_page {
 	uint_32 attr:12;
 	uint_32 base:20;
@@ -62,6 +65,7 @@ typedef uint_32 page_frame_info;
 
 #define PAGE_SIZE 4096
 #define TABLE_ENTRY_NUM 1024
+#define DIR_SIZE (PAGE_SIZE*TABLE_ENTRY_NUM) 
 #define MAGIC_NUMBER 0x4D324432
 #define USR_MEM_START 4194304
 #define KRN_MEM_START 1048576
@@ -110,6 +114,26 @@ void* mm_page_free(uint_32 virtual, mm_page* cr3);
 //No se toma cuidado de que la tabla inferior se deshabilite.
 //!! Asume que el cr3 apunta a un directorio válido
 void mm_dir_unmap(uint_32 virtual, mm_page* cr3);
+
+/* Esta función se encarga de copiar la paginación de 'old_cr3'. Devuelve el la dirección del 'cr3'
+ * nuevo con las páginas copiadas. La función se encarga de mantener los atributos del mapeo,
+ * reasginar los mapeos a nuevas páginas físicas y devolver el cotenido. 
+ * En caso de error devuelve NULL. Un error puede producirse por no alcanzar las páginas físicas
+ * disponibles para copiar todo. */
+mm_page* mm_dir_fork(mm_page* old_cr3);
+
+/* Esta función es la continuación de dir_fork. Dada la tabla de páginas apuntada por
+ * 'page_table', recorre las entradas mapeando y copiando las páginas allí presentes
+ * en la tabla de páginas 'new_table'. Recibe además 'dir_entry' el índice en la tabla
+ * de directorios para poder construir la dirección virtual base de la tabla.
+ * Devuelve NULL si se produce un error por no haber más páginas de usuario. */
+void* mm_page_fork(uint_32 dir_entry, uint_32* page_table, uint_32* new_table);
+
+/* Copia 'cant' bytes desde la dirección virtual 'virtual' a la dirección
+ * física 'fisica', mapeando esta temporalmente en KERNEL_TEMP_PAGE. 
+ * Nota: 'virtual' + 'cant' no deben superar el límite de una página. 
+ * Se devuelve error si esto sucede (MM_ERROR_NOTALIGNED). */
+int mm_copy_vf(uint_32* virtual, uint_32 fisica, uint_32 cant);
 
 /* Funciones de sistema */
 // Esta es la función de sistema que implementa la funcionalidad de la syscall 'palloc'

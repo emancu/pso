@@ -170,6 +170,78 @@ void mm_dir_unmap(uint_32 virtual, mm_page* cr3) {
   *desc_dir &= ~MM_ATTR_P;
 }
 
+void* mm_page_fork(uint_32 dir_entry, uint_32* page_table, uint_32* new_table) {
+  uint_32* dest_page;
+  uint_32 page_index;
+  //Recorro la tabla de páginas
+  for (page_index = 0; page_index < TABLE_ENTRY_NUM; page_index++) {
+     if (page_table[page_index] & MM_ATTR_P) { //La entrada es válida
+       printf(" >mm_page_fork: present entry (%d)", page_index);
+        dest_page = mm_mem_alloc(); //Pido una página nueva para el usuario
+        if (dest_page == NULL) { //No hay más páginas
+           return NULL;
+        }
+        mm_copy_vf((uint_32*)(dir_entry*DIR_SIZE+page_index*PAGE_SIZE), (uint_32)dest_page, PAGE_SIZE); //Copio el contenido de la página
+        //Mapeo en la nueva estructura copiando los atributos
+        new_table[page_index] = ((uint_32)dest_page & ~0xFFF) | (page_table[page_index] & 0xFFF);
+     }
+  }
+  return new_table;
+}
+
+//Se considera que no hay mapeos de 4mbs
+mm_page* mm_dir_fork(mm_page* cr3) {
+  uint_32* old_cr3 = (uint_32*)cr3;
+  uint_32* new_cr3 = (uint_32*)mm_dir_new(); //Obtengo un nuevo directorio
+  if (new_cr3 == NULL) //No pudo tener un nuevo directorio, fallé
+    return NULL;
+
+  int dir_index;
+  mm_page* page_table;
+  uint_32* dest_page;
+
+  for (dir_index = 1; dir_index < TABLE_ENTRY_NUM; dir_index++) {
+    if (old_cr3[dir_index] & MM_ATTR_P) { //El directorio está presente
+      printf(" >mm_dir_fork: present entry (%d)", dir_index);
+      //TODO: Mapeos de 4mbs
+      dest_page = mm_mem_kalloc(); //Pido una página para el nuevo directorio
+      if (dest_page  == NULL) { //No hay más páginas
+        mm_dir_free((mm_page*)new_cr3); //Rollback
+        return NULL;
+      }
+      //Armo la entrada para la nueva tabla
+      new_cr3[dir_index] = ((uint_32)dest_page & ~0xFFF) | (old_cr3[dir_index] & 0xFFF);
+
+      page_table = (mm_page*)(old_cr3[dir_index] & ~0xFFF); //Obtengo la dirección de la tabla de páginas
+      //Empiezo el ciclo de la tabla de páginas
+      if (!mm_page_fork(dir_index, (uint_32*)page_table, dest_page)) { //No se pudo hacer fork de la tabla de páginas
+        mm_dir_free((mm_page*)new_cr3);
+        return NULL;
+      }
+    }
+  }
+  return (mm_page*)new_cr3;
+}
+
+int mm_copy_vf(uint_32* virtual, uint_32 fisica, uint_32 cant) {
+  printf(" >mm_copy_vf: virtual (%x), fisica(%x), cant(%d)", virtual, fisica, cant);
+  int i;
+  char* addr_to_copy = (char*)KERNEL_TEMP_PAGE;
+  char* addr_from_copy = (char*)virtual;
+  //Si copiando desde 'virtual' me voy a pasar del límite de la página
+  if (((uint_32)virtual / PAGE_SIZE) != (((uint_32)virtual+cant-1) / PAGE_SIZE))
+    return MM_ERROR_NOTALIGNED; //Devuelvo error
+
+  mm_page_map(KERNEL_TEMP_PAGE, (mm_page*) rcr3(), fisica, 0, MM_ATTR_RW | MM_ATTR_US_S);
+  tlbflush();
+  for (i = 0; i < cant; i++)
+    addr_to_copy[i] = addr_from_copy[i];
+
+  mm_page_free(KERNEL_TEMP_PAGE, (mm_page*) rcr3());
+  tlbflush();
+  return 0;
+}
+
 void* sys_palloc() {
   //Primero busco la dirección virtual donde voy a mappear (la primera página virtual no ocupada)
   // para saber si voy necesitar una página de kernel.
