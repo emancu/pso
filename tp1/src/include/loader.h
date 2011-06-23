@@ -46,7 +46,7 @@ uint_32 sys_getpid(void);
 
 void sys_exit(void);
 
-uint_32 sys_fork(uint_32 org_eip);
+uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp);
 
 #endif
 #endif

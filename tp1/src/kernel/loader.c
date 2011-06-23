@@ -164,7 +164,7 @@ uint_32 sys_getpid(void) {
 }
 
 
-uint_32 sys_fork(uint_32 org_eip){
+uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp){
   //me guardo el cr3 viejo.
   uint_32 old_cr3 = rcr3();
 
@@ -188,7 +188,7 @@ uint_32 sys_fork(uint_32 org_eip){
 	//poder volver del switchto
 	uint_32* stack0 = (uint_32*) (KERNEL_TEMP_PAGE + 0xffC);
 	*stack0-- = 0x23;
-	*stack0-- = STACK_3_VIRTUAL + 0x1000;
+	*stack0-- = org_esp;
 	*stack0-- = 0x202;
 	*stack0-- = 0x1B;
 	*stack0-- = org_eip;

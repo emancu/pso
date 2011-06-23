@@ -55,6 +55,7 @@ sys_def open, 0x37
 fork:
  ;Pusheo el eip de la tarea al lo que luego es el primer parámetro (ver isr_syscall)
   mov edx, [esp] 
+  mov ecx, esp
 
   mov eax, 0x38
   ;xchg bx, bx

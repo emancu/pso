@@ -18,8 +18,8 @@ int main(void) {
 	idx = 0;
 	char msg[3];
 
-  breakpoint();
   fork();
+  breakpoint();
 
 	int fd = open("/console", 0x3);
 	write(fd, ps1, 14);
