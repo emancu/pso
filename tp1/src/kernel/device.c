@@ -5,6 +5,7 @@
 #include <loader.h>
 
 //tengo un array de file descriptors por cada proceso
+//NOTE: Y si quiero abrir un blockdev? No son parte de la misma clase, es un problema
 chardev* char_devices[MAX_PID][MAX_FD];
 
 int device_descriptor(chardev* dev) {
@@ -65,4 +66,24 @@ uint_32 get_next_free_fd_for_current_task() {
 
   //if there is no more fl.
   return -1;
+}
+
+void device_fork_descriptors(uint_32 pid1, uint_32 pid2) {
+  int i;
+  //Copio la tabla devices 
+  for (i = 0; i < MAX_FD; i++) {
+    char_devices[pid2][i] = char_devices[pid1][i];
+    if (char_devices[pid2][i] != NULL)//Si apunta efectivamente a un device
+      char_devices[pid2][i]->refcount++; //Actualizo el contador de referencias
+  }
+}
+
+void device_release_devices(uint_32 pid) {
+  int i;
+  chardev* dev;
+  for(i = 0; i < MAX_FD; i++) {
+    dev = char_devices[pid][i];
+    if (dev != 0)
+      dev->flush(dev);
+  }
 }

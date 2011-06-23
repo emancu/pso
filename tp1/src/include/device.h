@@ -114,5 +114,14 @@ int sys_close(int fd);
 uint_32 get_new_file_descriptor(void);
 void do_free_file_descriptor(uint_32);
 
+/* Esta función copia la tabla de descriptores del
+ * 'pid1' al 'pid2' incrementando el contador de referencias
+ * de todos los descriptores apuntando a algún device.
+ * La función no hace verificaciones sobre 'pid1' ni 'pid2'. */
+void device_fork_descriptors(uint_32 pid1, uint_32 pid2);
 
+/* Esta función libera los dispositivos ocupados por el
+ * proceso 'pid'. Para eso llama a flush de todos los
+ * devices que posee. */
+void device_release_devices(uint_32 pid);
 #endif

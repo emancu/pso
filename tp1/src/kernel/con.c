@@ -132,6 +132,10 @@ void write_in_console(chardev_console* this_chardev_console, const char* msg, ui
 }
 
 uint_32 con_flush(chardev* this) {
+  if (this->refcount != 0) {
+    this->refcount--;
+    return 0;
+  }
 	chardev_console* console_to_close = (chardev_console*) this;
 
 	if (console_to_close->next != console_to_close) {

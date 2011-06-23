@@ -46,15 +46,12 @@ pid loader_load(pso_file* f, int pl) {
 	//ver esto donde van mapeados los stacks
 	mm_page_map(STACK_3_VIRTUAL, task_dir, (uint_32) task_stack3, 0, USR_STD_ATTR);
 	mm_page_map(STACK_0_VIRTUAL, task_dir, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
-	// mm_page_map(0xFFFFF000, task_dir, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
 
 	//TODO ver estas direcciones temporales donde ponerlas
-	// mm_page_map(0x55555000,(mm_page *) old_cr3, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
 	mm_page_map(KERNEL_TEMP_PAGE,(mm_page *) old_cr3, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
 
 	//inicializamos la pila de nivel 0 para que tenga el contexto para
 	//poder volver del switchto
-  // uint_32* stack0 = (uint_32*) 0x55555ffc;
 	uint_32* stack0 = (uint_32*) (KERNEL_TEMP_PAGE + 0xffC);
 	*stack0-- = 0x23;
 	*stack0-- = STACK_3_VIRTUAL + 0x1000;
@@ -67,17 +64,13 @@ pid loader_load(pso_file* f, int pl) {
 	*stack0-- = 0x0;
 	*stack0-- = 0x0;
 
-  // breakpoint();
-	//mapeo la direccion virtual 0x00400000 en la pagina que recien se me asigno.
 	mm_page_map((uint_32) f->mem_start, task_dir, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
 
 	//mapeo la direccion virtual temporal para copiar en la pagina que recien se me asigno.
-	// mm_page_map((uint_32) 0x00700000,(mm_page *) old_cr3, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
 	mm_page_map((uint_32) KERNEL_TEMP_PAGE,(mm_page *) old_cr3, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
   tlbflush();
 
 	//copio la tarea desde donde esta a la pagina que acabo de mapear.
-	// uint_8* addr_to_copy = (uint_8*) 0x00700000;
 	uint_8* addr_to_copy = (uint_8*) KERNEL_TEMP_PAGE;
 	uint_8* task_to_copy = (uint_8*) f;
 	uint_32 cant_to_copy = f->mem_end_disk - f->mem_start;
@@ -91,16 +84,13 @@ pid loader_load(pso_file* f, int pl) {
 	uint_32 requested_pid = get_new_pid();
 	task_table[requested_pid].cr3 = (uint_32) task_dir;
 	task_table[requested_pid].esp0 = STACK_0_VIRTUAL + 0xFD8;
-	// task_table[requested_pid].esp0 = 0xFFFFFFD8;
 
-	// mm_page_free(0x00700000,(mm_page *) old_cr3);
 	mm_page_free(KERNEL_TEMP_PAGE,(mm_page *) old_cr3);
 
 	tlbflush();
 
 	sched_load(requested_pid);
 
-  // breakpoint();
 	return requested_pid;
 }
 
@@ -147,6 +137,7 @@ void loader_unqueue(int* cola) {
 }
 
 void loader_exit(void) {
+  device_release_devices(cur_pid);
 	mm_dir_free((mm_page*) task_table[cur_pid].cr3);
 	loader_switchto(sched_exit());
 	free_pid(cur_pid);
