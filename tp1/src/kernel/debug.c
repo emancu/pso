@@ -177,7 +177,7 @@ void debug_kernelpanic(const uint_32* stack, const exp_state* expst) {
   vga_printf(PANIC_GEN_ROW+2, PANIC_GEN_COL, "ERRCODE %x, ORG_CS %x, ORG_SS %x, ORG_ESP %x", VGA_FC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT,\
       expst->errcode, expst->org_cs, expst->org_ss, expst->org_esp);
   vga_printf(PANIC_GEN_ROW+3, PANIC_GEN_COL, "TR %x, CR2 %x, CR3 %x, PID %x", VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT,\
-      rtr(), rcr2(), rcr3(), 0xF);
+      rtr(), rcr2(), rcr3(), cur_pid);
 
   //Imprimo el stack
   print_stack(PANIC_STACK_ROW, PANIC_STACK_COL, 12*4, 4, stack);

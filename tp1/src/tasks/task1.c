@@ -17,6 +17,10 @@ int main(void) {
 	char* enter = "\n";
 	idx = 0;
 	char msg[3];
+
+  breakpoint();
+  fork();
+
 	int fd = open("/console", 0x3);
 	write(fd, ps1, 14);
 
