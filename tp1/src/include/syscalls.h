@@ -19,8 +19,9 @@ extern int seek(int fd, uint_32 size);
 extern int close(int fd);
 
 extern sint_32 run(const char* archivo);
-
+extern uint_32 fork();
 extern int open(const char* filename, uint_32 flags);
+void exit(void);
 
 
 

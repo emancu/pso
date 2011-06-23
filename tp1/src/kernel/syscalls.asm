@@ -49,6 +49,18 @@ sys_def close, 0x36
 
 sys_def open, 0x37
 
-sys_def fork, 0x38
+;Para el fork lo hago aparte porque necesito el eip actual
+[EXTERN sys_fork]
+[GLOBAL fork]
+fork:
+ ;Pusheo el eip de la tarea al lo que luego es el primer parámetro (ver isr_syscall)
+  mov edx, [esp] 
+
+  mov eax, 0x38
+  ;xchg bx, bx
+  int 0x30
+  ;popad
+  ret
+
 sys_def run, 0x39
 

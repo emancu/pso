@@ -11,6 +11,17 @@ task_ret:
     mov fs, ax
     iret
 
+;; Funcion para utilizar en la creacion de tareas
+GLOBAL fork_ret
+fork_ret:
+;xchg bx, bx
+    mov eax, 0x23
+    mov ds, ax
+    mov es, ax
+    mov gs, ax
+    mov fs, ax
+    mov eax, 0x0
+    iret
 
 ;; Funcion del loader encargada de hacer el switch.
 ;; void loader_switchto(uint_32 pid);
