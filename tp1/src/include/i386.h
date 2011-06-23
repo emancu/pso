@@ -63,6 +63,9 @@ LS_INLINE void hlt(void);
 LS_INLINE uint_32 resp(void);
 LS_INLINE uint_32 rebp(void);
 
+/* TLB */
+LS_INLINE void tlbflush(void);
+LS_INLINE void invlpg(uint_32 m);
 
 
 LS_INLINE void breakpoint(void);
@@ -246,13 +249,16 @@ LS_INLINE uint_32 rcr4(void) {
   return cr4;
 }
 
+
 LS_INLINE void tlbflush(void) {
   uint_32 cr3;
   __asm __volatile("movl %%cr3,%0" : "=r" (cr3));
   __asm __volatile("movl %0,%%cr3" : : "r" (cr3));
 }
 
-
+LS_INLINE void invlpg(uint_32 val) {
+  __asm __volatile("invlpg %0" : : "r" (val));
+}
 /* Other */
 
 LS_INLINE uint_64 read_tsc(void) {
