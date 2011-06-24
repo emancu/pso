@@ -56,6 +56,7 @@ fork:
  ;Pusheo el eip de la tarea al lo que luego es el primer parámetro (ver isr_syscall)
   mov edx, [esp] 
   mov ecx, esp
+  add ecx, 4
 
   mov eax, 0x38
   ;xchg bx, bx

@@ -17,12 +17,17 @@ int main(void) {
 	char* enter = "\n";
 	idx = 0;
 	char msg[3];
-
-  fork();
-  breakpoint();
+  
 
 	int fd = open("/console", 0x3);
 	write(fd, ps1, 14);
+
+  fork();
+  // int pid = fork();
+  // if (pid)
+    // write(fd, "Soy el padre!", 13);
+  // else
+    // write(fd, "Soy el hijo!", 13);
 
 	while (1) {
 		read(fd, msg, 1);
@@ -38,7 +43,6 @@ int main(void) {
 				command[i] = '\0';
 			}
 			idx = 0;
-
 		} else {
 			write(fd, msg, 1);
 			//			 si no se apreto el Backspace.
@@ -49,8 +53,6 @@ int main(void) {
 					command[--idx] = '\0';
 					idx--;
 				}
-
-
 		}
 	}
 }
