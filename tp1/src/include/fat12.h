@@ -6,11 +6,18 @@
 #include <mm.h>
 #include <debug.h>
 #include <device.h>
-#include <fdd.h> 
+#include <fdd.h>
 #include <lib_str.h>
+#include <file_dev.h>
+#include <sem.h>
 
 // Cantidad de sectores cacheados (variables + 1 de data)
 #define FAT12_CACHE_SECTORS 7+8
+
+/* Max disk size */
+#define FAT12_MAX_SEC 2880
+#define FAT12_SECT_SIZE 512
+#define FAT12_SECT_PER_PAGE 8
 
 /******************/
 /* Fat 12 structs */

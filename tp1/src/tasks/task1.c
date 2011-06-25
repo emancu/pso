@@ -22,12 +22,14 @@ int main(void) {
 	int fd = open("/console", 0x3);
 	write(fd, ps1, 14);
 
-  fork();
+  // fork();
   // int pid = fork();
   // if (pid)
     // write(fd, "Soy el padre!", 13);
-  // else
+  // else {
     // write(fd, "Soy el hijo!", 13);
+    // while(1) {};
+  // }
 
 	while (1) {
 		read(fd, msg, 1);

@@ -8,6 +8,7 @@
 #include <mm.h>
 #include <i386.h>
 #include <fs.h>
+#include <file_dev.h>
 
 #define CON_BUFF_SIZE 30
 #define CON_ERROR_READTOOLARGE -5
@@ -30,6 +31,7 @@ typedef struct str_chardev_console {
 	uint_8 busy;
 	uint_8 read_expected;
 	sem_t sem;
+  sem_t crit_sect;
 	char console_screen[4000];
 }__attribute__((packed)) chardev_console;
 

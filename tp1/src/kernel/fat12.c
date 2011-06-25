@@ -17,21 +17,12 @@
 #define CLUST_BAD  0xFF7
 #define CLUST_EOF  0xFF8
 
-/* Max disk size */
-#define FAT12_MAX_SEC 2880
-#define FAT12_SECT_SIZE 512
-#define FAT12_SECT_PER_PAGE 8
 
 /* Errors */
 #define FILE_ERROR_NOFILEOPEN -2
 #define FILE_ERROR_NOTFOUND -3
 
 /* Macros */
-#define buf_asign(dir, src, dst, isrc, idst, ia, ib, a, b) \
-  src = (dir) ? (a) : (b); \
-  dst = (dir) ? (b) : (a); \
-  (isrc) = (dir) ? &(ia) : &(ib); \
-  (idst) = (dir) ? &(ib) : &(ia);
 
 #define isFile(entry) \
   ((entry).Filename[0] != 0x0 && (entry).Filename[0] != 0x05 && (entry).Filename[0] != 0x2E \
@@ -39,147 +30,6 @@
 
 fat12 fat12_node;
 
-/***************/
-/* Char device */
-/***************/
-
-/* Esta funci3ón copia del chardev al buffer o al revés según 'dir'.
- * 'dir' == 1 significa que copia del buffer al device, 'dir' == 0
- * hace lo contrario. La función maneja todas las jerarquías de datos 
- * utilizadas para guardar el archivo en memoria. */
-sint_32 chardev_file_mov(chardev* this, void* buf, uint_32 size, char dir) {
-	uint_32 i, c;
-	char* char_buf = (char*) buf;
-	char* src, *dst;
-	uint_32* isrc, *idst;
-	chardev_file* this_file = (chardev_file*) this;
-	printf(" >chardev_file_mov: chardev (%x) buf (%x) size (%d) dir (%d)", this, buf, size, dir);
-	printf("      file->cursor: %d file->size %d", this_file->cursor, this_file->size);
-	if (size + this_file->cursor > this_file->size) {
-		printf(" >chardev_file_mov: size+cursor > file->size.");
-		size = this_file->size - this_file->cursor;
-	}
-
-	if (this_file->cursor < 7 * FAT12_SECT_SIZE) {
-		printf(" >chardev_file_mov: Reading from the first 7 sectors...");
-		//Estoy leyendo los primeros 7 sectores del archivo, los leo a continuación
-		//del chardev
-		buf_asign(dir, src, dst, isrc, idst, i, this_file->cursor, char_buf, ((char*)this)+512);
-		// src = (dir) ? (char_buf) : ((char*)(this+512));
-		// dst = (dir) ? ((char*)(this+512)) : (char_buf);
-		// (isrc) = (dir) ? &(i) : &(this_file->cursor);
-		// (idst) = (dir) ? &(this_file->cursor) : &(i);
-
-		for (i = 0; i < size && this_file->cursor < 7 * FAT12_SECT_SIZE; i++) {
-			dst[*idst] = src[*isrc];
-			this_file->cursor++;
-		}
-		if (this_file->cursor >= 7 * FAT12_SECT_SIZE) { //Actualizo cur_page
-			this_file->cur_page = this_file->data_pages[0];
-		}
-		if (i == size)
-			return size; //Terminé de leer
-	}
-
-	while (this_file->cursor < (7 + DEV_FILE_FIRST_LVL_PAGES * FAT12_SECT_PER_PAGE) * FAT12_SECT_SIZE) {
-		//Estoy leyendo entre el sector 7 y 7 + 400*8, uso la primera indirección
-		buf_asign(dir, src, dst, isrc, idst, i, this_file->cursor, char_buf, (char*)this_file->cur_page);
-		for (i = 0; i < size && (this_file->cursor % (FAT12_SECT_SIZE * FAT12_SECT_PER_PAGE)) != (FAT12_SECT_SIZE * FAT12_SECT_PER_PAGE) - 1; i++) {
-			dst[*idst] = src[*isrc];
-			this_file->cursor++;
-		}
-		//Tengo que leer el último byte de la página, entonces lo leo y actualizo la página actual
-		if (i < size && ((this_file->cursor % (FAT12_SECT_SIZE * FAT12_SECT_PER_PAGE)) == (FAT12_SECT_SIZE * FAT12_SECT_PER_PAGE) - 1)) {
-			dst[*idst] = src[*isrc]; //Copio el elemento que falta
-			c = this_file->cursor - (7 * FAT12_SECT_SIZE);
-			c = c / (FAT12_SECT_SIZE * FAT12_SECT_PER_PAGE); //Calculo el índice en el arreglo de primer indirección
-			if (c < DEV_FILE_FIRST_LVL_PAGES - 1) // Sigo usando uno de los sectores de primera indirección
-				this_file->cur_page = this_file->data_pages[c + 1];
-			else { // Uso el primer sector de segunda indirección
-				this_file->cur_sectors = this_file->more_pages;
-				this_file->cur_page = this_file->more_pages->data_pages[0];
-			}
-			this_file->cursor++;
-		}
-		if (i == size)
-			return size;
-	}
-
-	while (this_file->cursor < this_file->size) {
-		//Estoy leyendo entre el sector 7+DEV_FILE_FIRST_LVL_PAGES y el resto, uso la segunda indirección
-		buf_asign(dir, src, dst, isrc, idst, i, this_file->cursor, char_buf, (char*)this_file->cur_page);
-		for (i = 0; i < size && (this_file->cursor % (FAT12_SECT_SIZE * FAT12_SECT_PER_PAGE)) != (FAT12_SECT_SIZE * FAT12_SECT_PER_PAGE) - 1; i++) {
-			// char_buf[i] = this_file->cur_page[this_file->cursor];
-			dst[*idst] = src[*isrc];
-			this_file->cursor++;
-		}
-		//Tengo que leer el último byte de la página, entonces lo leo y actualizo la página actual
-		if (i < size && ((this_file->cursor % (FAT12_SECT_SIZE * FAT12_SECT_PER_PAGE)) == (FAT12_SECT_SIZE * FAT12_SECT_PER_PAGE) - 1)) {
-			// char_buf[i] = this_file->cur_page[this_file->cursor];
-			dst[*idst] = src[*isrc];
-			c = this_file->cursor - (7 + FAT12_SECT_SIZE * DEV_FILE_FIRST_LVL_PAGES) * FAT12_SECT_SIZE;
-			c = c / (FAT12_SECT_SIZE * FAT12_SECT_PER_PAGE); //Calculo el índice en el arreglo de segunda indirección
-			if (c < DEV_FILE_SECND_LVL_PAGES - 1) // Sigo usando uno de los sectores de primera indirección
-				this_file->cur_page = this_file->data_pages[c + 1];
-			else { // Uso el siguiente sector de segunda indirección
-				this_file->cur_sectors = this_file->cur_sectors->next;
-				if (this_file->cur_sectors == NULL) {
-					return -1; //FIXME: add error
-				}
-				this_file->cur_page = this_file->cur_sectors->data_pages[0];
-			}
-			this_file->cursor++;
-		}
-		if (i == size)
-			return size;
-	}
-	return i;
-}
-
-sint_32 chardev_file_read(chardev* this, void* buf, uint_32 size) {
-	return chardev_file_mov(this, buf, size, 0);
-}
-
-sint_32 chardev_file_write(chardev* this, const void* buf, uint_32 size) {
-	char buffer[size];
-	strncpy(buffer, buf, size);
-	return chardev_file_mov(this, buffer, size, 0);
-}
-
-sint_32 chardev_file_seek(chardev* this, uint_32 pos) {
-	printf(" >chardev_file_seek: dev (%x) pos (%d)", this, pos);
-	chardev_file* file = (chardev_file*) this;
-	uint_32 s; //Temporario para cuentas
-	uint_32 c; //Índice en la lista de segundas indirecciones
-	if (pos < 7 * FAT12_SECT_SIZE) { //La posición está en los primeros 7 sectores
-		printf(" >chardev_file_seek: pos is of the first 7 sectors.");
-		file->cur_sectors = NULL;
-		file->cur_page = (uint_32*) this;
-	} else if (pos < (7 + DEV_FILE_FIRST_LVL_PAGES * FAT12_SECT_PER_PAGE) * FAT12_SECT_SIZE) {
-		printf(" >chardev_file_seek: pos is greater than 7 sectors but less than %d sectors.", DEV_FILE_FIRST_LVL_PAGES);
-		//La posición está en la primer indirección
-		file->cur_sectors = NULL;
-		file->cur_page = file->data_pages[(pos - 7 * FAT12_SECT_SIZE) / (FAT12_SECT_SIZE * FAT12_SECT_PER_PAGE)];
-	} else {
-		printf(" >chardev_file_seek: pos is greater than 7 + %d sectors.", DEV_FILE_FIRST_LVL_PAGES);
-		//La posición está en la segunda indirección
-		s = pos - (7 + DEV_FILE_FIRST_LVL_PAGES * FAT12_SECT_PER_PAGE) * FAT12_SECT_SIZE;
-		c = s / (DEV_FILE_SECND_LVL_PAGES * FAT12_SECT_SIZE * FAT12_SECT_SIZE);
-		file->cur_sectors = file->more_pages; //Sé que estoy al menos en el primer bloque de segunda indirección
-		while (c--) {//Avanzo en los bloques lo que sea necesario
-			file->cur_sectors = file->cur_sectors->next;
-			s -= DEV_FILE_SECND_LVL_PAGES * FAT12_SECT_SIZE * FAT12_SECT_SIZE;
-		}
-		//Obtengo el índice del bloque
-		file->cur_page = file->cur_sectors->data_pages[c / (FAT12_SECT_SIZE * FAT12_SECT_PER_PAGE)];
-	}
-	file->cursor = pos;
-	return pos;
-}
-
-uint_32 chardev_file_flush(chardev* this) {
-	return 0;
-}
 
 chardev* fat12_open(fat12* this, const char* filename, uint_32 flags) {
 //	printf(" >fat12_open: filename %s", filename);
@@ -221,6 +71,7 @@ chardev* fat12_open(fat12* this, const char* filename, uint_32 flags) {
 	file->dev.write = &chardev_file_write;
 	file->dev.flush = &chardev_file_flush;
 	file->dev.seek = &chardev_file_seek;
+  file->access_sem = SEM_NEW(1);
 
 	//Empiezo a copiar la información del diskette
 	dataStart = this->boot_sect.ReservedSectors + (this->boot_sect.FATcount * this->boot_sect.SectorsPerFAT) + ((this->boot_sect.MaxRootEntries * 32)

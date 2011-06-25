@@ -50,8 +50,11 @@ sint_32 con_read(chardev* this, void* buf, uint_32 size) {
 	if (size > CON_BUFF_SIZE)
 		return CON_ERROR_READTOOLARGE;
 
+
 	chardev_console* this_chardev_console = (chardev_console *) this;
 	char* char_buf = (char*) buf;
+  sem_wait(&this_chardev_console->crit_sect);
+
 	//Chequeamos si hay suficientes cosas para leer en el buffer
 	if (this_chardev_console->buff_cant < size) {
 		//No hay suficiente para leer, lo bloqueamos en su semáforo
@@ -69,12 +72,14 @@ sint_32 con_read(chardev* this, void* buf, uint_32 size) {
 
 	this_chardev_console->buff_cant -= size;
 	this_chardev_console->read_expected = 0;
+  sem_signaln(&this_chardev_console->crit_sect);
 	return 0;
 }
 
 sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
 	char* char_buf = (char*) buf;
 	chardev_console* this_chardev_console = (chardev_console *) this;
+  sem_wait(&this_chardev_console->crit_sect);
 
 	int str = 0;
 	uint_8* video = calculate_video_position(this_chardev_console);
@@ -119,7 +124,7 @@ sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
 		}
 		str++;
 	}
-
+  sem_signaln(&this_chardev_console->crit_sect);
 	return str;
 }
 
@@ -137,6 +142,7 @@ uint_32 con_flush(chardev* this) {
     return 0;
   }
 	chardev_console* console_to_close = (chardev_console*) this;
+  sem_wait(&console_to_close->crit_sect);
 
 	if (console_to_close->next != console_to_close) {
 		console_to_close->next->prev = console_to_close->prev;
@@ -151,6 +157,7 @@ uint_32 con_flush(chardev* this) {
 	}
 
 	mm_mem_free((uint_32*) this);
+  sem_signaln(&console_to_close->crit_sect);
 	return 0;
 }
 
@@ -170,6 +177,7 @@ chardev* con_open(void) {
 	new_chardev_console->dev.write = &con_write;
 	new_chardev_console->dev.flush = &con_flush;
 	new_chardev_console->style = CONSOLE_STYLE_DEFAULT;
+  new_chardev_console->crit_sect = SEM_NEW(1);
 
 	// Inicializamos Screen
 	int i;
@@ -201,6 +209,7 @@ chardev* con_open(void) {
 extern pso_file task_task1_pso;
 
 sint_32 sys_run(const char* archivo) {
+  printf(" >sys_run: %s", archivo);
 	int i = 6;
 	char command[50] = "run ";
 	char fileFullPath[50] = "/disk/";

@@ -28,7 +28,8 @@ OBJS_KERN=kernel/kinit.o kernel/a20.o kernel/kernel.o kernel/gdt.o kernel/idt.o 
   kernel/mm.o kernel/debug.o kernel/loader.o kernel/tasks.o \
   kernel/syscalls.o kernel/sem.o kernel/tss.o kernel/loader_switch.o \
   kernel/device.o kernel/con.o kernel/proc.o kernel/fs.o kernel/serial.o kernel/fat12.o \
-  kernel/lib_str.o kernel/klib_machine.o kernel/lib_printf.o kernel/fdd.o kernel/dma.o kernel/pit.o kernel/kernel_sym.o
+  kernel/lib_str.o kernel/klib_machine.o kernel/lib_printf.o kernel/fdd.o kernel/dma.o kernel/pit.o \
+  kernel/file_dev.o kernel/kernel_sym.o
 
 BIN_KERN=$(DIROUT)kernel.bin
 DUMP_KERN=$(DIROUT)kernel.bin.asm $(DIROUT)kernel.bin.elf $(DIROUT)kernel.bin.dbg
@@ -105,6 +106,7 @@ $(IMG_FLOPPY): $(BIN_BOOT) $(BIN_KERN) $(IMG_BASE)
 	dd if=$< of=$@ bs=1 count=450 seek=62 skip=62 conv=notrunc 2>/dev/null
 	mcopy -obi $@ $(BIN_KERN) ::kernel.bin
 	for T in $(TASKS); do mcopy -obi $@ $$T ::`basename $$T`; done;
+	mcopy -obi $@ bin/lyric.txt ::lyric.txt
 
 # Otros
 refsym:

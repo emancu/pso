@@ -44,32 +44,6 @@ struct str_chardev {
 } __attribute__((packed));
 
 
-/* FILE CHARDEV */
-
-/* Esta estructura es un arreglo de punteros a páginas de datos
- * de un archivo determinado. */
-typedef struct str_file_sectors {
-  struct str_file_sectors* next; // Siguiente struct con punteros a páginas
-  uint_32* data_pages[DEV_FILE_SECND_LVL_PAGES]; // Punteros al resto de las páginas de datos
-} __attribute__((packed)) file_sectors;
-
-/* Esta estructura representa un archivo abierto.
- * Se almacena en una página propia. Luego de la estrucutra vienen
- * 7 sectores de datos alineados.*/
-typedef struct str_chardev_file {
-  chardev dev; //Guardamos la información del char device
-  uint_32 cursor; //Guardamos la posción del cursor de lectura-escritura
-  char name[40]; //Guardamos el nombre del archivo
-  uint_32 size; //Tamaño del archivo en bytes
-  uint_32* cur_page; //Puntero a página de lectura actual
-  file_sectors* cur_sectors; //Guardo el puntero al resto de sectores actual
-  /* NOTE: Otros atributos ?? */
-  // Si no alcanzan 7 sectores, tenemos listas enlazadas
-  // De structs que guardan punteros a más páginas de datos.
-  file_sectors* more_pages;
-  uint_32* data_pages[DEV_FILE_FIRST_LVL_PAGES]; // Guardamos punteros a las primeras 100 páginas de datos
-  //En los siguientes 7 sectores de 512 bytes (alineados) vienen datos
-} __attribute__((packed)) chardev_file;
 
 /* Block devices */
 typedef struct str_blockdev blockdev;
