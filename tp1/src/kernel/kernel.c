@@ -21,8 +21,9 @@
 #include "scheduler_test.c"
 
 extern void* _end;
+
+extern pso_file task_taskinit_pso;
 extern pso_file task_task1_pso;
-extern pso_file task_task2_pso;
 
 /* Entry-point del modo protegido luego de cargar los registros de
  * segmento y armar un stack */

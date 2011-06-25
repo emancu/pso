@@ -5,7 +5,12 @@
 #include <tipos.h>
 #include <syscalls.h>
 
+
+int debugEnabled;
+
 #ifdef __KERNEL__
+
+
 
 void sched_init(void);
 
