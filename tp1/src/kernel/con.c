@@ -68,13 +68,13 @@ sint_32 con_read(chardev* this, void* buf, uint_32 size) {
 		this_chardev_console->buff_index_start = (this_chardev_console->buff_index_start + 1) % CON_BUFF_SIZE;
 	}
 
+//	!todo chequear el race condition
 	this_chardev_console->buff_cant -= size;
 	this_chardev_console->read_expected = 0;
 	return 0;
 }
 
 sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
-
 	char* char_buf = (char*) buf;
 	chardev_console* this_chardev_console = (chardev_console *) this;
 
@@ -199,6 +199,11 @@ chardev* con_open(void) {
 extern pso_file task_task1_pso;
 
 sint_32 sys_run(const char* archivo) {
+	printf("commando: %s " , archivo);
+	int j = 0;
+	for(j = 0; j < CON_BUFF_SIZE ; j++){
+		current_console->buff[j] = '\0';
+	}
 	int i = 6;
 	char command[50] = "run ";
 	char fileFullPath[50] = "/disk/";
@@ -261,7 +266,7 @@ void console_keyPressed(sint_16 tecla) {
 		current_console->buff_index_end = (++index) % CON_BUFF_SIZE;
 		current_console->buff_cant++;
 
-		if (current_console->buff_cant >= current_console->read_expected) {
+		if (current_console->buff_cant >= current_console->read_expected && current_console->busy != 0) {
 			// Despertar a la tarea que estaba esperando.
 			current_console->busy = 0;
 			sem_signaln(&current_console->sem);
