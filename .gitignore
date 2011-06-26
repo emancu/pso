@@ -17,3 +17,11 @@ TPPSO/
 .gitignore
 .cproject
 .project
+entregable.zip
+tp1/doc/informe/informe.tex.backup
+entregable.zip
+tp1/src/bin/*
+snapshot.txt
+*.elf
+*.pso
+

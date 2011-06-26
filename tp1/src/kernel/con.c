@@ -9,7 +9,7 @@
  */
 
 static uint_8* calculate_video_position(const chardev_console* this_chardev_console) {
-	return (uint_8*) (this_chardev_console->console_screen + vga_cols * 2 * this_chardev_console->fila + this_chardev_console->columna * 2);
+  return (uint_8*) (this_chardev_console->console_screen + vga_cols * 2 * this_chardev_console->fila + this_chardev_console->columna * 2);
 }
 
 /*
@@ -126,30 +126,30 @@ sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
 }
 
 void write_in_console(chardev_console* this_chardev_console, const char* msg, uint_8 style, uint_8 cant) {
-	if (current_console == this_chardev_console) {
-		vga_write_in_memory((char *) vga_addr, &this_chardev_console->fila, &this_chardev_console->columna, msg, style, cant);
-	} else {
-		vga_write_in_memory((char *) &this_chardev_console->console_screen, &this_chardev_console->fila, &this_chardev_console->columna, msg, style, cant);
-	}
+  if (current_console == this_chardev_console) {
+    vga_write_in_memory((char *) vga_addr, &this_chardev_console->fila, &this_chardev_console->columna, msg, style, cant);
+  } else {
+    vga_write_in_memory((char *) &this_chardev_console->console_screen, &this_chardev_console->fila, &this_chardev_console->columna, msg, style, cant);
+  }
 }
 
 uint_32 con_flush(chardev* this) {
-	chardev_console* console_to_close = (chardev_console*) this;
+  chardev_console* console_to_close = (chardev_console*) this;
 
-	if (console_to_close->next != console_to_close) {
-		console_to_close->next->prev = console_to_close->prev;
-		console_to_close->prev->next = console_to_close->next;
-	}
+  if (console_to_close->next != console_to_close) {
+    console_to_close->next->prev = console_to_close->prev;
+    console_to_close->prev->next = console_to_close->next;
+  }
 
-	if (current_console == ((chardev_console*) this)) {
-		if (console_to_close->next == console_to_close)
-			move_to_empty_console();
-		else
-			move_to_right_console();
-	}
+  if (current_console == ((chardev_console*) this)) {
+    if (console_to_close->next == console_to_close)
+      move_to_empty_console();
+    else
+      move_to_right_console();
+  }
 
-	mm_mem_free((uint_32*) this);
-	return 0;
+  mm_mem_free((uint_32*) this);
+  return 0;
 }
 
 chardev* con_open(void) {
@@ -223,24 +223,24 @@ sint_32 sys_run(const char* archivo) {
 }
 
 void move_to_right_console() {
-	if (current_console != 0x0) {
-		copy_screen_to_memory((uint_8*) current_console->console_screen);
-		copy_memory_to_screen((uint_8*) current_console->next->console_screen);
-		current_console = current_console->next;
-	}
+  if (current_console != 0x0) {
+    copy_screen_to_memory((uint_8*) current_console->console_screen);
+    copy_memory_to_screen((uint_8*) current_console->next->console_screen);
+    current_console = current_console->next;
+  }
 }
 
 void move_to_left_console() {
-	copy_screen_to_memory((uint_8*) current_console->console_screen);
-	if (current_console != 0x0) {
-		copy_memory_to_screen((uint_8*) current_console->prev->console_screen);
-		current_console = current_console->prev;
-	}
+  copy_screen_to_memory((uint_8*) current_console->console_screen);
+  if (current_console != 0x0) {
+    copy_memory_to_screen((uint_8*) current_console->prev->console_screen);
+    current_console = current_console->prev;
+  }
 }
 
 void move_to_empty_console() {
-	copy_memory_to_screen((uint_8*) empty_console->console_screen);
-	current_console = empty_console;
+  copy_memory_to_screen((uint_8*) empty_console->console_screen);
+  current_console = empty_console;
 }
 
 /*
@@ -275,13 +275,13 @@ void console_keyPressed(sint_16 tecla) {
 }
 
 void set_console_style(chardev_console* console, uint_8 style) {
-	console->style = style;
-	int i;
-	for (i = 1; i < 4000; i += 2)
-		console->console_screen[i] = style;
+  console->style = style;
+  int i;
+  for (i = 1; i < 4000; i += 2)
+    console->console_screen[i] = style;
 
-	if (current_console == console)
-		copy_memory_to_screen((uint_8 *) console->console_screen);
+  if (current_console == console)
+    copy_memory_to_screen((uint_8 *) console->console_screen);
 }
 
 uint_8 getc(uint_16 scan_code) {

@@ -50,6 +50,6 @@ int main(void) {
 		}
 	}
 
-	// void* p = palloc();
-	return 0;
+  // void* p = palloc();
+  return 0;
 }
