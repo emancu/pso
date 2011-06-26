@@ -1,13 +1,4 @@
 #include <debug.h>
-#include <isr.h>
-#include <vga.h>
-#include <mm.h>
-#include <sched.h>
-#include <i386.h>
-#include <loader.h>
-#include <con.h>
-#include <serial.h>
-
 
 const char* exp_name[] = {
   "Divide Error",
@@ -48,7 +39,7 @@ const char* exp_name[] = {
 
 uint_32 error_num = -1;
 bool in_panic = FALSE;
-
+chardev_serial* log_chardev;
 
 uint_32* obtain_prev_func(uint_32* ebp) {
   uint_32* old_ebp_dir = (uint_32*)(*ebp);
@@ -219,6 +210,31 @@ void debug_init(void) {
   idt_register(17, &isr_11_AC, 0);
   idt_register(18, &isr_12_MC, 0);
   idt_register(19, &isr_13_XM, 0);
+}
+
+void logger_init(){
+  log_chardev = (chardev_serial *) serial_open(3);
+}
+
+// Log with format into serial 3
+void logf(const char* format, ...) {
+  va_list argp;
+  va_start(argp, format);
+  uint_32 size = printf_len(format,argp);
+  char buff[size + 1];
+  va_start(argp, format);
+
+  sprintf_in(buff, format, argp);
+
+  logs(buff, size);
+}
+
+// Log an string into serial 3
+void logs(const char* buff, uint_32 size){
+  if (log_chardev != NULL){
+    log_chardev->dev.write((chardev*)log_chardev, buff, size);
+    log_chardev->dev.write((chardev*)log_chardev, "\n\r", 2);
+  }
 }
 
 void isr_keyboard_c() {

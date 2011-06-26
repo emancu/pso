@@ -4,6 +4,12 @@
 #include <isr.h>
 #include <vga.h>
 #include <i386.h>
+#include <mm.h>
+#include <sched.h>
+#include <loader.h>
+#include <con.h>
+#include <serial.h>
+
 
 /* En esta variable se almacena el número de error
  * actual. */ 
@@ -18,7 +24,10 @@ extern void* kernel_syme;
 extern void* kernel_sym_ende;
 
 void debug_init(void);
+void logger_init(void);
 
+void logf(const char* format, ...);
+void logs(const char* buff, uint_32 size);
 void debug_kernelpanic(const uint_32* stack, const exp_state* expst);
 
 /* Esta función obtien el valor de ebp en *'ebp' para obtener

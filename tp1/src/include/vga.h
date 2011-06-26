@@ -2,6 +2,7 @@
 #define __VGA_H__
 
 #include <i386.h>
+#include <debug.h> // Need it to log in serial port
 #include <tipos.h>
 #include <stdarg.h>
 #include <lib_str.h>

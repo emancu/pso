@@ -118,10 +118,11 @@ sint_32 serial_write(chardev* this, const void* buf, uint_32 size) {
   int port = ((chardev_serial*) this)->port;
   char * buff = (char *) buf;
 
-  while (is_transmit_empty(port) == 0);
-
-  for(i=0; i< size;i++)
+  for(i=0; i< size;i++){
+    if( i % 16 == 0)
+      while (is_transmit_empty(port) == 0);
     outb(port + PORT_DATA, buff[i]);
+  }
 
   return i;
 }
@@ -172,7 +173,7 @@ chardev* serial_open(int nro) {
 
   configure_serial_port(port);
 
-  // serial_write((chardev*)new_serial, "Emiliano_campeon", 16);
+  serial_write((chardev*)new_serial, "Logger ready", 12);
   // printf("serial_read => %d", serial_read((chardev*)new_serial, buf, 20));
 
   // printf("Leimos %s", buf);

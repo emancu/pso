@@ -28,35 +28,39 @@ extern pso_file task_task1_pso;
 /* Entry-point del modo protegido luego de cargar los registros de
  * segmento y armar un stack */
 void kernel_init(void) {
-	gdt_init();
-	clear_screen();
+  gdt_init();
+  clear_screen();
 
-	// breakpoint();
-	//init all modules
-	idt_init();
-	debug_init();
-	pit_init();
-	mm_init();
-	loader_init();
-	device_init();
-	con_init();
-	// serial_init();
-	sti();
-	fdd_init();
-	fat12_init();
-	fs_init();
+  // breakpoint();
+  //init all modules
+  idt_init();
+  debug_init();
+  mm_init();
+  serial_init();
+  logger_init();
+  pit_init();
+  loader_init();
+  device_init();
+  con_init();
+  sti();
+  fdd_init();
+  fat12_init();
+  fs_init();
 
-	//load tasks
-	loader_load(&task_taskinit_pso, 0);
 
-//	loader_load(&task_task2_pso, 0);
-	//	int i = 0;
-	//	int j;
-	//	for (i = 0; i < 18000000; i++) {
-	//		j++;
-	//	}
-	//	loader_load(&task_task2_pso, 0);
+  logs("1234567890abcdefghijklmn\n\r", 26);
 
-	return;
+  // clear_screen();
+  // loader_load(&task_taskinit_pso, 0);
+
+//  loader_load(&task_task2_pso, 0);
+  //  int i = 0;
+  //  int j;
+  //  for (i = 0; i < 18000000; i++) {
+  //    j++;
+  //  }
+  //  loader_load(&task_task2_pso, 0);
+
+  return;
 }
 
