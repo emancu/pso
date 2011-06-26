@@ -35,7 +35,7 @@ DUMP_KERN=$(DIROUT)kernel.bin.asm $(DIROUT)kernel.bin.elf $(DIROUT)kernel.bin.db
 SYM_KERN=$(DIROUT)kernel.sym
 
 # Tareas
-TASKS=tasks/task1.pso tasks/taskinit.pso
+TASKS=tasks/task1.pso tasks/taskinit.pso tasks/fork.pso
 TASKS_ELF:=$(TASKS:.pso=.elf)
 OBJS_TASKS:=$(TASKS:.pso=.o) tasks/pso_head.o tasks/pso_tail.o tasks/syscalls.o
 
@@ -104,6 +104,7 @@ $(IMG_FLOPPY): $(BIN_BOOT) $(BIN_KERN) $(IMG_BASE)
 	dd if=$< of=$@ bs=1 count=3 conv=notrunc 2>/dev/null
 	dd if=$< of=$@ bs=1 count=450 seek=62 skip=62 conv=notrunc 2>/dev/null
 	mcopy -obi $@ $(BIN_KERN) ::kernel.bin
+	mcopy -obi $@ bin/lyric.txt ::lyric.txt
 	for T in $(TASKS); do mcopy -obi $@ $$T ::`basename $$T`; done;
 
 # Otros
