@@ -198,7 +198,7 @@ uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp){
 	*stack0-- = 0x0;
 	*stack0-- = 0x0;
 
-  breakpoint();
+	// mm_page_map((uint_32) f->mem_start, task_dir, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
   //Copio la pila de usuario como está
   mm_copy_vf((uint_32*)STACK_3_VIRTUAL, (uint_32)task_stack3, PAGE_SIZE);
 
