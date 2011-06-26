@@ -1,0 +1,53 @@
+-----------------------------
+
+Introducción:
+	Exokernel vs. kernel monolítico
+		>Las aplicaciones de hoy tienen problemas de performance culpa de la falta de flexibilidad en el sistema donde corren. Los kernels generan interfases genéricas que pierden en velocidad por la amplitud de aplicaciones que deben soportar.
+		>Manejo de recursos físicos: monolítico consturye una intefáz genérica, no cambiable donde corren las aplicaciones. Cada una vive en su propia "máquina virtual". Exokernel solo exporta el uso del hardware y la interfaz para trabajar con ella se define desde espacio de usuario. 
+		>Exokernel permite controlar recursos del sistema desde nivel de usuario, en contraste con los kernels tradicionales
+
+
+	Filosofía:
+		>"Separar administración de protección."
+		>Las aplicaciones pueden beneficiarse del control que tienen de los recursos de la máquina
+		>Interfaz de bajo nivel
+		>An exokernel performs three important tasks: (1) tracking ownership of resources, (2) ensuring protection by guarding all resource usage or binding points, and (3) revoking access to resources.
+		>Exponer lo más posible las extructuras del kernel.
+		>"The lower the level of the primitive, the better it can be implemented."
+
+
+	Conceptos:
+		>Exokernel: kernel minimal que multiplexa los servicios de hardware de modo seguro
+		>Biblioteca de sistema operativo: implementación de abstracciones de los sistemas operativos a nivel de usuario
+		>Las primitivas del sistema operativo, al ser simples y de bajo nivel, pueden implementarse eficientemente. Luegos, los algoritmos de multiplexación de hardware son simples y rápidos. 
+		>Las abstracciones de OS pueden implementarse en nivel de usuario a modo de bibliotecas, de forma que pueden especializarse y cada aplicación de usuario puede elegir la biblioteca que más le convenga.
+		>Las aplicaciones saben mejor que el sistema operativo que recursos necesitan y cuales no y su participación en la revocación de recursos mejora la performance general del sistema.
+
+--------------------------
+
+Técnicas
+
+El exokernel exporta los recursos de hardwrae directamente, no una emulación de ellos. 
+
+	>Secure bindings: las aplicaciones se relacionan (de manera segura con intervención del exokernel) con los recursos para manejar sus eventos. Se separa protección de administración. Se hace rápido porque se hacen chequeos fuertes solo al pedir el recurso y las verificaciones de acceso son mucho más simple. 
+	>Visible resource revocation: las aplicaciones participan en el proceso y la desición de la revocación de recursos. Traditionally, operating systems have performed revocation invisibly, deallocating resources without application involvement. Its disadvantages are
+that library operating systems cannot guide deallocation and have no knowledge that resources are scarce.
+
+	>Abort protocol: forma en la que el exokernel se asegura mantener el control, rompe las relaciones de las aplicaciones con los recursos. Básicamente, el exokernel se asegura de alguna manera poder contar con recursos.
+
+	>Downloadable code: 
+
+--------------------------
+
+Pruebas
+
+Para ver que esto efectivamente puede suceder, se implemento "Aegis" un exokernel y "ExOS", una biblioteca de sistema operativo que implementa las abstracciones más importantes de los sistemas operativos. 
+
+4 hipótesis:
+
+	*Exokernels can be very efficient.
+	*Low-level, secure multiplexing of hardware resources can be implemented efficiently. 
+	*Traditional operating system abstractions can be implemented efficiently at application level. 
+	*Applications can create special-purpose implementations of these abstractions.
+
+

@@ -1,5 +1,6 @@
 #include <con.h>
 #include <lib_str.h>
+#include <sched.h>
 
 #define CONSOLE_STYLE_DEFAULT VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT
 
@@ -8,7 +9,7 @@
  */
 
 static uint_8* calculate_video_position(const chardev_console* this_chardev_console) {
-	return (uint_8*) (this_chardev_console->console_screen + vga_cols * 2 * this_chardev_console->fila + this_chardev_console->columna * 2);
+  return (uint_8*) (this_chardev_console->console_screen + vga_cols * 2 * this_chardev_console->fila + this_chardev_console->columna * 2);
 }
 
 /*
@@ -67,6 +68,7 @@ sint_32 con_read(chardev* this, void* buf, uint_32 size) {
 		this_chardev_console->buff_index_start = (this_chardev_console->buff_index_start + 1) % CON_BUFF_SIZE;
 	}
 
+//	!todo chequear el race condition
 	this_chardev_console->buff_cant -= size;
 	this_chardev_console->read_expected = 0;
 	return 0;
@@ -124,11 +126,11 @@ sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
 }
 
 void write_in_console(chardev_console* this_chardev_console, const char* msg, uint_8 style, uint_8 cant) {
-	if (current_console == this_chardev_console) {
-		vga_write_in_memory((char *) vga_addr, &this_chardev_console->fila, &this_chardev_console->columna, msg, style, cant);
-	} else {
-		vga_write_in_memory((char *) &this_chardev_console->console_screen, &this_chardev_console->fila, &this_chardev_console->columna, msg, style, cant);
-	}
+  if (current_console == this_chardev_console) {
+    vga_write_in_memory((char *) vga_addr, &this_chardev_console->fila, &this_chardev_console->columna, msg, style, cant);
+  } else {
+    vga_write_in_memory((char *) &this_chardev_console->console_screen, &this_chardev_console->fila, &this_chardev_console->columna, msg, style, cant);
+  }
 }
 
 uint_32 con_flush(chardev* this) {
@@ -201,6 +203,11 @@ chardev* con_open(void) {
 extern pso_file task_task1_pso;
 
 sint_32 sys_run(const char* archivo) {
+	printf("commando: %s " , archivo);
+	int j = 0;
+	for(j = 0; j < CON_BUFF_SIZE ; j++){
+		current_console->buff[j] = '\0';
+	}
 	int i = 6;
 	char command[50] = "run ";
 	char fileFullPath[50] = "/disk/";
@@ -208,6 +215,7 @@ sint_32 sys_run(const char* archivo) {
 		str_into_string(fileFullPath, &i, archivo + 4);
 		str_convert_to_mayus(fileFullPath, 6, strlen(fileFullPath));
 		chardev_file* file_char_dev = (chardev_file*) fs_open(fileFullPath, 0x3);
+		debugEnabled = 1;
 		if (file_char_dev != NULL) {
 			char * dir = ((char *) file_char_dev) + 0x200;
 			return loader_load((pso_file *) dir, 0);
@@ -219,24 +227,24 @@ sint_32 sys_run(const char* archivo) {
 }
 
 void move_to_right_console() {
-	if (current_console != 0x0) {
-		copy_screen_to_memory((uint_8*) current_console->console_screen);
-		copy_memory_to_screen((uint_8*) current_console->next->console_screen);
-		current_console = current_console->next;
-	}
+  if (current_console != 0x0) {
+    copy_screen_to_memory((uint_8*) current_console->console_screen);
+    copy_memory_to_screen((uint_8*) current_console->next->console_screen);
+    current_console = current_console->next;
+  }
 }
 
 void move_to_left_console() {
-	copy_screen_to_memory((uint_8*) current_console->console_screen);
-	if (current_console != 0x0) {
-		copy_memory_to_screen((uint_8*) current_console->prev->console_screen);
-		current_console = current_console->prev;
-	}
+  copy_screen_to_memory((uint_8*) current_console->console_screen);
+  if (current_console != 0x0) {
+    copy_memory_to_screen((uint_8*) current_console->prev->console_screen);
+    current_console = current_console->prev;
+  }
 }
 
 void move_to_empty_console() {
-	copy_memory_to_screen((uint_8*) empty_console->console_screen);
-	current_console = empty_console;
+  copy_memory_to_screen((uint_8*) empty_console->console_screen);
+  current_console = empty_console;
 }
 
 /*
@@ -262,7 +270,7 @@ void console_keyPressed(sint_16 tecla) {
 		current_console->buff_index_end = (++index) % CON_BUFF_SIZE;
 		current_console->buff_cant++;
 
-		if (current_console->buff_cant >= current_console->read_expected) {
+		if (current_console->buff_cant >= current_console->read_expected && current_console->busy != 0) {
 			// Despertar a la tarea que estaba esperando.
 			current_console->busy = 0;
 			sem_signaln(&current_console->sem);
@@ -271,13 +279,13 @@ void console_keyPressed(sint_16 tecla) {
 }
 
 void set_console_style(chardev_console* console, uint_8 style) {
-	console->style = style;
-	int i;
-	for (i = 1; i < 4000; i += 2)
-		console->console_screen[i] = style;
+  console->style = style;
+  int i;
+  for (i = 1; i < 4000; i += 2)
+    console->console_screen[i] = style;
 
-	if (current_console == console)
-		copy_memory_to_screen((uint_8 *) console->console_screen);
+  if (current_console == console)
+    copy_memory_to_screen((uint_8 *) console->console_screen);
 }
 
 uint_8 getc(uint_16 scan_code) {

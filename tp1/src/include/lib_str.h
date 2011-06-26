@@ -1,5 +1,13 @@
 #ifndef __KLIB_PRINT_H__
 #define __KLIB_PRINT_H__
+//in [0-9a-fA-f]
+#define isDigit(x) ((0x30 <= (char)(x) && (char)(x) <= 0x39) || (0x41 <= (char)(x) && (char)(x) <= 0x46) || (0x61 <= (char)(x) && (char)(x) <= 0x67))
+//in [a-zA-z]
+#define isCharacter(x) ((0x41 <= (char)(x) && (char)(x) <= 0x5A) || (0x61 <= (char)(x) && (char)(x) <= 0x7A))
+
+#define isSymbol(x) ((0x21 <= (char)(x) && (char)(x) <= 0x2F) || (0x3A <= (char)(x) && (char)(x) <= 0x40) || (0x5B <= (char)(x) && (char)(x) <= 0x60) || (0x7B <= (char)(x) && (char)(x) <= 0x7E))
+
+#define isSpace(x) (((char)(x) == 0x20) || ((char)(x) == '\n'))
 
 //in [0-9a-fA-f]
 #define isDigit(x) ((0x30 <= (char)(x) && (char)(x) <= 0x39) || (0x41 <= (char)(x) && (char)(x) <= 0x46) || (0x61 <= (char)(x) && (char)(x) <= 0x67))

@@ -11,7 +11,7 @@ int idx;
 
 int main(void) {
 	// char buff[10];
-	int i,runResult = 0;
+	int i, runResult = 0;
 	char* ps1 = "console1@pso: ";
 	char* invalidCommand = "command not found";
 	char* enter = "\n";
@@ -22,41 +22,42 @@ int main(void) {
 	int fd = open("/console", 0x3);
 	write(fd, ps1, 14);
 
-  fork();
-  // int pid = fork();
-  // if (pid)
-    // write(fd, "Soy el padre!", 13);
-  // else
-    // write(fd, "Soy el hijo!", 13);
+  // fork();
+  int pid = fork();
+  if (pid)
+    write(fd, "Soy el padre!", 13);
+  else
+    write(fd, "Soy el hijo!", 13);
 
 	while (1) {
 		read(fd, msg, 1);
 		if (msg[0] == '\n') {
 			runResult = run(command);
-			if (runResult < 0){
-				write(fd, enter, 1);
-				write(fd, invalidCommand,17);
-			}
-			write(fd, enter, 1);
-			write(fd, ps1, 14);
 			for (i = 0; i < 100; i++) {
 				command[i] = '\0';
 			}
 			idx = 0;
+			if (runResult < 0) {
+				write(fd, enter, 1);
+				write(fd, invalidCommand, 17);
+			}
+			write(fd, enter, 1);
+			write(fd, ps1, 14);
 		} else {
 			write(fd, msg, 1);
 			//			 si no se apreto el Backspace.
 			if (msg[0] != 0x08) {
 				command[idx++] = msg[0];
 			} else {
-				if (idx != 0){
+				if (idx != 0) {
 					command[--idx] = '\0';
 					idx--;
 				}
+
+			}
 		}
 	}
-}
 
-// void* p = palloc();
-return 0;
+  // void* p = palloc();
+  return 0;
 }

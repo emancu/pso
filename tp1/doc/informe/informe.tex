@@ -52,6 +52,7 @@ El presente trabajo práctico comienza con el desarrollo de un sistema operativo
 La red conformada por la relación de todos estos sistemas serán luego la base para la construcción de nuevas estructuras y funcionalidades en el kernel en los próximos trabajo prácticos. 
 
 \newpage
+\chapter{Primera versión}
 
 \section{Módulos}
 
@@ -179,5 +180,39 @@ Los archivos \file{syscalls.h} y \file{syscalls.asm} proveen las herramientas pa
 Este módulo permite el manejo de semáforos de kernel. Funciona muy relacionado con el módulo \textbf{loader}. Los semáforos se conforman de dos enteros sin signo. El primero es el valor del semáforo. Si vale 0 significa que hay uno o más tareas esperando el evento del semáforo. Si es mayor a 0 significa que pueden hacerse tantos \func{sem\_wait(...)} como el valor de la variable sin bloquear el proceso. El segundo entero es una cola, y funciona de la misma forma que las colas en \textbf{loader}. La función \func{sem\_wait(...)}, si el valor del semáforo parámetro es 0, encola al proceso actual en la cola del semáforo mediante \func{loader\_enqueue(...)}. La función \func{sem\_signaln(...)} incrementa el valor del semáforo y, si era 0, le avisa al loader que desencole a alguién mediante \func{loader\_unqueue(...)}. La función \func{sem\_broadcast(...)} desencola a todos los miembros de la cola del semáforo y establece su valor en 1, de forma que al menos un proceso pueda pedir el semáforo. 
 
 El módulo no maneja otras estrucutras. Los módulos de kernel son libres de registrar semáforos declarando una nueva variable de tipo \func{sem\_t} e inicializándola con el macro \func{SEM\_NEW(uint\_32 val)}, que asigna al semáforo el valor \func{val} y establece la cola como vacía. 
+
+\chapter{Segunda versión}
+
+\section{Filesystem y dispositivos de almacenamiento}
+
+\begin{figure}[H]
+\hspace{-2cm}
+% \centering
+\includegraphics[scale=0.40]{graphics/filesystem-hd.pdf}
+\caption{Diagrama de relación entre HW, drivers, devices y el filesystem}
+\end{figure}
+
+El gráfico presenta un esquema de relación entre los componentes de Hardware y sus respectivos drivers con el resto del sistema, en particular el módulo de filesystem. Otros elementos de diagrama son nodos y devices, estructuras cuya mayor relevancia se debe a la significancia lógica en el sistema. A continuación se presentan los componentes que hacen a la integración del hardware con el sistema de forma flexible. La principal idea de este esquema es permitir que el sistema se adapte a distintas configuraciones de hardware, manteniendo como primitiva la modularización de las funciones. Esto es, que cada cual se encargue de lo que debe. 
+
+\subsection{Hardware drivers}
+Los drivers de hardware son la primera capa de abstracción en software de lo que sucede en el bajo nivel del hardware. En el diagrama, estos serían \func{floppy driver} y \func{hdd driver}. La principal función de estos driver es otorgar una interfaz más amigable al resto del sistema para comunicarse con los dispositivos. Deben tener las funciones necesarias para enviar y recibir mensajes y comandos al dispositivo y manejar errores. Además, debe permitir el uso del dispositivo de forma transparente a las peculiaridades del mismo. Para ello se presentan las estructuras funcionales de \func{devices}. Un \func{device}\footnote{\url{http://en.wikipedia.org/wiki/Device_file}} es una interfaz genérica para la operación con una variedad de componentes. Los \func{devices} se agrupan en tipos, de forma de agrupar los dispositivos por la interfaz con la que pueden trabajarse y así otorgarle al usuario mayor uniformidad a la hora de operar los dispositivos. En particular, los discos de almacenamiento se representan con \func{block devices}. En esta interfaz, se considera que se trabaja con un dispositivos de almacenamiento de datos cuya principal cualidad es la de estar divididos en bloques. La interfaz de un \func{block device} establece que la manera de obtener y enviar información es en formato de bloques, que pueden ser accedidos de forma aleatoria. 
+
+A fines prácticos, entonces, si bien los módulos \func{floppy driver} y \func{hdd driver} poseen numerosas funciones para el trabajo con los dispositivos, en particular exportan \func{block devices}, que a pesar de sus particularidades internas, para el usuario externo todos se trabajan de la misma forma. El \func{block device} presentado por el \func{floppy driver} (\func{fdd\_block\_dev}) es la representación de un único dispositivo de almacenamiento. Esto es, solo puede haber un \func{fdd\_block\_dev} por cada aparato de hardware. En este caso en particular sucede que los muchos dispositivos (varios floppy drives), se agrupan bajo un único controlador (\func{fdc}), que se relaciona con un único módulo de drivers, para luego volver a separarse en \func{devices}. Estos últimos son solo cáscaras del driver y deben mantener la información particular del dispositivo necesaria para utilizar los servicios del driver. Esta información comprende: 
+
+\begin{itemize}
+ \item Número de dispositivo 
+ \item La geometría del disco en el dispositivo, necesaria para hacer la conversión del número de sector a formato CHS.
+ \item Buffer de transferencias. Este buffer (de 512 bytes de tamaño), es necesario ya que la comunicación entre el \func{fdc} y el cpu se hace mediante \func{DMA}, el cuál es solo capaz de acceder el primer MB de memoria física. 
+ \item Información de estado del dispositivo. 
+ \item \emph{otros...}
+\end{itemize}
+
+Por las particularidades del los dispositivos, estos solo pueden ser accedidos uno a la vez. De igual manera, el fdc solo puede ejecutar una operacin a la vez. Esto plantea la necesidad de bloquear los accesos a las funciones formando seccionea críticas. 
+
+\subsection{Filesystem drivers}
+
+\subsection{Filesystem module}
+
+
 
 \end{document}
