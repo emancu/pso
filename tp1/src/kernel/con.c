@@ -203,7 +203,6 @@ chardev* con_open(void) {
 extern pso_file task_task1_pso;
 
 sint_32 sys_run(const char* archivo) {
-	printf("commando: %s " , archivo);
 	int j = 0;
 	for(j = 0; j < CON_BUFF_SIZE ; j++){
 		current_console->buff[j] = '\0';
