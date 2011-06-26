@@ -22,13 +22,6 @@ int main(void) {
 	int fd = open("/console", 0x3);
 	write(fd, ps1, 14);
 
-  // fork();
-  int pid = fork();
-  if (pid)
-    write(fd, "Soy el padre!", 13);
-  else
-    write(fd, "Soy el hijo!", 13);
-
 	while (1) {
 		read(fd, msg, 1);
 		if (msg[0] == '\n') {
@@ -39,6 +32,7 @@ int main(void) {
 			idx = 0;
 			if (runResult < 0) {
 				write(fd, enter, 1);
+				write(fd,command,100);
 				write(fd, invalidCommand, 17);
 			}
 			write(fd, enter, 1);

@@ -53,15 +53,15 @@ sint_32 chardev_file_mov(chardev* this, void* buf, uint_32 size, char dir) {
 	char* src, *dst;
 	uint_32* isrc, *idst;
 	chardev_file* this_file = (chardev_file*) this;
-	printf(" >chardev_file_mov: chardev (%x) buf (%x) size (%d) dir (%d)", this, buf, size, dir);
-	printf("      file->cursor: %d file->size %d", this_file->cursor, this_file->size);
+//	printf(" >chardev_file_mov: chardev (%x) buf (%x) size (%d) dir (%d)", this, buf, size, dir);
+//	printf("      file->cursor: %d file->size %d", this_file->cursor, this_file->size);
 	if (size + this_file->cursor > this_file->size) {
-		printf(" >chardev_file_mov: size+cursor > file->size.");
+//		printf(" >chardev_file_mov: size+cursor > file->size.");
 		size = this_file->size - this_file->cursor;
 	}
 
 	if (this_file->cursor < 7 * FAT12_SECT_SIZE) {
-		printf(" >chardev_file_mov: Reading from the first 7 sectors...");
+//		printf(" >chardev_file_mov: Reading from the first 7 sectors...");
 		//Estoy leyendo los primeros 7 sectores del archivo, los leo a continuación
 		//del chardev
 		buf_asign(dir, src, dst, isrc, idst, i, this_file->cursor, char_buf, ((char*)this)+512);
@@ -147,21 +147,21 @@ sint_32 chardev_file_write(chardev* this, const void* buf, uint_32 size) {
 }
 
 sint_32 chardev_file_seek(chardev* this, uint_32 pos) {
-	printf(" >chardev_file_seek: dev (%x) pos (%d)", this, pos);
+//	printf(" >chardev_file_seek: dev (%x) pos (%d)", this, pos);
 	chardev_file* file = (chardev_file*) this;
 	uint_32 s; //Temporario para cuentas
 	uint_32 c; //Índice en la lista de segundas indirecciones
 	if (pos < 7 * FAT12_SECT_SIZE) { //La posición está en los primeros 7 sectores
-		printf(" >chardev_file_seek: pos is of the first 7 sectors.");
+//		printf(" >chardev_file_seek: pos is of the first 7 sectors.");
 		file->cur_sectors = NULL;
 		file->cur_page = (uint_32*) this;
 	} else if (pos < (7 + DEV_FILE_FIRST_LVL_PAGES * FAT12_SECT_PER_PAGE) * FAT12_SECT_SIZE) {
-		printf(" >chardev_file_seek: pos is greater than 7 sectors but less than %d sectors.", DEV_FILE_FIRST_LVL_PAGES);
+//		printf(" >chardev_file_seek: pos is greater than 7 sectors but less than %d sectors.", DEV_FILE_FIRST_LVL_PAGES);
 		//La posición está en la primer indirección
 		file->cur_sectors = NULL;
 		file->cur_page = file->data_pages[(pos - 7 * FAT12_SECT_SIZE) / (FAT12_SECT_SIZE * FAT12_SECT_PER_PAGE)];
 	} else {
-		printf(" >chardev_file_seek: pos is greater than 7 + %d sectors.", DEV_FILE_FIRST_LVL_PAGES);
+//		printf(" >chardev_file_seek: pos is greater than 7 + %d sectors.", DEV_FILE_FIRST_LVL_PAGES);
 		//La posición está en la segunda indirección
 		s = pos - (7 + DEV_FILE_FIRST_LVL_PAGES * FAT12_SECT_PER_PAGE) * FAT12_SECT_SIZE;
 		c = s / (DEV_FILE_SECND_LVL_PAGES * FAT12_SECT_SIZE * FAT12_SECT_SIZE);
@@ -428,20 +428,20 @@ uint_16 fat12_next_sector(fat12_entry* fat, uint_16 index) {
 
 int fat12_find_file(fat12* fat, const char* filename, dir_entry* entry) {
 	//TODO: Solo recorre el root sector
-	// char name[8+3+2];
-	// name[8] = '.';
-	// name[8+3+1] = '\0';
-	// int j;
+//	 char name[8+3+2];
+//	 name[8] = '.';
+//	 name[8+3+1] = '\0';
+//	 int j;
 	int i;
 	dir_entry* dir = fat->cache->root_dir;
 	for (i = 0; i < fat->boot_sect.MaxRootEntries; i++) {
 		if (!isFile(dir[i]))
 			continue; //No es archivo, sigo
-		// for (j = 0; j < 8; j++)
-		// name[j]= dir[i].Filename[j];
-		// for (j = 0; j < 3; j++)
-		// name[9+j] = dir[i].Extension[j];
-		// printf(" >fat12_find_dir: Es archivo %s", name);
+//		 for (j = 0; j < 8; j++)
+//			name[j] = dir[i].Filename[j];
+//		for (j = 0; j < 3; j++)
+//		 name[9+j] = dir[i].Extension[j];
+//		 printf(" >fat12_find_dir: Es archivo %s", name);
 		if (!strncmp(filename, dir[i].Filename, min(8, strchr(filename, '.'))) && !strncmp(filename + strchr(filename, '.') + 1, dir[i].Extension, 3)) {
 			// ) {
 			//Si es el que busco termino

@@ -47,11 +47,8 @@ void kernel_init(void) {
   fat12_init();
   fs_init();
 
-
-  logs("1234567890abcdefghijklmn\n\r", 26);
-
   // clear_screen();
-  // loader_load(&task_taskinit_pso, 0);
+   loader_load(&task_taskinit_pso, 0);
 
 //  loader_load(&task_task2_pso, 0);
   //  int i = 0;
