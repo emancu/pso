@@ -147,9 +147,10 @@ void loader_unqueue(int* cola) {
 void loader_exit(void) {
   device_release_devices(cur_pid);
   mm_dir_free((mm_page*) task_table[cur_pid].cr3);
-  loader_switchto(sched_exit());
   free_pid(cur_pid);
   tasks_running--;
+
+  loader_switchto(sched_exit());
 }
 
 uint_32 get_new_pid(void) {
@@ -171,13 +172,12 @@ uint_32 sys_getpid(void) {
   return cur_pid;
 }
 
-
-uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp){
+uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
   //me guardo el cr3 viejo.
   uint_32 old_cr3 = rcr3();
 
   //pido un directorio para la nueva tarea
-  void* new_cr3 = mm_dir_fork((mm_page*)old_cr3);
+  void* new_cr3 = mm_dir_fork((mm_page*) old_cr3);
   if (new_cr3 == NULL) //No pudo hacerse fork de la estrucutra de paginación
     return -1;
 

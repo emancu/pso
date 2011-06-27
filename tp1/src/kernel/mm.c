@@ -61,7 +61,7 @@ void mm_table_free(mm_page* d) {
     for (i = 0; i < TABLE_ENTRY_NUM; i++) {
       if (d[i].attr & MM_ATTR_P) { // La página está mappeada
         mm_mem_free((mm_page*)(d[i].base << 12));
-        d[i].attr &= ~MM_ATTR_P;
+//        d[i].attr &= ~MM_ATTR_P;
       }
     }
 }
@@ -76,11 +76,11 @@ void mm_dir_free(mm_page* d) {
   for (i = 1; i < TABLE_ENTRY_NUM; i++) {
     if (d[i].attr & MM_ATTR_P) { // Si está presente entro recursivamente a borrar
       mm_table_free((void*)(d[i].base << 12)); // Libero las tablas
-      d[i].attr &= ~MM_ATTR_P; // La marco como no presente (al pedo?)
+//      d[i].attr &= ~MM_ATTR_P; // La marco como no presente (al pedo?)
       mm_mem_free((void*)(d[i].base << 12)); // Marco como libre el page frame donde estaba la tabla
     }
   }
-  d[0].attr &= ~MM_ATTR_P;
+//  d[0].attr &= ~MM_ATTR_P;
   mm_mem_free((void*)((int)d & ~0xFFF)); // Marco como libre el page frame donde está este directorio
   tlbflush();
 }
@@ -287,8 +287,16 @@ void* sys_palloc() {
   //printf("LLAMARON A PALLOC");
 }
 
+void isr_page_fault_c() {
+  uint_32 page_fault_address = rcr2();
+  printf("page fault in addr: %x" , page_fault_address);
+  breakpoint();
+  outb(0x20,0x20);
+}
+
 extern void* _end; // Puntero al fin del c'odigo del kernel.bin (definido por LD).
 void mm_init(void) {
+	idt_register(0x0e, &isr_page_fault, 0);
     int i = 0;
 //    printf("Initializing memory managment unit...\n");
     usr_pf_limit = (uint_32)memory_detect((uint_32*)USR_MEM_START, PAGE_SIZE);

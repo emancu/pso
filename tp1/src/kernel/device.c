@@ -16,6 +16,7 @@ int device_descriptor(chardev* dev) {
     return -ENOSYS;
 
   char_devices[cur_pid][new_file_descriptor] = dev;
+  printf("es %d" , dev->refcount);
   dev->refcount++;
   return new_file_descriptor;
 }
