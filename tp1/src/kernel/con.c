@@ -9,7 +9,7 @@
  */
 
 static uint_8* calculate_video_position(const chardev_console* this_chardev_console) {
-  return (uint_8*) (this_chardev_console->console_screen + vga_cols * 2 * this_chardev_console->fila + this_chardev_console->columna * 2);
+	return (uint_8*) (this_chardev_console->console_screen + vga_cols * 2 * this_chardev_console->fila + this_chardev_console->columna * 2);
 }
 
 /*
@@ -198,6 +198,7 @@ chardev* con_open(void) {
 extern pso_file task_task1_pso;
 
 sint_32 sys_run(const char* archivo) {
+
   int j = 0;
 
   for(j = 0; j < CON_BUFF_SIZE ; j++){
@@ -219,27 +220,28 @@ sint_32 sys_run(const char* archivo) {
   return -1;
 
   //en archivo viene todo el comando que mando el usuario. ej: run task1.pso
+
 }
 
 void move_to_right_console() {
-  if (current_console != 0x0) {
-    copy_screen_to_memory((uint_8*) current_console->console_screen);
-    copy_memory_to_screen((uint_8*) current_console->next->console_screen);
-    current_console = current_console->next;
-  }
+	if (current_console != 0x0) {
+		copy_screen_to_memory((uint_8*) current_console->console_screen);
+		copy_memory_to_screen((uint_8*) current_console->next->console_screen);
+		current_console = current_console->next;
+	}
 }
 
 void move_to_left_console() {
-  copy_screen_to_memory((uint_8*) current_console->console_screen);
-  if (current_console != 0x0) {
-    copy_memory_to_screen((uint_8*) current_console->prev->console_screen);
-    current_console = current_console->prev;
-  }
+	copy_screen_to_memory((uint_8*) current_console->console_screen);
+	if (current_console != 0x0) {
+		copy_memory_to_screen((uint_8*) current_console->prev->console_screen);
+		current_console = current_console->prev;
+	}
 }
 
 void move_to_empty_console() {
-  copy_memory_to_screen((uint_8*) empty_console->console_screen);
-  current_console = empty_console;
+	copy_memory_to_screen((uint_8*) empty_console->console_screen);
+	current_console = empty_console;
 }
 
 /*
@@ -274,13 +276,13 @@ void console_keyPressed(sint_16 tecla) {
 }
 
 void set_console_style(chardev_console* console, uint_8 style) {
-  console->style = style;
-  int i;
-  for (i = 1; i < 4000; i += 2)
-    console->console_screen[i] = style;
+	console->style = style;
+	int i;
+	for (i = 1; i < 4000; i += 2)
+		console->console_screen[i] = style;
 
-  if (current_console == console)
-    copy_memory_to_screen((uint_8 *) console->console_screen);
+	if (current_console == console)
+		copy_memory_to_screen((uint_8 *) console->console_screen);
 }
 
 uint_8 getc(uint_16 scan_code) {

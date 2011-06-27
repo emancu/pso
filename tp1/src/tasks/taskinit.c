@@ -7,8 +7,10 @@
 int idx;
 
 int main(void) {
+
   char command[14] = "run task1.pso";
   run(command);
   // void* p = palloc();
+  exit();
   return 0;
 }

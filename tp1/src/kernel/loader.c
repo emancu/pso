@@ -37,6 +37,7 @@ void loader_init(void) {
 }
 
 pid loader_load(pso_file* f, int pl) {
+
   //me guardo el cr3 viejo.
   uint_32 old_cr3 = rcr3();
 
@@ -77,6 +78,7 @@ pid loader_load(pso_file* f, int pl) {
   mm_page_map((uint_32) KERNEL_TEMP_PAGE,(mm_page *) old_cr3, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
   tlbflush();
 
+
   //copio la tarea desde donde esta a la pagina que acabo de mapear.
   uint_8* addr_to_copy = (uint_8*) KERNEL_TEMP_PAGE;
   uint_8* task_to_copy = (uint_8*) f;
@@ -92,8 +94,8 @@ pid loader_load(pso_file* f, int pl) {
   task_table[requested_pid].cr3 = (uint_32) task_dir;
   task_table[requested_pid].esp0 = STACK_0_VIRTUAL + 0xFD8;
 
-  mm_page_free(KERNEL_TEMP_PAGE,(mm_page *) old_cr3);
 
+  mm_page_free(KERNEL_TEMP_PAGE,(mm_page *) old_cr3);
   tlbflush();
 
   sched_load(requested_pid);
@@ -154,6 +156,7 @@ void loader_exit(void) {
   loader_switchto(sched_exit());
   free_pid(cur_pid);
   tasks_running--;
+
 }
 
 uint_32 get_new_pid(void) {
@@ -172,18 +175,18 @@ void free_pid(uint_32 pid) {
  */
 
 uint_32 sys_getpid(void) {
-  return cur_pid;
+	return cur_pid;
 }
 
+uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
+	//me guardo el cr3 viejo.
+	uint_32 old_cr3 = rcr3();
 
-uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp){
-  //me guardo el cr3 viejo.
-  uint_32 old_cr3 = rcr3();
+	//pido un directorio para la nueva tarea
+	void* new_cr3 = mm_dir_fork((mm_page*) old_cr3);
+	if (new_cr3 == NULL) //No pudo hacerse fork de la estrucutra de paginación
+		return -1;
 
-  //pido un directorio para la nueva tarea
-  void* new_cr3 = mm_dir_fork((mm_page*)old_cr3);
-  if (new_cr3 == NULL) //No pudo hacerse fork de la estrucutra de paginación
-    return -1;
 
    //stacks de anillo 3 y 0 para la tarea
   void* task_stack3 = mm_mem_alloc();
@@ -214,16 +217,19 @@ uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp){
   //Copio la pila de usuario como está
   mm_copy_vf((uint_32*)STACK_3_VIRTUAL, (uint_32)task_stack3, PAGE_SIZE);
 
-  mm_page_free(KERNEL_TEMP_PAGE, (mm_page*) old_cr3);
-  tlbflush();
+
+	mm_page_free(KERNEL_TEMP_PAGE, (mm_page*) old_cr3);
+	tlbflush();
+
 
   //tengo que armar la estructura de proceso
   uint_32 requested_pid = get_new_pid();
   task_table[requested_pid].cr3 = (uint_32) new_cr3;
   task_table[requested_pid].esp0 = STACK_0_VIRTUAL + 0xFD8;
 
-  //Duplico los file descriptor actualizando referencias
-  device_fork_descriptors(cur_pid, requested_pid);
+	//Duplico los file descriptor actualizando referencias
+	device_fork_descriptors(cur_pid, requested_pid);
+
 
   // esto esta mal.. tiene q decidir q numero devolver creo q necesitamos un semaforo!
   sched_load(requested_pid);
@@ -232,6 +238,6 @@ uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp){
 }
 
 void sys_exit(void) {
-  loader_exit();
+	loader_exit();
 }
 
