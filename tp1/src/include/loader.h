@@ -25,6 +25,10 @@ typedef struct str_task {
 extern task task_table[];
 extern uint_32 cur_pid;
 
+/* For Status bar, keeps a sum of running and blocked tasks */
+extern uint_32 tasks_running;
+extern uint_32 tasks_blocked;
+
 /* Funciones */
 void loader_init(void);
 

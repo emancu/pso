@@ -48,7 +48,6 @@ void sched_load(pid pd) {
 }
 
 void sched_unblock(pid pd) {
-//	breakpoint();
   tasks[pd].state = STATE_RUNNING;
   if( current_pid == 0){
     tasks[pd].next = pd;
@@ -87,7 +86,6 @@ int sched_exit() {
 }
 
 int sched_block() {
-//	breakpoint();
   quantum = QUANTUM;
   if (tasks[current_pid].next == current_pid){
     // Es el ultimo elemento en la cola
