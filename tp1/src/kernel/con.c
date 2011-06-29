@@ -206,6 +206,7 @@ sint_32 sys_run(const char* archivo) {
     str_into_string(fileFullPath, &i, archivo + 4);
     str_convert_to_mayus(fileFullPath, 6, strlen(fileFullPath));
     chardev_file* file_char_dev = (chardev_file*) fs_open(fileFullPath, 0x3);
+    printf("Filename %s", fileFullPath);
     if (file_char_dev != NULL) {
       char * dir = ((char *) file_char_dev) + 0x200;
       return loader_load((pso_file *) dir, 0);
