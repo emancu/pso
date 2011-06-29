@@ -5,6 +5,10 @@
 #include <tss.h>
 #include <syscalls.h>
 #include <device.h>
+#include <vga.h>
+#include <mm.h>
+#include <sched.h>
+#include <i386.h>
 
 #define PID_IDLE_TASK 0
 #define MAX_PID 32

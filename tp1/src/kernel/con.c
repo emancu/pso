@@ -24,12 +24,7 @@ char block[3] = { 219, '\0', ' ' };
 #define BLOCK_NO_BLINK VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT | VGA_FC_WHITE
 #define BLOCK_BLINK VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT | VGA_FC_BLINK
 
-//  *video++ = 219; // ASCII for a block (full-filled '_')
-//  *video++ = VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT | VGA_FC_BLINK;
-
 void con_init() {
-  // NOTE: Borrar linea al pedo
-  // current_console = 0x0;
   empty_console = (chardev_console*) con_open();
   set_console_style(empty_console, VGA_BC_RED | VGA_FC_GREEN | VGA_FC_LIGHT);
   current_console = 0x0;
@@ -67,7 +62,7 @@ sint_32 con_read(chardev* this, void* buf, uint_32 size) {
     this_chardev_console->buff_index_start = (this_chardev_console->buff_index_start + 1) % CON_BUFF_SIZE;
   }
 
-//  !todo chequear el race condition
+  //TODO: chequear el race condition
   this_chardev_console->buff_cant -= size;
   this_chardev_console->read_expected = 0;
   return 0;
@@ -82,7 +77,6 @@ sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
   uint_8* screen_limit = (uint_8*) (this_chardev_console->console_screen + 4000);
 
   while (str < size && video < screen_limit) {
-    //en realidad este \n no va a venir en la consola porque se va a mandar a ejecutar...
     if (char_buf[str] == '\n') { //Avanzo una línea el puntero
       write_in_console(this_chardev_console, &block[2], BLOCK_NO_BLINK, 1);
       this_chardev_console->fila++;
@@ -197,28 +191,27 @@ chardev* con_open(void) {
 
 extern pso_file task_task1_pso;
 
+/* @archivo = "run task1.pso" */
 sint_32 sys_run(const char* archivo) {
-  int j = 0;
-
-  for(j = 0; j < CON_BUFF_SIZE ; j++){
-    current_console->buff[j] = '\0';
-  }
-  int i = 6;
-  char command[50] = "run ";
   char fileFullPath[50] = "/disk/";
+  char command[4] = "run ";
+  int i;
+
+  for(i = 0; i < CON_BUFF_SIZE ; i++){
+    current_console->buff[i] = '\0';
+  }
+
+  i=6;
   if (!strncmp(command, archivo, 4)) {
     str_into_string(fileFullPath, &i, archivo + 4);
     str_convert_to_mayus(fileFullPath, 6, strlen(fileFullPath));
     chardev_file* file_char_dev = (chardev_file*) fs_open(fileFullPath, 0x3);
-    debugEnabled = 1;
     if (file_char_dev != NULL) {
       char * dir = ((char *) file_char_dev) + 0x200;
       return loader_load((pso_file *) dir, 0);
     }
   }
   return -1;
-
-  //en archivo viene todo el comando que mando el usuario. ej: run task1.pso
 }
 
 void move_to_right_console() {

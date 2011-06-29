@@ -1,8 +1,4 @@
-#include <idt.h>
 #include <sched.h>
-#include <loader.h>
-#include <vga.h>
-
 
 #define STATE_RUNNING 0
 #define STATE_BLOCKED 1

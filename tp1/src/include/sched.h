@@ -1,16 +1,14 @@
 #ifndef __SCHED_H__
 #define __SCHED_H__
 
+#include <idt.h>
+#include <vga.h>
 #include <tss.h>
 #include <tipos.h>
+#include <loader.h>
 #include <syscalls.h>
 
-
-int debugEnabled;
-
 #ifdef __KERNEL__
-
-
 
 void sched_init(void);
 
@@ -20,7 +18,6 @@ void sched_unblock(pid);
 int sched_exit();
 int sched_block();
 int sched_tick();
-
 
 // Auxiliar
 void configure_task(pid, int, pid, pid);

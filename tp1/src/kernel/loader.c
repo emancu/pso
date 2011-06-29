@@ -1,8 +1,4 @@
 #include <loader.h>
-#include <vga.h>
-#include <mm.h>
-#include <sched.h>
-#include <i386.h>
 
 task task_table[MAX_PID];
 uint_32 cur_pid;
