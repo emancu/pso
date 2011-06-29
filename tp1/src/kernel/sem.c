@@ -1,4 +1,5 @@
 #include <sem.h>
+#include <loader.h> //NOTE: Si muevo el loader.h al sem.h no me deja compilar
 
 void sem_init() {
 }
