@@ -8,7 +8,7 @@ MKFS=/sbin/mkfs.vfat
 
 # Parámetros de programas
 NASMFLAGS=-I include/ -g -ggdb -D__KERNEL__
-CFLAGS=-m32 -g -ggdb -Wall -Werror  -O0 -I include/ \
+CFLAGS=-m32 -g -ggdb -Wall   -O0 -I include/ \
   -fno-zero-initialized-in-bss -fno-stack-protector -fno-strict-aliasing -ffreestanding -D__KERNEL__
 CXXFLAGS=-O2
 LDFLAGS=-static -m elf_i386 -nostdlib
@@ -35,7 +35,7 @@ DUMP_KERN=$(DIROUT)kernel.bin.asm $(DIROUT)kernel.bin.elf $(DIROUT)kernel.bin.db
 SYM_KERN=$(DIROUT)kernel.sym
 
 # Tareas
-TASKS=tasks/task1.pso tasks/taskinit.pso tasks/fork.pso
+TASKS=tasks/task1.pso tasks/taskinit.pso tasks/fork.pso tasks/memoryd.pso
 TASKS_ELF:=$(TASKS:.pso=.elf)
 OBJS_TASKS:=$(TASKS:.pso=.o) tasks/pso_head.o tasks/pso_tail.o tasks/syscalls.o
 

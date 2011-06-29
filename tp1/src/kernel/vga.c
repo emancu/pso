@@ -78,7 +78,7 @@ void printf(const char* fmt, ...) {
   sprintf_in(buff, fmt, argp);
 
   if( ENABLE_SERIAL_DEBUG ){
-    logs(buff, amount);
+    logs(buff, amount + 1);
   }else{
     if (fila == vga_rows) {
       fila--;

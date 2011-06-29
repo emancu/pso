@@ -5,6 +5,9 @@
 #include <vga.h>
 #include <syscalls.h>
 
+#define MM_ATTR_REQ     0x002 // Requested
+
+
 #define MM_ATTR_P     0x001 // Present
 #define MM_ATTR_RW    0x002 // Read/Write
 #define MM_ATTR_RW_R  0x000 //

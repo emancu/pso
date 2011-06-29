@@ -9,7 +9,7 @@ syscall_dir: resq 1
 
 isr_define_ep isr_timerTick, isr_timerTick_c
 isr_define_ep isr_keyboard, isr_keyboard_c
-isr_define_ep isr_page_fault, isr_page_fault_c
+isr_define_page_handler isr_page_fault, isr_page_fault_c
 isr_define_ep isr_fdd, isr_fdd_c, 38
 
 

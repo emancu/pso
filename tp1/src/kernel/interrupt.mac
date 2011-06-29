@@ -26,6 +26,31 @@
 
 %endmacro
 
+;Este macro se encarga de definir la entrada %1 que llama a la función
+;%2 de C considerando que no hubo error code y el privilegio es 0
+;El tercer parámetro es opcional y especifica el número de interrupción (default -1)
+%macro isr_define_page_handler 2-3 -1
+[GLOBAL %1]
+[EXTERN %2]
+  %1:
+    cli
+    pop edi ;me guardo el error code TODO REVISAR ESTE MANEJO DEL ERROR CODE
+    pushad
+    
+    mov dword [error_num], %3
+
+    push edi
+    ;llamamos a la rutina en C
+    call %2
+
+    mov dword [error_num], -1
+    pop edi ;saco el error code
+    popad
+    sti
+    iret
+
+%endmacro
+
 ;Este macro declara la llamada a debug_kernelpanic con los parámetros adecuados
 ;Considera que no hay código de error
 ;Recibe un nombre de etiqueta de la función y un número de error
