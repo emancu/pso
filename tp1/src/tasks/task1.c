@@ -25,15 +25,10 @@ int main(void) {
 	while (1) {
 		read(fd, msg, 1);
 		if (msg[0] == '\n') {
-			exit();
 			runResult = run(command);
-			for (i = 0; i < 100; i++) {
-				command[i] = '\0';
-			}
 			idx = 0;
 			if (runResult < 0) {
 				write(fd, enter, 1);
-				write(fd,command,100);
 				write(fd, invalidCommand, 17);
 			}
 			write(fd, enter, 1);
@@ -46,7 +41,6 @@ int main(void) {
 			} else {
 				if (idx != 0) {
 					command[--idx] = '\0';
-					idx--;
 				}
 
 			}

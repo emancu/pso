@@ -41,6 +41,7 @@ pid loader_load(pso_file* f, int pl) {
 
   //TODO VER CUANTA MEMORIA NECESITA REALMENTE
   void* puntero_page_tarea = mm_mem_alloc();
+  printf("puntero page tarea : %x", (uint_32) puntero_page_tarea);
 
   //stacks de anillo 3 y 0 para la tarea
   void* task_stack3 = mm_mem_alloc();
