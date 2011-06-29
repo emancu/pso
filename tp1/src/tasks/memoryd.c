@@ -6,10 +6,11 @@
 
 int main(void) {
 	// char buff[10];
-	int tmp = 0;
-	for (tmp = 0; tmp < 1027; tmp++) {
+	int tmp = 1026;
+	for (tmp = 1026; tmp < 1027; tmp++) {
 		int* p = (int *) palloc();
 		*p = 5;
+		share_page(p);
 	}
 
 	breakpoint();

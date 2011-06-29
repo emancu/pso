@@ -256,8 +256,6 @@ void* sys_palloc() {
   // para saber si voy necesitar una página de kernel.
   mm_page* dir = (mm_page*) rcr3();
   mm_page* table;
-  void* kernel_page;
-  void* usr_page = mm_mem_alloc();
   int i, j, virtual;
 
   //  if (usr_page == NULL)
@@ -275,9 +273,7 @@ void* sys_palloc() {
             //El índice de directorio me dice cuandos bloques de 4mb avancé, el de la tabla me dice cuantos de 4kb
             table[j].attr = MM_ATTR_REQ;
             virtual = PAGE_SIZE * TABLE_ENTRY_NUM * i + PAGE_SIZE * j;
-            //            if (NULL != mm_page_map(virtual, dir, (uint_32) usr_page, 0, USR_STD_ATTR))
             return (void*) virtual; // Devuelvo la dirección virtual a la que lo mapeé si está todo en orden.
-            return NULL;
           }
         }
       } else {
@@ -286,21 +282,34 @@ void* sys_palloc() {
     } else { // Si encuentro una entrada de directorio libre, necesito una nueva página de kernel
       // printf("sys_palloc - dir[%d] no presente", i);
 
-      //todo tengo que ver si no esta solicitada???!!!!
-
-
-      dir[i].attr = MM_ATTR_REQ;
-      virtual = PAGE_SIZE * TABLE_ENTRY_NUM * i;
-      //      kernel_page = mm_page_map(virtual, dir, (uint_32)usr_page, 0, USR_STD_ATTR);
-      //      if (kernel_page == NULL) { // Falló el prceso de mapeo a causa de falta de páginas de kernel
-      //        mm_mem_free(usr_page); //Rollbackeo el proceso, devuelvo la página de usuario
-      //        return NULL;
-      //      }
-      return (void*) virtual;
+      if (!(dir[i].attr & MM_ATTR_REQ)) {
+        dir[i].attr = MM_ATTR_REQ;
+        virtual = PAGE_SIZE * TABLE_ENTRY_NUM * i;
+        return (void*) virtual;
+      }
     }
   }
   return NULL; // Se llega aquí si el mapa de memoria del cr3 actual está completo
   //printf("LLAMARON A PALLOC");
+}
+
+sint_32 mm_share_page(void* page) {
+  uint_32 cr3 = rcr3();
+  printf("page to share: %x" , (uint_32) page);
+  uint_32 base_dir = ((int) cr3) & ~0xFFF;
+  uint_32 page_to_share = (uint_32) page;
+
+  uint_32 ind_td = page_to_share >> 22;
+  uint_32 ind_tp = (page_to_share << 10) >> 22;
+  uint_32* desc_dir = (uint_32 *) (base_dir + (ind_td * 4));
+
+  //!todo ver temas privilegio (y ver si esta presente y eso)
+  //obtengo el PTE
+
+  uint_32* ptr_desc_tabla = (uint_32*) (((*desc_dir & ~0xFFF) + (ind_tp * 4)));
+  printf("dir anted se shared: %x" , *ptr_desc_tabla);
+  *ptr_desc_tabla |= MM_ATTR_SH;
+  printf("dir dps se shared: %x" , *ptr_desc_tabla);
 }
 
 void isr_page_fault_c(uint_32 error_code) {
@@ -346,9 +355,9 @@ void isr_page_fault_c(uint_32 error_code) {
   //obtengo el PTE
   uint_32 * tmp_pointer = (uint_32 *) desc_dir;
   mm_page* ptr_desc_tabla = (mm_page*) (((*tmp_pointer & ~0xFFF) + (ind_tp * 4)));
-//  printf("base in table dir %x", (*ptr_desc_tabla).base);
-//  printf("attributes in table dir %x", (*ptr_desc_tabla).attr);
-//  printf("attribute");
+  //  printf("base in table dir %x", (*ptr_desc_tabla).base);
+  //  printf("attributes in table dir %x", (*ptr_desc_tabla).attr);
+  //  printf("attribute");
 
   //me fijo si el PTE esta presente
   if (!((*ptr_desc_tabla).attr & MM_ATTR_P)) {
@@ -393,5 +402,6 @@ void mm_init(void) {
   //Registro palloc como syscall 0x30
   // printf("Registering system function sys_palloc...");
   syscall_list[0x30] = (uint_32) &sys_palloc;
+  syscall_list[0x40] = (uint_32) &mm_share_page;
   // printf("Done.");
 }
