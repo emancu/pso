@@ -116,7 +116,7 @@ sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
 }
 
 void write_in_console(chardev_console* this_console, const char* msg, uint_8 style, uint_8 cant) {
-  char * addr = (current_console == this_console)? (char *) vga_addr : (char *) &this_console->console_screen;
+  char * addr = (current_console == this_console) ? (char *) vga_addr : (char *) &this_console->console_screen;
   vga_write_in_memory(addr, &this_console->fila, &this_console->columna, msg, style, cant);
 }
 

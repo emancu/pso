@@ -61,13 +61,13 @@ mm_page* mm_dir_new(void) {
 }
 
 void mm_table_free(mm_page* d) {
-    int i = 0;
-    for (i = 0; i < TABLE_ENTRY_NUM; i++) {
-      if (d[i].attr & MM_ATTR_P) { // La página está mappeada
-        mm_mem_free((mm_page*)(d[i].base << 12));
-//        d[i].attr &= ~MM_ATTR_P;
-      }
+  int i = 0;
+  for (i = 0; i < TABLE_ENTRY_NUM; i++) {
+    if (d[i].attr & MM_ATTR_P) { // La página está mappeada
+      mm_mem_free((mm_page*) (d[i].base << 12));
+      //        d[i].attr &= ~MM_ATTR_P;
     }
+  }
 }
 
 // Acá tengo que liberar los page frames en espacio de usuario y en espacio de kernel
@@ -79,13 +79,13 @@ void mm_dir_free(mm_page* d) {
   int i = 0;
   for (i = 1; i < TABLE_ENTRY_NUM; i++) {
     if (d[i].attr & MM_ATTR_P) { // Si está presente entro recursivamente a borrar
-      mm_table_free((void*)(d[i].base << 12)); // Libero las tablas
-//      d[i].attr &= ~MM_ATTR_P; // La marco como no presente (al pedo?)
-      mm_mem_free((void*)(d[i].base << 12)); // Marco como libre el page frame donde estaba la tabla
+      mm_table_free((void*) (d[i].base << 12)); // Libero las tablas
+      //      d[i].attr &= ~MM_ATTR_P; // La marco como no presente (al pedo?)
+      mm_mem_free((void*) (d[i].base << 12)); // Marco como libre el page frame donde estaba la tabla
     }
   }
-//  d[0].attr &= ~MM_ATTR_P;
-  mm_mem_free((void*)((int)d & ~0xFFF)); // Marco como libre el page frame donde está este directorio
+  //  d[0].attr &= ~MM_ATTR_P;
+  mm_mem_free((void*) ((int) d & ~0xFFF)); // Marco como libre el page frame donde está este directorio
   tlbflush();
 }
 
@@ -367,13 +367,6 @@ void isr_page_fault_c(uint_32 error_code) {
   }
 
   outb(0x20, 0x20);
-}
-
-void isr_page_fault_c() {
-  uint_32 page_fault_address = rcr2();
-  printf("page fault in addr: %x" , page_fault_address);
-  breakpoint();
-  outb(0x20,0x20);
 }
 
 extern void* _end; // Puntero al fin del c'odigo del kernel.bin (definido por LD).

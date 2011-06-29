@@ -34,6 +34,7 @@ void loader_init(void) {
 
 pid loader_load(pso_file* f, int pl) {
 
+
   //me guardo el cr3 viejo.
   uint_32 old_cr3 = rcr3();
 
@@ -85,6 +86,7 @@ pid loader_load(pso_file* f, int pl) {
   for (i = 0; i < cant_to_copy; i++) {
     *addr_to_copy++ = *task_to_copy++;
   }
+
 
   //tengo que armar la estreuctura
   uint_32 requested_pid = get_new_pid();
