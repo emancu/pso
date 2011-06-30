@@ -16,18 +16,10 @@ int main(void) {
   int pid = fork();
 
   if(pid == 0){
-    while(1){
-      *p = *p % 10;
-    }
   }else{
-    while(tmp > 0){
-      *p += 32;
-      tmp = 0;
-    }
+    *p += 32;
   }
 
-  while(1){
-  }
-
+  exit();
   return 0;
 }

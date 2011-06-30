@@ -23,6 +23,8 @@ void loader_init(void) {
   //NOTE: Deberiamos contar la IDLE Task?
   tasks_running = tasks_blocked = 0;
 
+  for(i=0; i < MAX_PID; i++)
+    task_table[i].cr3 = NULL;
   //hay que generar la tarea actual.. que dps se convierte en idle
   task_table[0].cr3 = rcr3();
 
@@ -150,8 +152,9 @@ void loader_unqueue(int* cola) {
 
 void loader_exit(void) {
   device_release_devices(cur_pid);
-  // mm_dir_free((mm_page*) task_table[cur_pid].cr3);
+  mm_dir_free((mm_page*) task_table[cur_pid].cr3);
   free_pid(cur_pid);
+  task_table[cur_pid].cr3 = NULL;
   tasks_running--;
 
   loader_switchto(sched_exit());

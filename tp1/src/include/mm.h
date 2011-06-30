@@ -4,6 +4,7 @@
 #include <tipos.h>
 #include <vga.h>
 #include <syscalls.h>
+#include <loader.h>
 
 #define MM_ATTR_REQ    0x002 // Requested
 #define MM_ATTR_SH     0x200 // Requested
@@ -81,6 +82,9 @@ void mm_init(void);
 void* mm_mem_alloc();
 void* mm_mem_kalloc();
 void mm_mem_free(void* page);
+
+void mm_table_free(mm_page* t, int dir_index);
+uint_32 mm_times_mapped(uint_32 physical_addr, int dir_index, int table_index);
 
 extern void isr_page_fault();
 
