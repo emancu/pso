@@ -186,13 +186,20 @@ void* mm_page_fork(uint_32 dir_entry, uint_32* page_table, uint_32* new_table) {
   for (page_index = 0; page_index < TABLE_ENTRY_NUM; page_index++) {
     if (page_table[page_index] & MM_ATTR_P) { //La entrada es válida
       printf(" >mm_page_fork: present entry (%d)", page_index);
-      dest_page = mm_mem_alloc(); //Pido una página nueva para el usuario
-      if (dest_page == NULL) { //No hay más páginas
-        return NULL;
+      //ver si esta shared o no??
+      if (page_table[page_index] & MM_ATTR_SH) {
+        printf(" >mm_page_fork: pagina shared emiliano gay!!!");
+        printf("dir shared = %x", (uint_32*) (dir_entry * DIR_SIZE + page_index * PAGE_SIZE));
+        new_table[page_index] = page_table[page_index];
+      } else {
+        dest_page = mm_mem_alloc(); //Pido una página nueva para el usuario
+        if (dest_page == NULL) { //No hay más páginas
+          return NULL;
+        }
+        mm_copy_vf((uint_32*) (dir_entry * DIR_SIZE + page_index * PAGE_SIZE), (uint_32) dest_page, PAGE_SIZE); //Copio el contenido de la página
+        //Mapeo en la nueva estructura copiando los atributos
+        new_table[page_index] = ((uint_32) dest_page & ~0xFFF) | (page_table[page_index] & 0xFFF);
       }
-      mm_copy_vf((uint_32*) (dir_entry * DIR_SIZE + page_index * PAGE_SIZE), (uint_32) dest_page, PAGE_SIZE); //Copio el contenido de la página
-      //Mapeo en la nueva estructura copiando los atributos
-      new_table[page_index] = ((uint_32) dest_page & ~0xFFF) | (page_table[page_index] & 0xFFF);
     }
   }
   return new_table;
@@ -202,6 +209,7 @@ void* mm_page_fork(uint_32 dir_entry, uint_32* page_table, uint_32* new_table) {
 mm_page* mm_dir_fork(mm_page* cr3) {
   uint_32* old_cr3 = (uint_32*) cr3;
   uint_32* new_cr3 = (uint_32*) mm_dir_new(); //Obtengo un nuevo directorio
+  printf("new cr3 = %x" , new_cr3);
   if (new_cr3 == NULL) //No pudo tener un nuevo directorio, fallé
     return NULL;
 
@@ -295,7 +303,7 @@ void* sys_palloc() {
 
 sint_32 mm_share_page(void* page) {
   uint_32 cr3 = rcr3();
-  printf("page to share: %x" , (uint_32) page);
+  printf("page to share: %x", (uint_32) page);
   uint_32 base_dir = ((int) cr3) & ~0xFFF;
   uint_32 page_to_share = (uint_32) page;
 
@@ -304,12 +312,12 @@ sint_32 mm_share_page(void* page) {
   uint_32* desc_dir = (uint_32 *) (base_dir + (ind_td * 4));
 
   //!todo ver temas privilegio (y ver si esta presente y eso)
-  //obtengo el PTE
 
+  //obtengo el PTE
   uint_32* ptr_desc_tabla = (uint_32*) (((*desc_dir & ~0xFFF) + (ind_tp * 4)));
-  printf("dir anted se shared: %x" , *ptr_desc_tabla);
+  printf("dir anted se shared: %x", *ptr_desc_tabla);
   *ptr_desc_tabla |= MM_ATTR_SH;
-  printf("dir dps se shared: %x" , *ptr_desc_tabla);
+  printf("dir dps se shared: %x", *ptr_desc_tabla);
 }
 
 void isr_page_fault_c(uint_32 error_code) {
