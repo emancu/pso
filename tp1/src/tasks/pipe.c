@@ -22,8 +22,9 @@ int main(void) {
     close(pipes[1]); //Ciero escritura
     char* buf[3];
     for (i = 0; i < 18; i++) {
-      read(pipes[0], buf, 1);
-      write(con, buf, 1);
+      pid = read(pipes[0], buf, 5);
+      write(con, buf, pid);
+      i -= (5 - pid);
     }
   }
   //breakpoint();

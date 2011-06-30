@@ -117,10 +117,12 @@ sint_32 pipe_read(chardev* this, void* buf, uint_32 size) {
     printf(" >pipe_read: tome el mutex @ pipe %x", this);
     //Una vez liberado puede que el pipe de escritura esté esperando espacio, copio lo que puedo
     // pipe->busy = 0; //Ya terminé de esperar
-    if (other->busy)
-      total_to_copy = min(pipe->buffer_cant, size);
-    else
-      total_to_copy = size;
+
+    // if (other->busy) // Esto asume que size < buffer_size
+      // total_to_copy = min(pipe->buffer_cant, size);
+    // else
+      // total_to_copy = size;
+    total_to_copy = min(pipe->buffer_cant, size);
   }
   for (i = 0; i < total_to_copy; i++) { //Leo la cantidad que me interesa
     buffer[i] = pipe->buffer[pipe->cursor];
