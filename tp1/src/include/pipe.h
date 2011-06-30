@@ -12,7 +12,7 @@
 #define PIPE_ERROR_NOPIPE -5
 #define PIPE_ERROR_CLOSED -6
 
-#define PIPE_BUFF_SIZE 2
+#define PIPE_BUFF_SIZE SECTOR_SIZE*6
 
 /* pipedev */
 typedef struct str_pipe {
