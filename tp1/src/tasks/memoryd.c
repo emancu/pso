@@ -16,6 +16,7 @@ int main(void) {
   int pid = fork();
 
   if(pid == 0){
+    *p += 3;
   }else{
     *p += 32;
   }

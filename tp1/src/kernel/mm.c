@@ -8,6 +8,8 @@ page_frame_info usr_pf_info[32736];
 uint_32 usr_pf_limit;
 // Esta variable contiene la direccion del directorio de paginas de kernel para la inicializacion
 mm_page* kernel_dir;
+// Semaforo que regula el acceso a borrar el directorio de paginas (exit).
+sem_t dir_free_sem;
 
 void* page_frame_info_alloc(page_frame_info* pfi, uint_32 limit, uint_32 mem_offset) {
   //Recorro pfi y busco el primer bit libre (0),
@@ -43,15 +45,28 @@ mm_page* mm_dir_new(void) {
   return cr3;
 }
 
-// Acá tengo que liberar los page frames en espacio de usuario y en espacio de kernel
-// En usuario los page frame ocupados van a estar apuntados por las tablas de páginas
-// de segundo nivel (asumo que hay una única entrada de 4mb y la de identity mapping
-// del kernel). Los page frames en kernel son los usados para guardar las tablas de
-// páginas. Estos son apuntados por las direcciones en la tabla de directorios.
+bool is_present(mm_page page){
+  return (page.attr & MM_ATTR_P);
+}
+
+bool is_shared(mm_page page){
+  return (page.attr & MM_ATTR_SH);
+}
+
+bool is_copy_on_write(mm_page page){
+  return (page.attr & MM_ATTR_COW);
+}
+
+/* Acá tengo que liberar los page frames en espacio de usuario y en espacio de kernel
+ * En usuario los page frame ocupados van a estar apuntados por las tablas de páginas
+ * de segundo nivel (asumo que hay una única entrada de 4mb y la de identity mapping
+ * del kernel). Los page frames en kernel son los usados para guardar las tablas de
+ * páginas. Estos son apuntados por las direcciones en la tabla de directorios. */
 void mm_dir_free(mm_page* d) {
+  sem_wait(&dir_free_sem); //Acá empieza la sección crítica del borrado
   int i = 0;
   for (i = 1; i < TABLE_ENTRY_NUM; i++) {
-    if (d[i].attr & MM_ATTR_P) { // Si está presente entro recursivamente a borrar
+    if ( is_present(d[i]) ){
       mm_table_free((void*) (d[i].base << 12), i); // Libero las tablas
       //      d[i].attr &= ~MM_ATTR_P; // La marco como no presente (al pedo?)
       mm_mem_free((void*) (d[i].base << 12)); // Marco como libre el page frame donde estaba la tabla
@@ -60,20 +75,19 @@ void mm_dir_free(mm_page* d) {
   //  d[0].attr &= ~MM_ATTR_P;
   mm_mem_free((void*) ((int) d & ~0xFFF)); // Marco como libre el page frame donde está este directorio
   tlbflush();
+  sem_signaln(&dir_free_sem); //Acá termina la sección crítica del borrado
 }
 
 void mm_table_free(mm_page* t, int dir_index) {
   int table_index;
   for (table_index = 0; table_index < TABLE_ENTRY_NUM; table_index++) {
-    if (t[table_index].attr & MM_ATTR_P) { // La página está mappeada
+    if ( is_present(t[table_index])) {
+      if ( is_shared(t[table_index]) || is_copy_on_write(t[table_index]))
+        if(mm_times_mapped(t[table_index].base << 12, dir_index, table_index ) > 1)
+          continue; // Alguien mas la esta usando, no hay que borrarla
 
-      if (t[table_index].attr & MM_ATTR_SH){
-      // if(is_shared() || is_copy_on_write())
-
-        if(mm_times_mapped(t[table_index].base << 12, dir_index, table_index ) == 1)
-          mm_mem_free((mm_page*) (t[table_index].base << 12));
-        //        t[i].attr &= ~MM_ATTR_P;
-      }
+      mm_mem_free((mm_page*) (t[table_index].base << 12));
+      // t[i].attr &= ~MM_ATTR_P;
     }
   }
 }
@@ -180,24 +194,17 @@ void* mm_page_free(uint_32 virtual, mm_page* cr3) {
 
 uint_32 mm_times_mapped(uint_32 physical_addr, int dir_index, int table_index ){
   int i, times=0;
-  uint_32* desc_dir, desc_table;
-
+  uint_32 *desc_dir, *desc_table;
   for(i=0; i < MAX_PID; i++){
     if(task_table[i].cr3 != NULL ){
-      desc_dir    = (uint_32 *) ((((int)task_table[i].cr3) & ~0xFFF) + (dir_index * 4));
-      printf("*Task[%d].cr3=%x .  dir_index=%d table_index+%d",i,task_table[i].cr3, dir_index,table_index);
+      desc_dir    = (uint_32 *) (( ( (uint_32) ((int)task_table[i].cr3) & ~0xFFF)) + (dir_index * 4));
       desc_table  = (uint_32 *) (((*desc_dir & ~0xFFF) + (table_index *4)));
-      printf("** desc_dir=%x  desc_table=%x", desc_dir, desc_table);
-      if( physical_addr == (desc_table & ~0xFFF))
+      if( physical_addr == (*desc_table & ~0xFFF))
         times++;
     }
   }
-
-  printf("La physical addr %x times: %d", physical_addr, times);
   return times;
 }
-
-
 
 void mm_dir_unmap(uint_32 virtual, mm_page* cr3) {
   uint_32 ind_td = virtual >> 22;
@@ -439,4 +446,7 @@ void mm_init(void) {
   syscall_list[0x30] = (uint_32) &sys_palloc;
   syscall_list[0x40] = (uint_32) &mm_share_page;
   // printf("Done.");
+  //
+  //Inicializo el semáforo
+  dir_free_sem = SEM_NEW(1);
 }
