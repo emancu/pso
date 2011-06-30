@@ -118,6 +118,7 @@ sint_32 serial_write(chardev* this, const void* buf, uint_32 size) {
   int port = ((chardev_serial*) this)->port;
   char * buff = (char *) buf;
 
+  cli(); //FIXME: Fix MUY choto para el race condition
   for(i=0; i< size;i++){
     if( i % 16 == 0)
       while (is_transmit_empty(port) == 0);
@@ -126,6 +127,7 @@ sint_32 serial_write(chardev* this, const void* buf, uint_32 size) {
   size = i % 16; //NOTE: Envío espacios para completar el fifo (revisar)
   for (i=0; i < size; i++) 
     outb(port + PORT_DATA, 0x20); 
+  sti();
 
   return i;
 }
