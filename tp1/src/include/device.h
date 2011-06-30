@@ -9,6 +9,7 @@
 #define DEV_ID_CHAR_CON 0xC
 #define DEV_ID_CHAR_SERIAL 0xD
 #define DEV_ID_CHAR_FILE 0xE
+#define DEV_ID_CHAR_PIPE 0xF
 
 #define MAX_FD 32
 

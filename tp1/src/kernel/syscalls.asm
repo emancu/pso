@@ -68,7 +68,7 @@ sys_def run, 0x39
 
 sys_def share_page, 0x40
 
-
+sys_def pipe, 0x41
 
 
 
