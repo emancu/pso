@@ -15,8 +15,8 @@ int main(void) {
   int pid = fork();
   if (pid) { //Soy el padre (escribo)
     close(pipes[0]); //Cierro lectura
-    for (i = 0; i < 18; i++) {
-       write(pipes[1], &(texto[i]), 1); 
+    for (i = 0; i < 18; i+=4) {
+       write(pipes[1], &(texto[i]), 4); 
     }
   } else { //Soy el hijo (leo)
     close(pipes[1]); //Ciero escritura

@@ -133,7 +133,7 @@ sint_32 pipe_read(chardev* this, void* buf, uint_32 size) {
   sem_signaln(&(other->sem));
   //Fin de la sección crítica
 
-  printf(" >pipe_read: termine de leer @ pipe %x", this);
+  printf(" >pipe_read: termine de leer cant (%d) @ pipe %x", total_to_copy, this);
   return total_to_copy;
 }
 
@@ -155,19 +155,19 @@ sint_32 pipe_write(chardev* this, const void* buf, uint_32 size) {
 
   for (i = 0; i < size; i++) {
     if (pipe->buffer_cant == pipe->buffer_size) { //El buffer está lleno no puedo escribir
-      printf(" >sys_write: el buffer esta lleno @ pipe %x", this);
+      printf(" >pipe_write: el buffer esta lleno @ pipe %x", this);
       pipe->busy = 1; //Marco que estoy esperando lectura
       sem_signaln(&(pipe->sem)); //Libero el mutex
-      printf(" >sys_write: libero el mutex @ pipe %x", this);
+      printf(" >pipe_write: libero el mutex @ pipe %x", this);
       if (other->busy) { //Si mi hermano estaba esperando para leer lo libero
-        printf(" >sys_write: libero la variable de condicion @ pipe %x", this);
+        printf(" >pipe_write: libero la variable de condicion @ pipe %x", this);
         sem_signaln(&(other->sem));
       }
       sem_wait(&(other->sem)); //Tomo la variable de condición
-      printf(" >sys_write: tomo la variable de condición @ pipe %x", this);
+      printf(" >pipe_write: tomo la variable de condición @ pipe %x", this);
       pipe->busy = 0; //Ya no estoy esperando lectura
       sem_wait(&(pipe->sem)); //Tomo el mutex
-      // printf(" >sys_write: tomo el mutex @ pipe %x", this);
+      // printf(" >pipe_write: tomo el mutex @ pipe %x", this);
     }
     pipe->buffer[pipe->cursor] = buffer[i];
     pipe->cursor = (pipe->cursor+1) % pipe->buffer_size;
@@ -179,7 +179,7 @@ sint_32 pipe_write(chardev* this, const void* buf, uint_32 size) {
     sem_signaln(&(other->sem)); 
 
   sem_signaln(&(pipe->sem)); //Libero la sección crítica
-  // printf(" >sys_write: termino de escribir @ pipe %x", this);
+  // printf(" >pipe_write: termino de escribir @ pipe %x", this);
 	return size;
 }
 

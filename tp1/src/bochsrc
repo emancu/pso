@@ -60,7 +60,7 @@ config_interface: textconfig
 #display_library: nogui
 #display_library: rfb, options="timeout=60" # time to wait for client
 #display_library: sdl, options="fullscreen" # startup in fullscreen mode
-#display_library: term
+display_library: term
 #display_library: win32, options="legacyF12" # use F12 to toggle mouse
 #display_library: win32, options="gui_debug" # use Win32 debugger gui
 #display_library: wx
@@ -481,7 +481,7 @@ debugger_log: -
 #   com4: enabled=1, mode=pipe-client, dev=\\.\pipe\mypipe
 #   com4: enabled=1, mode=pipe-server, dev=\\.\pipe\mypipe
 #=======================================================================
-com1: enabled=1, mode=term, dev=/dev/pts/2
+#com1: enabled=1, mode=term, dev=/dev/pts/2
 #com4: enabled=1, mode=term, dev=/dev/pts/2
 com4: enabled=1, mode=file, dev=log.out
 #com1: enabled=1, mode=socket-server, dev=localhost:8888
@@ -551,7 +551,7 @@ parport1: enabled=1, file="parport.out"
 # Examples:
 #   vga_update_interval: 250000
 #=======================================================================
-vga_update_interval: 50000
+vga_update_interval: 40000
 
 # using for Winstone '98 tests
 #vga_update_interval:  100000
