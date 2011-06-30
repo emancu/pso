@@ -1,8 +1,4 @@
 #include <loader.h>
-#include <vga.h>
-#include <mm.h>
-#include <sched.h>
-#include <i386.h>
 
 task task_table[MAX_PID];
 uint_32 cur_pid;
@@ -47,6 +43,7 @@ pid loader_load(pso_file* f, int pl) {
 
   //TODO VER CUANTA MEMORIA NECESITA REALMENTE
   void* puntero_page_tarea = mm_mem_alloc();
+  printf("puntero page tarea : %x", (uint_32) puntero_page_tarea);
 
   //stacks de anillo 3 y 0 para la tarea
   void* task_stack3 = mm_mem_alloc();
@@ -96,8 +93,7 @@ pid loader_load(pso_file* f, int pl) {
   task_table[requested_pid].cr3 = (uint_32) task_dir;
   task_table[requested_pid].esp0 = STACK_0_VIRTUAL + 0xFD8;
 
-
-  mm_page_free(KERNEL_TEMP_PAGE,(mm_page *) old_cr3);
+  mm_page_free(KERNEL_TEMP_PAGE, (mm_page *) old_cr3);
   tlbflush();
 
   sched_load(requested_pid);
@@ -146,23 +142,19 @@ void loader_unqueue(int* cola) {
     task_table[*cola].next = -1;
     task_table[*cola].prev = -1;
     *cola = ((next_node == *cola) ? -1 : next_node);
-    sched_unblock(old_cola);
     tasks_blocked--;
     tasks_running++;
+    sched_unblock(old_cola);
   }
 }
 
 void loader_exit(void) {
   device_release_devices(cur_pid);
-  mm_dir_free((mm_page*) task_table[cur_pid].cr3);
-  loader_switchto(sched_exit());
+  // mm_dir_free((mm_page*) task_table[cur_pid].cr3);
   free_pid(cur_pid);
   tasks_running--;
 
-<<<<<<< HEAD
-=======
-	loader_switchto(sched_exit());
->>>>>>> memory on demand
+  loader_switchto(sched_exit());
 }
 
 uint_32 get_new_pid(void) {
@@ -185,14 +177,13 @@ uint_32 sys_getpid(void) {
 }
 
 uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
-	//me guardo el cr3 viejo.
-	uint_32 old_cr3 = rcr3();
+  //me guardo el cr3 viejo.
+  uint_32 old_cr3 = rcr3();
 
-	//pido un directorio para la nueva tarea
-	void* new_cr3 = mm_dir_fork((mm_page*) old_cr3);
-	if (new_cr3 == NULL) //No pudo hacerse fork de la estrucutra de paginación
-		return -1;
-
+  //pido un directorio para la nueva tarea
+  void* new_cr3 = mm_dir_fork((mm_page*) old_cr3);
+  if (new_cr3 == NULL) //No pudo hacerse fork de la estrucutra de paginación
+    return -1;
 
    //stacks de anillo 3 y 0 para la tarea
   void* task_stack3 = mm_mem_alloc();

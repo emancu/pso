@@ -2,13 +2,11 @@
 #include <tipos.h>
 #include <fs.h>
 #include <i386.h>
-// #include <lib_str.h>
 
 int idx;
 
 int main(void) {
-
-  char command[14] = "run task1.pso";
+  char command[15] = "run console.pso";
   run(command);
   // void* p = palloc();
   exit();

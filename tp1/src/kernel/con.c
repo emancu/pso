@@ -1,6 +1,4 @@
 #include <con.h>
-#include <lib_str.h>
-#include <sched.h>
 
 #define CONSOLE_STYLE_DEFAULT VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT
 
@@ -24,108 +22,102 @@ char block[3] = { 219, '\0', ' ' };
 #define BLOCK_NO_BLINK VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT | VGA_FC_WHITE
 #define BLOCK_BLINK VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT | VGA_FC_BLINK
 
-//  *video++ = 219; // ASCII for a block (full-filled '_')
-//  *video++ = VGA_BC_BLACK | VGA_FC_WHITE | VGA_FC_LIGHT | VGA_FC_BLINK;
-
 void con_init() {
-	// NOTE: Borrar linea al pedo
-	// current_console = 0x0;
-	empty_console = (chardev_console*) con_open();
-	set_console_style(empty_console, VGA_BC_RED | VGA_FC_GREEN | VGA_FC_LIGHT);
-	current_console = 0x0;
-	vga_write(12, 35, "EMPTY CONSOLE", VGA_BC_RED | VGA_FC_GREEN | VGA_FC_LIGHT);
-	copy_screen_to_memory((uint_8*) empty_console->console_screen);
+  empty_console = (chardev_console*) con_open();
+  set_console_style(empty_console, VGA_BC_RED | VGA_FC_GREEN | VGA_FC_LIGHT);
+  current_console = 0x0;
+  vga_write(12, 35, "EMPTY CONSOLE", VGA_BC_RED | VGA_FC_GREEN | VGA_FC_LIGHT);
+  copy_screen_to_memory((uint_8*) empty_console->console_screen);
 
-	syscall_list[0x39] = (uint_32) &sys_run;
+  syscall_list[0x39] = (uint_32) &sys_run;
 
-	//saco el cursor
-	outb(0x3D4, 14); // Tell the VGA board we are setting the high cursor byte.
-	outb(0x3D5, 0xFFFF >> 8); // Send the high cursor byte.
-	outb(0x3D4, 15); // Tell the VGA board we are setting the low cursor byte.
-	outb(0x3D5, (unsigned char) 0xFFFF); // Send the low cursor byte.
+  //saco el cursor
+  outb(0x3D4, 14); // Tell the VGA board we are setting the high cursor byte.
+  outb(0x3D5, 0xFFFF >> 8); // Send the high cursor byte.
+  outb(0x3D4, 15); // Tell the VGA board we are setting the low cursor byte.
+  outb(0x3D5, (unsigned char) 0xFFFF); // Send the low cursor byte.
 }
 
 sint_32 con_read(chardev* this, void* buf, uint_32 size) {
-	// Verificamos que no se esté tratando de leer más de lo que permite el buffer
-	if (size > CON_BUFF_SIZE)
-		return CON_ERROR_READTOOLARGE;
+  // Verificamos que no se esté tratando de leer más de lo que permite el buffer
+  if (size > CON_BUFF_SIZE)
+    return CON_ERROR_READTOOLARGE;
 
-	chardev_console* this_chardev_console = (chardev_console *) this;
-	char* char_buf = (char*) buf;
-	//Chequeamos si hay suficientes cosas para leer en el buffer
-	if (this_chardev_console->buff_cant < size) {
-		//No hay suficiente para leer, lo bloqueamos en su semáforo
-		this_chardev_console->busy = 1;
-		this_chardev_console->read_expected = size;
-		sem_wait(&this_chardev_console->sem);
-	}
+  chardev_console* this_chardev_console = (chardev_console *) this;
+  char* char_buf = (char*) buf;
+  //Chequeamos si hay suficientes cosas para leer en el buffer
+  if (this_chardev_console->buff_cant < size) {
+    //No hay suficiente para leer, lo bloqueamos en su semáforo
+    this_chardev_console->busy = 1;
+    this_chardev_console->read_expected = size;
+    sem_wait(&this_chardev_console->sem);
+  }
 
-	//Si me desbloquean entonces hay para leer.
-	int i;
-	for (i = 0; i < size; i++) {
-		char_buf[i] = this_chardev_console->buff[this_chardev_console->buff_index_start];
-		this_chardev_console->buff_index_start = (this_chardev_console->buff_index_start + 1) % CON_BUFF_SIZE;
-	}
+  //Si me desbloquean entonces hay para leer.
+  int i;
+  for (i = 0; i < size; i++) {
+    char_buf[i] = this_chardev_console->buff[this_chardev_console->buff_index_start];
+    this_chardev_console->buff_index_start = (this_chardev_console->buff_index_start + 1) % CON_BUFF_SIZE;
+  }
 
-	//  !todo chequear el race condition
-	this_chardev_console->buff_cant -= size;
-	this_chardev_console->read_expected = 0;
-	return 0;
+  //TODO: chequear el race condition
+  this_chardev_console->buff_cant -= size;
+  this_chardev_console->read_expected = 0;
+  return 0;
 }
 
 sint_32 con_write(chardev* this, const void* buf, uint_32 size) {
-	char* char_buf = (char*) buf;
-	chardev_console* this_chardev_console = (chardev_console *) this;
+  char* char_buf = (char*) buf;
+  chardev_console* this_chardev_console = (chardev_console *) this;
 
-	int str = 0;
-	uint_8* video = calculate_video_position(this_chardev_console);
-	uint_8* screen_limit = (uint_8*) (this_chardev_console->console_screen + 4000);
+  int str = 0;
+  uint_8* video = calculate_video_position(this_chardev_console);
+  uint_8* screen_limit = (uint_8*) (this_chardev_console->console_screen + 4000);
 
-	while (str < size && video < screen_limit) {
-		//en realidad este \n no va a venir en la consola porque se va a mandar a ejecutar...
-		if (char_buf[str] == '\n') { //Avanzo una línea el puntero
-			write_in_console(this_chardev_console, &block[2], BLOCK_NO_BLINK, 1);
-			this_chardev_console->fila++;
-			this_chardev_console->columna = 0;
-		} else if (char_buf[str] == 0x08) { //Backspace
-			if (this_chardev_console->columna >= 14) {//depende de la longitud del ps1.
-				if (this_chardev_console->columna == 0) {
-					this_chardev_console->columna = vga_cols - 1;
-					this_chardev_console->fila--;
-				} else {
-					this_chardev_console->columna--;
-				}
-				//escribo en la consola el block (cursor)
-				write_in_console(this_chardev_console, &block[0], BLOCK_NO_BLINK, 2);
-			}
+  while (str < size && video < screen_limit) {
+    if (char_buf[str] == '\n') { //Avanzo una línea el puntero
+      write_in_console(this_chardev_console, &block[2], BLOCK_NO_BLINK, 1);
+      this_chardev_console->fila++;
+      this_chardev_console->columna = 0;
+    } else if (char_buf[str] == 0x08) { //Backspace
+      if (this_chardev_console->columna >= 14) {//depende de la longitud del ps1.
+        if (this_chardev_console->columna == 0) {
+          this_chardev_console->columna = vga_cols - 1;
+          this_chardev_console->fila--;
+        } else {
+          this_chardev_console->columna--;
+        }
+        //escribo en la consola el block (cursor)
+        write_in_console(this_chardev_console, &block[0], BLOCK_NO_BLINK, 2);
+      }
 
-		} else {
-			//escribo en la pantalla
-			write_in_console(this_chardev_console, &char_buf[str], this_chardev_console->style, 1);
+    } else {
+      //escribo en la pantalla
+      write_in_console(this_chardev_console, &char_buf[str], this_chardev_console->style, 1);
 
-			//actualizo fila y columna
-			if (this_chardev_console->columna + 1 == vga_cols)
-				this_chardev_console->fila++;
-			this_chardev_console->columna = (this_chardev_console->columna + 1) % vga_cols;
+      //actualizo fila y columna
+      if (this_chardev_console->columna + 1 == vga_cols)
+        this_chardev_console->fila++;
+      this_chardev_console->columna = (this_chardev_console->columna + 1) % vga_cols;
 
-			write_in_console(this_chardev_console, &block[0], BLOCK_NO_BLINK, 1);
-		}
+      write_in_console(this_chardev_console, &block[0], BLOCK_NO_BLINK, 1);
+    }
 
-		//efecto consola
-		if (this_chardev_console->fila == vga_rows - 1) {
-			this_chardev_console->fila--;
-			move_scr_up((uint_8*) &this_chardev_console->console_screen);
-			move_scr_up((uint_8*) 0xB8000);
-		}
-		str++;
-	}
+    //efecto consola
+    if (this_chardev_console->fila == vga_rows-1) {
+      this_chardev_console->fila--;
+      move_scr_up((uint_8*) &this_chardev_console->console_screen);
+      move_scr_up((uint_8*) 0xB8000);
+    }
+    str++;
+  }
 
-	return str;
+  return str;
 }
 
 void write_in_console(chardev_console* this_console, const char* msg, uint_8 style, uint_8 cant) {
-	char * addr = (current_console == this_console) ? (char *) vga_addr : (char *) &this_console->console_screen;
-	vga_write_in_memory(addr, &this_console->fila, &this_console->columna, msg, style, cant);
+  char * addr = (current_console == this_console) ? (char *) vga_addr : (char *) &this_console->console_screen;
+  vga_write_in_memory(addr, &this_console->fila, &this_console->columna, msg, style, cant);
 }
 
 uint_32 con_flush(chardev* this) {
@@ -197,27 +189,28 @@ chardev* con_open(void) {
 
 extern pso_file task_task1_pso;
 
+/* @archivo = "run task1.pso" */
 sint_32 sys_run(const char* archivo) {
-	int j = 0;
-	for (j = 0; j < CON_BUFF_SIZE; j++) {
-		current_console->buff[j] = '\0';
-	}
-	int i = 6;
-	char command[50] = "run ";
-	char fileFullPath[50] = "/disk/";
-	if (!strncmp(command, archivo, 4)) {
-		str_into_string(fileFullPath, &i, archivo + 4);
-		str_convert_to_mayus(fileFullPath, 6, strlen(fileFullPath));
-		chardev_file* file_char_dev = (chardev_file*) fs_open(fileFullPath, 0x3);
-		debugEnabled = 1;
-		if (file_char_dev != NULL) {
-			char * dir = ((char *) file_char_dev) + 0x200;
-			return loader_load((pso_file *) dir, 0);
-		}
-	}
-	return -1;
-	//en archivo viene todo el comando que mando el usuario. ej: run task1.pso
+  char fileFullPath[50] = "/disk/";
+  char command[4] = "run ";
+  int i;
 
+  for(i = 0; i < CON_BUFF_SIZE ; i++){
+    current_console->buff[i] = '\0';
+  }
+
+  i=6;
+  if (!strncmp(command, archivo, 4)) {
+    str_into_string(fileFullPath, &i, archivo + 4);
+    str_convert_to_mayus(fileFullPath, 6, strlen(fileFullPath));
+    chardev_file* file_char_dev = (chardev_file*) fs_open(fileFullPath, 0x3);
+    printf("filename = %s", fileFullPath);
+    if (file_char_dev != NULL) {
+      char * dir = ((char *) file_char_dev) + 0x200;
+      return loader_load((pso_file *) dir, 0);
+    }
+  }
+  return -1;
 }
 
 void move_to_right_console() {

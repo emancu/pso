@@ -5,7 +5,8 @@
 #include <vga.h>
 #include <syscalls.h>
 
-#define MM_ATTR_REQ     0x002 // Requested
+#define MM_ATTR_REQ    0x002 // Requested
+#define MM_ATTR_SH     0x200 // Requested
 
 
 #define MM_ATTR_P     0x001 // Present
@@ -24,9 +25,7 @@
 #define MM_ATTR_SZ_4K 0x000 // Page Size (for Directory)
 #define MM_ATTR_SZ_4M 0x080 // Page Size (for Directory)
 #define MM_ATTR_G     0x100 // Global (ignored for Directory)
-
 #define MM_ATTR_USR   0xE00 // bits for kernel
-
 /* Control Register flags */
 #define CR0_PE		0x00000001	// Protection Enable
 #define CR0_MP		0x00000002	// Monitor coProcessor
@@ -39,7 +38,6 @@
 #define CR0_NW		0x20000000	// Not Writethrough
 #define CR0_CD		0x40000000	// Cache Disable
 #define CR0_PG		0x80000000	// Paging
-
 #define CR4_PCE		0x00000100	// Performance counter enable
 #define CR4_MCE		0x00000040	// Machine Check Enable
 #define CR4_PSE		0x00000010	// Page Size Extensions
@@ -47,16 +45,15 @@
 #define CR4_TSD		0x00000004	// Time Stamp Disable
 #define CR4_PVI		0x00000002	// Protected-Mode Virtual Interrupts
 #define CR4_VME		0x00000001	// V86 Mode Extensions
-
 #define KERNEL_TEMP_PAGE 0xFFFFF000
 
 /* Errores */
 #define MM_ERROR_NOTALIGNED -5
 
 typedef struct str_mm_page {
-	uint_32 attr:12;
-	uint_32 base:20;
-}  __attribute__((__packed__, aligned (4))) mm_page;
+	uint_32 attr :12;
+	uint_32 base :20;
+}__attribute__((__packed__, aligned (4))) mm_page;
 
 //Este tipo es el conjunto de bits usados para saber si un page_frame
 //está ocupado o no.
@@ -85,9 +82,7 @@ void* mm_mem_alloc();
 void* mm_mem_kalloc();
 void mm_mem_free(void* page);
 
-
 extern void isr_page_fault();
-
 
 /* Manejador de directorios de página */
 mm_page* mm_dir_new(void);
@@ -95,6 +90,7 @@ void mm_dir_free(mm_page* d);
 
 /* Syscalls */
 void* palloc(void);
+sint_32 share_page(void* page);
 
 /* Funciones de inicio de memoria */
 
@@ -110,7 +106,6 @@ uint_32* memory_detect(uint_32* start, const uint_32 jump);
 //Si 'page_size' = 0 mapea usando paginas de 4kb, recorriendo el segundo nivel de la estructura y pidiendo a kernel una nueva pagina de ser necesario.
 //Si el kernel no tiene mas paginas falla, devolviendo NULL. En caso de ser exitoso devuelve la dirección de la tabla/directorio de página donde se hizo el mapeo.
 void* mm_page_map(uint_32 virtual, mm_page* cr3, uint_32 fisica, uint_32 page_size, uint_32 attr);
-
 
 //Se encarga de invalidar la entrada en la tabla de páginas a la que se llega mediante la dirección virtual
 //parámetro utilizando cr3 como dirección de la tabla de directorios. Devuelve la dirección del page_frame liberado.

@@ -2,7 +2,6 @@
 #define __SEM_H__
 
 #include <tipos.h>
-#include <loader.h>
 
 /* ¿¿?? */
 typedef sint_32 sem_id;

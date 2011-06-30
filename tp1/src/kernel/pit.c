@@ -1,9 +1,4 @@
 #include <pit.h>
-#include <isr.h>
-#include <vga.h>
-#include <i386.h>
-#include <debug.h>  // We need in_panic
-#include <loader.h> // We need cur_pid
 
 int tick;
 
