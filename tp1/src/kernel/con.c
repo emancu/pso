@@ -121,8 +121,9 @@ void write_in_console(chardev_console* this_console, const char* msg, uint_8 sty
 }
 
 uint_32 con_flush(chardev* this) {
-  if (this->refcount != 0) {
-    this->refcount--;
+  breakpoint();
+  if (this->refcount > 1) {
+    this->refcount--; //NOTE: Como es la política? Device cambia los refcount o cada módulo?
     return 0;
   }
   chardev_console* console_to_close = (chardev_console*) this;
@@ -147,6 +148,7 @@ chardev* con_open(void) {
   // Pedimos pagina nueva del kernel para la consola y la inicializamos
   chardev_console* new_chardev_console = (chardev_console *) mm_mem_kalloc();
   new_chardev_console->dev.clase = DEV_ID_CHAR_CON;
+  new_chardev_console->dev.refcount = 0;
   new_chardev_console->fila = 0;
   new_chardev_console->columna = 0;
   new_chardev_console->last_ps1_fila = 0;
@@ -204,7 +206,7 @@ sint_32 sys_run(const char* archivo) {
     str_into_string(fileFullPath, &i, archivo + 4);
     str_convert_to_mayus(fileFullPath, 6, strlen(fileFullPath));
     chardev_file* file_char_dev = (chardev_file*) fs_open(fileFullPath, 0x3);
-    printf("filename = %s", fileFullPath);
+    printf(" >sys_run: filename = %s", fileFullPath);
     if (file_char_dev != NULL) {
       char * dir = ((char *) file_char_dev) + 0x200;
       return loader_load((pso_file *) dir, 0);
