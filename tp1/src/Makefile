@@ -35,11 +35,7 @@ DUMP_KERN=$(DIROUT)kernel.bin.asm $(DIROUT)kernel.bin.elf $(DIROUT)kernel.bin.db
 SYM_KERN=$(DIROUT)kernel.sym
 
 # Tareas
-<<<<<<< HEAD
-TASKS=tasks/console.pso tasks/taskinit.pso tasks/fork.pso
-=======
-TASKS=tasks/task1.pso tasks/taskinit.pso tasks/fork.pso tasks/memoryd.pso
->>>>>>> memory on demand
+TASKS=tasks/console.pso tasks/taskinit.pso tasks/fork.pso tasks/memoryd.pso
 TASKS_ELF:=$(TASKS:.pso=.elf)
 OBJS_TASKS:=$(TASKS:.pso=.o) tasks/pso_head.o tasks/pso_tail.o tasks/syscalls.o
 

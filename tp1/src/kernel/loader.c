@@ -74,17 +74,6 @@ pid loader_load(pso_file* f, int pl) {
   mm_page_map((uint_32) KERNEL_TEMP_PAGE,(mm_page *) old_cr3, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
   tlbflush();
 
-
-  //copio la tarea desde donde esta a la pagina que acabo de mapear.
-  uint_8* addr_to_copy = (uint_8*) KERNEL_TEMP_PAGE;
-  uint_8* task_to_copy = (uint_8*) f;
-  uint_32 cant_to_copy = f->mem_end_disk - f->mem_start;
-  int i;
-
-  for (i = 0; i < cant_to_copy; i++) {
-    *addr_to_copy++ = *task_to_copy++;
-  }
-
   //copio la tarea desde donde esta a la pagina que acabo de mapear.
   uint_8* addr_to_copy = (uint_8*) KERNEL_TEMP_PAGE;
   uint_8* task_to_copy = (uint_8*) f;
@@ -149,9 +138,9 @@ void loader_unqueue(int* cola) {
     task_table[*cola].next = -1;
     task_table[*cola].prev = -1;
     *cola = ((next_node == *cola) ? -1 : next_node);
-    sched_unblock(old_cola);
     tasks_blocked--;
     tasks_running++;
+    sched_unblock(old_cola);
   }
 }
 
