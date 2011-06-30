@@ -29,6 +29,7 @@ int main(void) {
   }
   //breakpoint();
 
+  while(1);
   exit();
   return 0;
 }
