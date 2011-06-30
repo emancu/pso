@@ -22,6 +22,8 @@ sint_32 pipe_open(chardev* pipes[2]) {
   pipepage->read_pipe.buffer_cant = 0; 
   pipepage->read_pipe.buffer = (char*)pipepage + SECTOR_SIZE; 
   pipepage->read_pipe.page = (void*)pipepage;
+  pipepage->read_pipe.sem = SEM_NEW(1);
+  pipepage->read_pipe.busy = 0;
   
   //Inicializo el pipe de escritura
   pipepage->write_pipe.dev.clase = DEV_ID_CHAR_PIPE;
@@ -37,9 +39,11 @@ sint_32 pipe_open(chardev* pipes[2]) {
   pipepage->write_pipe.buffer_cant = 0; 
   pipepage->write_pipe.buffer = (char*)pipepage + SECTOR_SIZE; 
   pipepage->write_pipe.page = (void*)pipepage;
+  pipepage->write_pipe.sem = SEM_NEW(1);
+  pipepage->write_pipe.busy = 0);
 
-  pipes[0] = &(pipepage->read_pipe);
-  pipes[1] = &(pipepage->write_pipe);
+  pipes[0] = (chardev*)&(pipepage->read_pipe);
+  pipes[1] = (chardev*)&(pipepage->write_pipe);
   return 0;
 }
 
@@ -56,11 +60,13 @@ int sys_pipe(int* pipes[2]) {
   }
 
   pipes[0] = device_descriptor(pipes_dev[0]);
+  pipes[1] = device_descriptor(pipes_dev[1]);
   if (pipes[0] < 0 | pipes[1] < 0) { //No pudieron obtenerse los fd
     printf("! >sys_pipe: no pudieron obtenerse los fd");
     pipes_dev[0]->flush(pipes_dev[0]);
     pipes_dev[1]->flush(pipes_dev[1]);
   }
+  printf(" >sys_pipe: descriptors: pipes[2] = {%d, %d}", pipes[0], pipes[1]);
 }
 
 void pipe_init(void) {
@@ -71,7 +77,49 @@ void pipe_init(void) {
 }
 
 sint_32 pipe_read(chardev* this, void* buf, uint_32 size) {
-	return 0;
+  int i;
+  uint_32 total_to_copy;
+  char signal = 0;
+  pipedev* pipe = (pipedev*) this;
+  pipedev* other = (pipedev*) (pipe->other);
+
+  if (other->refcount == 0)  //El extremo de escritura está cerrado, no puedo leer
+    return PIPE_ERROR_CLOSED;
+
+  //Inicio de sección crítica de lectura
+  sem_wait(&(other->sem));
+
+  if (pipe->buffer_cant >= size) { //Hay suficiente escrito para que lea
+    total_to_copy = size;
+  } else if (other->busy) { //Si el otro pipe está ocupado significa que debo leer para que pueda escribir
+    total_to_copy = pipe->buffer_cant;
+  } else { //No hay suficiente para que lea, entonces espero
+    pipe->busy = 1;
+    sem_signal(&(other->sem)); //Libero el mutex
+    //TODO: Chequear si no hay race condition
+    sem_wait(&(pipe->sem)); //Espero que haya para escribir
+    sem_wait(&(other->sem)); //Vuelvo a tomar el mutex
+    //Una vez liberado puede que el pipe de escritura esté esperando espacio, copio lo que puedo
+    pipe->busy = 0; //Ya terminé de esperar
+    if (other->busy)
+      total_to_copy = pipe->buffer_cant;
+    else
+      total_to_copy = size;
+  }
+  for (i = 0; i < total_to_copy; i++) { //Leo la cantidad que me interesa
+    buf[i] = pipe->buffer[pipe->cursor];
+    pipe->cursor = pipe->cursor+1 % pipe->buffer_size; //Matengo la circularidad del buffer
+  } 
+ 
+  //Actualizo la cantidad en el buffer
+  other->buffer_cant -= total_to_copy;
+  pipe->buffer_cant -= total_to_copy; 
+  if (other->busy) sem_signal(&(pipe->sem));
+
+  sem_signal(&(other->sem));
+  //Fin de la sección crítica
+
+  return total_to_copy;
 }
 
 sint_32 pipe_write(chardev* this, const void* buf, uint_32 size) {

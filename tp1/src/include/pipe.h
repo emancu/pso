@@ -9,6 +9,7 @@
 #define PIPE_TYPE_WRITE 'W'
 
 #define PIPE_ERROR_NOPIPE -5
+#define PIPE_ERROR_CLOSED -6
 
 #define PIPE_BUFF_SIZE SECTOR_SIZE*6
 
@@ -22,6 +23,10 @@ typedef struct str_pipe {
   uint_32 buffer_cant; //Cantidad de contenido válido en el buffer 
   char* buffer; //Puntero al buffer compartido por los pipes
   void* page; //Puntero a la página donde se alojan las estructuras
+  char busy; //Define si el pipe está esperando alguna acción de su hermano
+  sem_t sem; //Semáforo para mantener separados lectura de escritura
+  //El semáforo en un pipe de escritura funciona de mutex par la sección crítica
+  //El semáforo en un pipe de lectura funciona como variable de condición respecto del buffer
 } pipedev;
 
 /* Esta estructura se usa para agrupar los pipedevs. */
