@@ -16,6 +16,8 @@
 #define DEV_FILE_FIRST_LVL_PAGES 100
 #define DEV_FILE_SECND_LVL_PAGES 1023
 
+#define DEV_ERROR_NOFD -5
+
 /* Devices */
 typedef struct str_dev device;
 typedef uint_32(dev_flush_t)(device* this);

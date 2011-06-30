@@ -4,6 +4,7 @@
 #include <tipos.h>
 #include <device.h>
 #include <mm.h>
+#include <sem.h>
 
 #define PIPE_TYPE_READ 'R'
 #define PIPE_TYPE_WRITE 'W'
@@ -41,7 +42,7 @@ void pipe_init(void);
 /* Recibe dos punteros en memoria de usuario para ser completados con los
  * file descriptors de los pipes de lectura y escritura respectivamente. i
  * Devuelve un número negativo en caso de error. */
-int sys_pipe(int* pipes[2]);
+int sys_pipe(int pipes[2]);
 
 /* Devuelve en 'pipes' dos punteros a chardevs de pipes asociados.
  * Devuelve 0 si todo sale bien, número negativo en caso de error.
@@ -56,8 +57,6 @@ sint_32 pipe_write(chardev* this, const void* buf, uint_32 size);
 uint_32 pipe_flush(chardev* this);
 
 // Syscalls
-/*
 int pipe(int pipes[2]);
-*/
 
 #endif
