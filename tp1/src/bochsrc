@@ -60,7 +60,7 @@ config_interface: textconfig
 #display_library: nogui
 #display_library: rfb, options="timeout=60" # time to wait for client
 #display_library: sdl, options="fullscreen" # startup in fullscreen mode
-display_library: term
+#display_library: term
 #display_library: win32, options="legacyF12" # use F12 to toggle mouse
 #display_library: win32, options="gui_debug" # use Win32 debugger gui
 #display_library: wx
