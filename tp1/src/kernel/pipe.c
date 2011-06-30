@@ -122,7 +122,7 @@ sint_32 pipe_read(chardev* this, void* buf, uint_32 size) {
   }
   for (i = 0; i < total_to_copy; i++) { //Leo la cantidad que me interesa
     buffer[i] = pipe->buffer[pipe->cursor];
-    pipe->cursor = pipe->cursor+1 % pipe->buffer_size; //Matengo la circularidad del buffer
+    pipe->cursor = (pipe->cursor+1) % pipe->buffer_size; //Matengo la circularidad del buffer
   } 
  
   //Actualizo la cantidad en el buffer
