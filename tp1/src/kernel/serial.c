@@ -123,7 +123,7 @@ sint_32 serial_write(chardev* this, const void* buf, uint_32 size) {
       while (is_transmit_empty(port) == 0);
     outb(port + PORT_DATA, buff[i]);
   }
-  size = i % 16;//Envío espacios para completar el fifo
+  size = i % 16; //NOTE: Envío espacios para completar el fifo (revisar)
   for (i=0; i < size; i++) 
     outb(port + PORT_DATA, 0x20); 
 
