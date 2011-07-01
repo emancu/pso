@@ -197,12 +197,16 @@ void* mm_page_free(uint_32 virtual, mm_page* cr3) {
 }
 
 uint_32 mm_times_mapped(uint_32 physical_addr, int dir_index, int table_index ){
+  printf("times de pag: %x", physical_addr);
   int i, times=0;
   uint_32 *desc_dir, *desc_table;
   for(i=0; i < MAX_PID; i++){
+    printf(" task[%d].cr3 = %x", i, task_table[i].cr3);
     if(task_table[i].cr3 != NULL ){
       desc_dir    = (uint_32 *) (( ( (uint_32) ((int)task_table[i].cr3) & ~0xFFF)) + (dir_index * 4));
+      printf(" desc_dir = %x", desc_dir);
       desc_table  = (uint_32 *) (((*desc_dir & ~0xFFF) + (table_index *4)));
+      printf(" desc_table = %x", desc_table);
       if( physical_addr == (*desc_table & ~0xFFF))
         times++;
     }
@@ -220,6 +224,7 @@ void mm_dir_unmap(uint_32 virtual, mm_page* cr3) {
 void* mm_page_fork(uint_32 dir_entry, uint_32* page_table, uint_32* new_table) {
   uint_32 page_index;
   //Recorro la tabla de páginas
+  printf("------------FORK--------------");
   for (page_index = 0; page_index < TABLE_ENTRY_NUM; page_index++) {
     if (page_table[page_index] & MM_ATTR_P) { //La entrada es válida
       printf(" >mm_page_fork: present entry (%d)", page_index);
@@ -227,14 +232,17 @@ void* mm_page_fork(uint_32 dir_entry, uint_32* page_table, uint_32* new_table) {
         printf(" >mm_page_fork: pagina shared emiliano gay!!!");
         printf("dir shared = %x", (uint_32*) (dir_entry * DIR_SIZE + page_index * PAGE_SIZE));
       } else {
+        printf(" >mm_page_fork: COW (%d)", page_index);
         page_table[page_index] |= MM_ATTR_COW;
-        page_table[page_index] &= ~MM_ATTR_RW_R;
+        page_table[page_index] &= ~MM_ATTR_RW_W;
+        printf(" >>Quedo: %x", page_table[page_index]);
       }
 
       new_table[page_index] = page_table[page_index];
-
+      printf(" >new_table[idx]= %x" , page_table[page_index] );
     }
   }
+  printf("------------END=FORK--------------");
   return new_table;
 }
 
@@ -354,40 +362,37 @@ sint_32 mm_share_page(void* page) {
 }
 
 int mm_copy_on_write_page(mm_page *page, uint_32 dir_index, uint_32 table_index) {
-
+  printf("Quieren hacer COW en la pagina %x", *page);
   if(mm_times_mapped((*page).base << 12, dir_index, table_index ) == 1){
+    printf("sos el unico para %x", *page);
     (*page).attr &= ~MM_ATTR_COW;
     (*page).attr |= MM_ATTR_RW;
+    printf("cambie attr por %x", *page);
   }else{
     //pedir una nueva
     mm_page *dest_page = mm_mem_alloc();
+    printf("QUE ONDA2 %x", dest_page);
     if (dest_page == NULL) //No hay más páginas
       return -1;
 
+    // printf("Le pedi una nueva.. %x", *dest_page);
     //Copio el contenido de la página
     mm_copy_vf((uint_32*) (dir_index * DIR_SIZE + table_index * PAGE_SIZE), (uint_32) dest_page, PAGE_SIZE);
     //Mapeo en la nueva estructura copiando los atributos
     // new_table[page_index] = ((uint_32) dest_page & ~0xFFF) | (page_table[page_index] & 0xFFF);
-    (*page).base = (*dest_page).base;
+    breakpoint();
+    // (*page).base = dest_page.base;
+    uint_32 *tmp = (uint_32 *) dest_page;
+    uint_32 *tmp2 = (uint_32 *) page;
+    *tmp = ((uint_32) tmp & ~0xFFF) | ( *tmp2 & 0xFFF);
+    printf("alejandro page = %x   *%x", page, *page);
+    // (*page).base = dest_page.base;
+    // (*page).base = (uint_32) dest_page & ~0xFFF | ;
+    breakpoint();
   }
 
+  breakpoint();
   return 0;
-
-  // uint_32 cr3 = rcr3();
-  // printf("page to COW: %x", (uint_32) page);
-  // uint_32 base_dir = ((int) cr3) & ~0xFFF;
-  // uint_32 page_to_cow = (uint_32) page;
-
-  // uint_32 ind_td = page_to_cow >> 22;
-  // uint_32 ind_tp = (page_to_cow << 10) >> 22;
-  // uint_32* desc_dir = (uint_32 *) (base_dir + (ind_td * 4));
-
-  // //obtengo el PTE
-  // uint_32* ptr_desc_tabla = (uint_32*) (((*desc_dir & ~0xFFF) + (ind_tp * 4)));
-  // printf("dir anted se COW: %x", *ptr_desc_tabla);
-  // *ptr_desc_tabla |= MM_ATTR_COW;
-  // *ptr_desc_tabla &= ~MM_ATTR_RW_R;
-  // printf("dir dps se COW: %x", *ptr_desc_tabla);
 }
 
 void isr_page_fault_c(uint_32 error_code) {

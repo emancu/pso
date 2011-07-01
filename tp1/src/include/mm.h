@@ -9,7 +9,7 @@
 
 #define MM_ATTR_REQ    0x002 // Requested
 #define MM_ATTR_SH     0x200 // Shared
-#define MM_ATTR_COW    0x300 // Copy on write
+#define MM_ATTR_COW    0x400 // Copy on write
 
 
 #define MM_ATTR_P     0x001 // Present
