@@ -58,7 +58,7 @@ typedef struct str_mm_page {
 //Este tipo es el conjunto de bits usados para saber si un page_frame
 //está ocupado o no.
 typedef uint_32 page_frame_info;
-#define pfi_size (sizeof(page_frame_info)*8)
+#define pfi_size (sizeof(page_frame_info)*8) //Tamaño en bits de page_frame_info
 
 #define make_mm_entry(base, attr) (mm_page){(uint_32)(attr), (uint_32)(base)}
 #define make_mm_entry_addr(addr, attr) (mm_page){(uint_32)(attr), (uint_32)(addr) >> 12}
@@ -67,8 +67,8 @@ typedef uint_32 page_frame_info;
 #define TABLE_ENTRY_NUM 1024
 #define DIR_SIZE (PAGE_SIZE*TABLE_ENTRY_NUM) 
 #define MAGIC_NUMBER 0x4D324432
-#define USR_MEM_START 4194304
-#define KRN_MEM_START 1048576
+#define USR_MEM_START 4194304 //4mb (Inicio de páginas de usuario)
+#define KRN_MEM_START 1048576 //1mb (Inicio de páginas de kernel)
 #define PFI_OCCUPIED 0xFFFFFFFF
 
 #define SECTOR_SIZE 512

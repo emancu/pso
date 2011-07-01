@@ -33,6 +33,7 @@ void loader_init(void) {
 }
 
 pid loader_load(pso_file* f, int pl) {
+  breakpoint();
   //me guardo el cr3 viejo.
   uint_32 old_cr3 = rcr3();
 
@@ -145,8 +146,10 @@ void loader_unqueue(int* cola) {
 }
 
 void loader_exit(void) {
-  device_release_devices(cur_pid);
-  // mm_dir_free((mm_page*) task_table[cur_pid].cr3);
+  breakpoint();
+  device_release_devices();
+  mm_dir_free((mm_page*) task_table[cur_pid].cr3);
+  breakpoint();
   free_pid(cur_pid);
   tasks_running--;
 

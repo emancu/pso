@@ -62,10 +62,18 @@ mm_page* mm_dir_new(void) {
 
 void mm_table_free(mm_page* d) {
   int i = 0;
+  int j;
+  char* dest;
   for (i = 0; i < TABLE_ENTRY_NUM; i++) {
     if (d[i].attr & MM_ATTR_P) { // La página está mappeada
       mm_mem_free((mm_page*) (d[i].base << 12));
       //        d[i].attr &= ~MM_ATTR_P;
+      //
+      //Llenamos la memoria de 0s
+      dest = (char*) (d[i].base << 12);
+      dest = (int)dest & ~0xfff;
+      for (j = 0; j < PAGE_SIZE; j++)
+        dest[j] = 0x0;
     }
   }
 }
@@ -76,15 +84,18 @@ void mm_table_free(mm_page* d) {
 // del kernel). Los page frames en kernel son los usados para guardar las tablas de
 // páginas. Estos son apuntados por las direcciones en la tabla de directorios.
 void mm_dir_free(mm_page* d) {
+  uint_32* dint = (uint_32*)d;
   int i = 0;
-  for (i = 1; i < TABLE_ENTRY_NUM; i++) {
+  for (i = 1; i < TABLE_ENTRY_NUM - 1; i++) { //FIXME: No desmapeo el final para preservar el stack
     if (d[i].attr & MM_ATTR_P) { // Si está presente entro recursivamente a borrar
-      mm_table_free((void*) (d[i].base << 12)); // Libero las tablas
-      //      d[i].attr &= ~MM_ATTR_P; // La marco como no presente (al pedo?)
-      mm_mem_free((void*) (d[i].base << 12)); // Marco como libre el page frame donde estaba la tabla
+      // mm_table_free((void*) (d[i].base << 12)); // Libero las tablas
+      mm_table_free((void*) (dint[i] & ~0xFFF)); // Libero las tablas
+      d[i].attr &= ~MM_ATTR_P; // La marco como no presente (al pedo?)
+      // mm_mem_free((void*) (d[i].base << 12)); // Marco como libre el page frame donde estaba la tabla
+      mm_mem_free((void*) (dint[i] & ~0xFFF)); // Marco como libre el page frame donde estaba la tabla
     }
   }
-  //  d[0].attr &= ~MM_ATTR_P;
+  // d[0].attr &= ~MM_ATTR_P;
   mm_mem_free((void*) ((int) d & ~0xFFF)); // Marco como libre el page frame donde está este directorio
   tlbflush();
 }
