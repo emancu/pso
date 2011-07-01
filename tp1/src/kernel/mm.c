@@ -49,6 +49,10 @@ bool is_present(mm_page page){
   return (page.attr & MM_ATTR_P);
 }
 
+bool is_requested(mm_page page){
+  return (page.attr & MM_ATTR_REQ);
+}
+
 bool is_shared(mm_page page){
   return (page.attr & MM_ATTR_SH);
 }
@@ -214,26 +218,21 @@ void mm_dir_unmap(uint_32 virtual, mm_page* cr3) {
 }
 
 void* mm_page_fork(uint_32 dir_entry, uint_32* page_table, uint_32* new_table) {
-  uint_32* dest_page;
   uint_32 page_index;
   //Recorro la tabla de páginas
   for (page_index = 0; page_index < TABLE_ENTRY_NUM; page_index++) {
     if (page_table[page_index] & MM_ATTR_P) { //La entrada es válida
       printf(" >mm_page_fork: present entry (%d)", page_index);
-      //ver si esta shared o no??
       if (page_table[page_index] & MM_ATTR_SH) {
         printf(" >mm_page_fork: pagina shared emiliano gay!!!");
         printf("dir shared = %x", (uint_32*) (dir_entry * DIR_SIZE + page_index * PAGE_SIZE));
-        new_table[page_index] = page_table[page_index];
       } else {
-        dest_page = mm_mem_alloc(); //Pido una página nueva para el usuario
-        if (dest_page == NULL) { //No hay más páginas
-          return NULL;
-        }
-        mm_copy_vf((uint_32*) (dir_entry * DIR_SIZE + page_index * PAGE_SIZE), (uint_32) dest_page, PAGE_SIZE); //Copio el contenido de la página
-        //Mapeo en la nueva estructura copiando los atributos
-        new_table[page_index] = ((uint_32) dest_page & ~0xFFF) | (page_table[page_index] & 0xFFF);
+        page_table[page_index] |= MM_ATTR_COW;
+        page_table[page_index] &= ~MM_ATTR_RW_R;
       }
+
+      new_table[page_index] = page_table[page_index];
+
     }
   }
   return new_table;
@@ -354,10 +353,47 @@ sint_32 mm_share_page(void* page) {
   printf("dir dps se shared: %x", *ptr_desc_tabla);
 }
 
+int mm_copy_on_write_page(mm_page *page, uint_32 dir_index, uint_32 table_index) {
+
+  if(mm_times_mapped((*page).base << 12, dir_index, table_index ) == 1){
+    (*page).attr &= ~MM_ATTR_COW;
+    (*page).attr |= MM_ATTR_RW;
+  }else{
+    //pedir una nueva
+    mm_page *dest_page = mm_mem_alloc();
+    if (dest_page == NULL) //No hay más páginas
+      return -1;
+
+    //Copio el contenido de la página
+    mm_copy_vf((uint_32*) (dir_index * DIR_SIZE + table_index * PAGE_SIZE), (uint_32) dest_page, PAGE_SIZE);
+    //Mapeo en la nueva estructura copiando los atributos
+    // new_table[page_index] = ((uint_32) dest_page & ~0xFFF) | (page_table[page_index] & 0xFFF);
+    (*page).base = (*dest_page).base;
+  }
+
+  return 0;
+
+  // uint_32 cr3 = rcr3();
+  // printf("page to COW: %x", (uint_32) page);
+  // uint_32 base_dir = ((int) cr3) & ~0xFFF;
+  // uint_32 page_to_cow = (uint_32) page;
+
+  // uint_32 ind_td = page_to_cow >> 22;
+  // uint_32 ind_tp = (page_to_cow << 10) >> 22;
+  // uint_32* desc_dir = (uint_32 *) (base_dir + (ind_td * 4));
+
+  // //obtengo el PTE
+  // uint_32* ptr_desc_tabla = (uint_32*) (((*desc_dir & ~0xFFF) + (ind_tp * 4)));
+  // printf("dir anted se COW: %x", *ptr_desc_tabla);
+  // *ptr_desc_tabla |= MM_ATTR_COW;
+  // *ptr_desc_tabla &= ~MM_ATTR_RW_R;
+  // printf("dir dps se COW: %x", *ptr_desc_tabla);
+}
+
 void isr_page_fault_c(uint_32 error_code) {
   void* usr_page;
   void* kernel_page;
-  printf("error code = %x", error_code);
+  printf("error code = %x | %d", error_code, error_code);
   uint_32 cr3 = rcr3();
   //para que estoo
   uint_32 base_dir = ((int) cr3) & ~0xFFF;
@@ -373,14 +409,12 @@ void isr_page_fault_c(uint_32 error_code) {
   printf("base in page directory %x", (*desc_dir).base);
   printf("attribute");
 
-  //me fijo si esta presente el PDE
-  if (!((*desc_dir).attr & MM_ATTR_P)) {
-    //el PDE no esta presente
-    if ((*desc_dir).attr & MM_ATTR_REQ) {
-      //una entrada en el directorio de paginas es requerido
+  if( !is_present(*desc_dir)) {
+    if ( is_requested(*desc_dir) ){
       usr_page = mm_mem_alloc();
       if (usr_page == NULL)
         sys_exit(); // No pude obtener una nueva página de usuario
+
       kernel_page = mm_page_map(page_fault_address, (mm_page*) cr3, (uint_32) usr_page, 0, USR_STD_ATTR);
       if (kernel_page == NULL) { // Falló el prceso de mapeo a causa de falta de páginas de kernel
         mm_mem_free(usr_page); //Rollbackeo el proceso, devuelvo la página de usuario
@@ -395,19 +429,15 @@ void isr_page_fault_c(uint_32 error_code) {
   }
 
   //obtengo el PTE
-  uint_32 * tmp_pointer = (uint_32 *) desc_dir;
-  mm_page* ptr_desc_tabla = (mm_page*) (((*tmp_pointer & ~0xFFF) + (ind_tp * 4)));
-  //  printf("base in table dir %x", (*ptr_desc_tabla).base);
-  //  printf("attributes in table dir %x", (*ptr_desc_tabla).attr);
-  //  printf("attribute");
+  uint_32 *tmp_pointer = (uint_32 *) desc_dir;
+  mm_page *ptr_desc_tabla = (mm_page*) (((*tmp_pointer & ~0xFFF) + (ind_tp * 4)));
 
-  //me fijo si el PTE esta presente
-  if (!((*ptr_desc_tabla).attr & MM_ATTR_P)) {
-    if ((*ptr_desc_tabla).attr & MM_ATTR_REQ) {
-      //esta solicitada.
+  if ( !is_present(*ptr_desc_tabla)) {
+    if (is_requested(*ptr_desc_tabla)){
       usr_page = mm_mem_alloc();
       if (usr_page == NULL)
         sys_exit(); // No pude obtener una nueva página de usuario
+
       printf("new page %x", (uint_32) usr_page);
       mm_page_map(page_fault_address, (mm_page*) cr3, (uint_32) usr_page, 0, USR_STD_ATTR);
     } else {
@@ -415,7 +445,13 @@ void isr_page_fault_c(uint_32 error_code) {
     }
   } else {
     //la PTE table estaba presente el error fue otro.
+    if ( is_copy_on_write(*ptr_desc_tabla)){
+      printf("*** PageFault CoW");
+      mm_copy_on_write_page(ptr_desc_tabla, ind_td, ind_tp);
+    }
   }
+
+
 
   outb(0x20, 0x20);
 }
@@ -437,16 +473,13 @@ void mm_init(void) {
 
   activate_pse(1);
   kernel_dir = mm_dir_new();
-  // printf("Done.");
   lcr3((uint_32) kernel_dir);
-  // printf("Activating paging.000");
   activate_paging(1);
-  //Registro palloc como syscall 0x30
-  // printf("Registering system function sys_palloc...");
+
+  // Registro syscalls
   syscall_list[0x30] = (uint_32) &sys_palloc;
   syscall_list[0x40] = (uint_32) &mm_share_page;
-  // printf("Done.");
-  //
+
   //Inicializo el semáforo
   dir_free_sem = SEM_NEW(1);
 }
