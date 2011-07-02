@@ -208,7 +208,7 @@ sint_32 sys_run(const char* archivo) {
     printf(" >sys_run: filename = %s", fileFullPath);
     if (file_char_dev != NULL) {
       char * dir = ((char *) file_char_dev) + 0x200;
-      return loader_load((pso_file *) dir, 0);
+      return loader_load((pso_file *) dir, 3);
     }
   }
   return -1;
