@@ -79,6 +79,9 @@ typedef uint_32 page_frame_info;
 
 #define USR_STD_ATTR MM_ATTR_RW | MM_ATTR_US_U
 
+extern page_frame_info kernel_pf_info[24];
+extern page_frame_info usr_pf_info[32736];
+
 void mm_init(void);
 void* mm_mem_alloc();
 void* mm_mem_kalloc();

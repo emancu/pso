@@ -121,7 +121,6 @@ void write_in_console(chardev_console* this_console, const char* msg, uint_8 sty
 }
 
 uint_32 con_flush(chardev* this) {
-  breakpoint();
   if (this->refcount > 1) {
     this->refcount--; //NOTE: Como es la política? Device cambia los refcount o cada módulo?
     return 0;

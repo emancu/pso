@@ -10,6 +10,9 @@ int main(void) {
   char command[15] = "run console.pso";
   run(command);
   // void* p = palloc();
-  exit();
+  while(1) {
+    hlt();
+  }
+  // exit();
   return 0;
 }

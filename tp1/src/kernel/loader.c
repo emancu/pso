@@ -33,20 +33,22 @@ void loader_init(void) {
 }
 
 pid loader_load(pso_file* f, int pl) {
-  breakpoint();
   //me guardo el cr3 viejo.
   uint_32 old_cr3 = rcr3();
 
   //pido un directorio para la nueva tarea
   void* task_dir = mm_dir_new();
+  printf(" >loader_load: task_dir = %x", task_dir);
 
   //TODO VER CUANTA MEMORIA NECESITA REALMENTE
   void* puntero_page_tarea = mm_mem_alloc();
-  printf("puntero page tarea : %x", (uint_32) puntero_page_tarea);
+  printf(" >loader_load: puntero page tarea : %x", (uint_32) puntero_page_tarea);
 
   //stacks de anillo 3 y 0 para la tarea
   void* task_stack3 = mm_mem_alloc();
   void* task_stack0 = mm_mem_alloc();
+
+  printf(" >loader_load: pfi after allocs: kernel = %x | usr = %x", *kernel_pf_info, *usr_pf_info);
 
   //ver esto donde van mapeados los stacks
   mm_page_map(STACK_3_VIRTUAL, task_dir, (uint_32) task_stack3, 0, USR_STD_ATTR);
@@ -61,7 +63,7 @@ pid loader_load(pso_file* f, int pl) {
   *stack0-- = 0x23;
   *stack0-- = STACK_3_VIRTUAL + 0x1000;
   *stack0-- = 0x202;
-  *stack0-- = 0x1B;
+  *stack0-- = (pl)? 0x1B : 0x08; //Elijo el selector de segmento según el privilegio de la tarea
   *stack0-- = (uint_32) f->_main;
   *stack0-- = (uint_32) &task_ret;
   *stack0-- = resp();
@@ -81,6 +83,8 @@ pid loader_load(pso_file* f, int pl) {
   uint_32 cant_to_copy = f->mem_end_disk - f->mem_start;
   int i;
 
+  printf(" >loader_load: task_to_copy = %x", task_to_copy);
+
   for (i = 0; i < cant_to_copy; i++) {
     *addr_to_copy++ = *task_to_copy++;
   }
@@ -96,6 +100,7 @@ pid loader_load(pso_file* f, int pl) {
   sched_load(requested_pid);
 
   tasks_running++;
+  printf(" >loader_load: finished loading to new pid %d", requested_pid);
   return requested_pid;
 }
 
@@ -146,10 +151,8 @@ void loader_unqueue(int* cola) {
 }
 
 void loader_exit(void) {
-  breakpoint();
-  device_release_devices();
-  mm_dir_free((mm_page*) task_table[cur_pid].cr3);
-  breakpoint();
+  device_release_devices(cur_pid);
+  // mm_dir_free((mm_page*) task_table[cur_pid].cr3);
   free_pid(cur_pid);
   tasks_running--;
 
