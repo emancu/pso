@@ -72,7 +72,8 @@ void mm_dir_free(uint_32* d) {
   for (i = 1; i < TABLE_ENTRY_NUM; i++) {
     if ( is_present(d[i]) ){
       mm_table_free((void*) (d[i] & ~0xFFF), i); // Libero las tablas
-      d[i].attr &= ~MM_ATTR_P; // La marco como no presente (al pedo?)
+      // FIXME: en el branch de exit venia este, pero en master no... hay q ponerlo ?
+      (*((mm_page *) d[i])).attr &= ~MM_ATTR_P; // La marco como no presente (al pedo?)
       mm_mem_free((void*) (d[i] & ~0xFFF)); // Marco como libre el page frame donde estaba la tabla
     }
   }
