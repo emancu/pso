@@ -46,6 +46,7 @@ void kernel_init(void) {
   fdd_init();
   fat12_init();
   fs_init();
+  pipe_init();
 
   // clear_screen();
    loader_load(&task_taskinit_pso, 0);

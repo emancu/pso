@@ -77,6 +77,8 @@ typedef uint_32 page_frame_info;
 #define KRN_MEM_START 1048576
 #define PFI_OCCUPIED 0xFFFFFFFF
 
+#define SECTOR_SIZE 512
+
 #define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 #define SET_BIT(var, pos) ((var) |= (1<<(pos)))
 #define UNSET_BIT(var, pos) ((var) &= (~(1<<(pos))))

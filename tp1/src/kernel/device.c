@@ -16,8 +16,8 @@ int device_descriptor(chardev* dev) {
     return -ENOSYS;
 
   char_devices[cur_pid][new_file_descriptor] = dev;
-  printf("es %d" , dev->refcount);
-  dev->refcount++;
+  printf(" >device_descriptor: dev = %x, refs = %d", dev, dev->refcount);
+  dev->refcount++; //FIXME: Revisar que sea una buena política
   return new_file_descriptor;
 }
 
@@ -53,6 +53,7 @@ int sys_seek(int fd, uint_32 pos) {
 }
 
 int sys_close(int fd) {
+  printf(" >sys_close: fd = %d", fd);
   // Busco en la current task el file descriptor solicitado
   chardev* char_dev = (chardev*) char_devices[cur_pid][fd];
   char_devices[cur_pid][fd] = 0x0;

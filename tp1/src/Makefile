@@ -24,18 +24,20 @@ BIN_BOOT=$(DIRBOOT)floppyboot.bin
 
 # Kernel
 OBJS_KERN=kernel/kinit.o kernel/a20.o kernel/kernel.o kernel/gdt.o kernel/idt.o \
+	kernel/fdd.o kernel/dma.o \
   kernel/isr.o kernel/pic.o kernel/vga.o kernel/sched.o \
   kernel/mm.o kernel/debug.o kernel/loader.o kernel/tasks.o \
   kernel/syscalls.o kernel/sem.o kernel/tss.o kernel/loader_switch.o \
   kernel/device.o kernel/con.o kernel/proc.o kernel/fs.o kernel/serial.o kernel/fat12.o \
-  kernel/lib_str.o kernel/klib_machine.o kernel/lib_printf.o kernel/fdd.o kernel/dma.o kernel/pit.o kernel/kernel_sym.o
+  kernel/lib_str.o kernel/klib_machine.o kernel/lib_printf.o  kernel/pit.o \
+  kernel/pipe.o kernel/kernel_sym.o
 
 BIN_KERN=$(DIROUT)kernel.bin
 DUMP_KERN=$(DIROUT)kernel.bin.asm $(DIROUT)kernel.bin.elf $(DIROUT)kernel.bin.dbg
 SYM_KERN=$(DIROUT)kernel.sym
 
 # Tareas
-TASKS=tasks/console.pso tasks/taskinit.pso tasks/fork.pso tasks/memoryd.pso tasks/cow.pso
+TASKS=tasks/console.pso tasks/taskinit.pso tasks/fork.pso tasks/memoryd.pso tasks/pipe.pso tasks/cow.pso
 TASKS_ELF:=$(TASKS:.pso=.elf)
 OBJS_TASKS:=$(TASKS:.pso=.o) tasks/pso_head.o tasks/pso_tail.o tasks/syscalls.o
 
