@@ -380,7 +380,7 @@ int mm_copy_on_write_page(mm_page *page, uint_32 dir_index, uint_32 table_index)
     mm_copy_vf((uint_32*) (dir_index * DIR_SIZE + table_index * PAGE_SIZE), (uint_32) dest_page, PAGE_SIZE);
     //Mapeo en la nueva estructura copiando los atributos
     // new_table[page_index] = ((uint_32) dest_page & ~0xFFF) | (page_table[page_index] & 0xFFF);
-    breakpoint();
+//    breakpoint();
     // (*page).base = dest_page.base;
     uint_32 *tmp = (uint_32 *) dest_page;
     uint_32 *tmp2 = (uint_32 *) page;
@@ -388,7 +388,7 @@ int mm_copy_on_write_page(mm_page *page, uint_32 dir_index, uint_32 table_index)
     printf("alejandro page = %x   *%x", page, *page);
     // (*page).base = dest_page.base;
     // (*page).base = (uint_32) dest_page & ~0xFFF | ;
-    breakpoint();
+//    breakpoint();
   }
 
   breakpoint();
@@ -450,7 +450,7 @@ void isr_page_fault_c(uint_32 error_code) {
     }
   } else {
     //la PTE table estaba presente el error fue otro.
-    if ( is_copy_on_write(*ptr_desc_tabla)){
+    if ( is_copy_on_write(*ptr_desc_tabla) && error_code == 7){
       printf("*** PageFault CoW");
       mm_copy_on_write_page(ptr_desc_tabla, ind_td, ind_tp);
     }

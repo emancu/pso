@@ -8,8 +8,8 @@ int global = 31;
 
 int main(void) {
   int* p;
-  p = (int *) palloc();
-  *p=10;
+  p = (int *) 0x400f00;
+//  *p=10;
     breakpoint();
   int pid = fork();
 
