@@ -31,10 +31,10 @@ void* page_frame_info_alloc(page_frame_info* pfi, uint_32 limit, uint_32 mem_off
 }
 
 void* mm_mem_alloc() {
-	return page_frame_info_alloc(usr_pf_info, usr_pf_limit, USR_MEM_START);
+  return page_frame_info_alloc(usr_pf_info, usr_pf_limit, USR_MEM_START);
 }
 void* mm_mem_kalloc() {
-	return page_frame_info_alloc(kernel_pf_info, sizeof(kernel_pf_info), KRN_MEM_START);
+  return page_frame_info_alloc(kernel_pf_info, sizeof(kernel_pf_info), KRN_MEM_START);
 }
 
 mm_page* mm_dir_new(void) {
@@ -68,7 +68,7 @@ bool is_copy_on_write(uint_32 page){
  * páginas. Estos son apuntados por las direcciones en la tabla de directorios. */
 void mm_dir_free(uint_32* d) {
   sem_wait(&dir_free_sem); //Acá empieza la sección crítica del borrado
-  int i = 0;
+  int i;
   for (i = 1; i < TABLE_ENTRY_NUM; i++) {
     if ( is_present(d[i]) ){
       mm_table_free((void*) (d[i] & ~0xFFF), i); // Libero las tablas
@@ -200,7 +200,7 @@ uint_32 mm_times_mapped(uint_32 physical_addr, int dir_index, int table_index ){
   int i, times=0;
   uint_32 *desc_dir, *desc_table;
   for(i=0; i < MAX_PID; i++){
-    if(task_table[i].cr3 != NULL ){
+    if(task_table[i].cr3){
       desc_dir    = (uint_32 *) (( ( (uint_32) ((int)task_table[i].cr3) & ~0xFFF)) + (dir_index * 4));
       desc_table  = (uint_32 *) (((*desc_dir & ~0xFFF) + (table_index *4)));
       if( physical_addr == (*desc_table & ~0xFFF))
@@ -283,7 +283,6 @@ int mm_copy_vf(uint_32* virtual, uint_32 fisica, uint_32 cant) {
   int i;
   char* addr_to_copy = (char*) KERNEL_TEMP_PAGE;
   char* addr_from_copy = (char*) virtual;
-//  breakpoint();
   //Si copiando desde 'virtual' me voy a pasar del límite de la página
   if (((uint_32) virtual / PAGE_SIZE) != (((uint_32) virtual + cant - 1) / PAGE_SIZE))
     return MM_ERROR_NOTALIGNED; //Devuelvo error
@@ -296,7 +295,6 @@ int mm_copy_vf(uint_32* virtual, uint_32 fisica, uint_32 cant) {
   mm_page_free(KERNEL_TEMP_PAGE, (mm_page*) rcr3());
   tlbflush();
   printf("termine mmcopyvf");
-//  breakpoint();
   return 0;
 }
 
@@ -359,6 +357,8 @@ sint_32 mm_share_page(void* page) {
   printf("dir anted se shared: %x", *ptr_desc_tabla);
   *ptr_desc_tabla |= MM_ATTR_SH;
   printf("dir dps se shared: %x", *ptr_desc_tabla);
+
+  return 0;
 }
 
 int mm_copy_on_write_page(uint_32 *page, uint_32 dir_index, uint_32 table_index) {
@@ -370,7 +370,7 @@ int mm_copy_on_write_page(uint_32 *page, uint_32 dir_index, uint_32 table_index)
     printf("cambie attr por %x", *page);
   }else{
     //pedir una nueva
-	uint_32* dest_page = mm_mem_alloc();
+  uint_32* dest_page = mm_mem_alloc();
     printf("nueva pagina forkeada = %x", dest_page);
     if (dest_page == NULL) //No hay más páginas
       return -1;
@@ -382,8 +382,6 @@ int mm_copy_on_write_page(uint_32 *page, uint_32 dir_index, uint_32 table_index)
     *page = ((uint_32) dest_page & ~0xFFF) | USR_STD_ATTR | 1;
     *page |= USR_STD_ATTR | 1;
   }
-
-//  breakpoint();
   return 0;
 }
 
@@ -440,13 +438,11 @@ void isr_page_fault_c(uint_32 error_code) {
     }
   } else {
     //la PTE table estaba presente el error fue otro.
-    if ( is_copy_on_write(*ptr_desc_tabla) && error_code == 7){
+    if ( is_copy_on_write(*ptr_desc_tabla) && error_code == PF_ERROR_READ_ONLY){
       printf("*** PageFault CoW ***");
       mm_copy_on_write_page(ptr_desc_tabla, ind_td, ind_tp);
     }
   }
-
-
 
   outb(0x20, 0x20);
 }
@@ -455,12 +451,11 @@ extern void* _end; // Puntero al fin del c'odigo del kernel.bin (definido por LD
 void mm_init(void) {
   idt_register(0x0e, &isr_page_fault, 0);
   int i = 0;
-  //    printf("Initializing memory managment unit...\n");
+
   usr_pf_limit = (uint_32) memory_detect((uint_32*) USR_MEM_START, PAGE_SIZE);
   //    printf("Total memory: %x bytes (Assuming at least 4mb of contiguous memory)\n", usr_pf_limit, usr_pf_limit);
   usr_pf_limit = (usr_pf_limit - USR_MEM_START) / (PAGE_SIZE * 32);
-  //  printf("User page_frame limit: %x\n", usr_pf_limit);
-  // printf("Cleaning pf_info structures...");
+
   for (i = 0; i < sizeof(kernel_pf_info); i++)
     kernel_pf_info[i] = 0x0;
   for (i = 0; i < sizeof(usr_pf_info); i++)

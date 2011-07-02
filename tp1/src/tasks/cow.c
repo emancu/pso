@@ -10,6 +10,7 @@ int main(void) {
   int* p;
   p = (int *) 0x400f00;
 //  *p=10;
+    share_page(p);
     breakpoint();
   int pid = fork();
 
