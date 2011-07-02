@@ -197,8 +197,8 @@ uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
   printf(" >sys_fork: paginas stack_ kernel %x | usr %x", task_stack0, task_stack3);
 
   //ver esto donde van mapeados los stacks
-  // mm_page_map(STACK_3_VIRTUAL, new_cr3, (uint_32) task_stack3, 0, USR_STD_ATTR);
-  // mm_page_map(STACK_0_VIRTUAL, new_cr3, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
+  mm_page_map(STACK_3_VIRTUAL, new_cr3, (uint_32) task_stack3, 0, USR_STD_ATTR);
+  mm_page_map(STACK_0_VIRTUAL, new_cr3, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
 
   //TODO ver estas direcciones temporales donde ponerlas
   mm_page_map(KERNEL_TEMP_PAGE,(mm_page *) old_cr3, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
@@ -217,9 +217,8 @@ uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
   *stack0-- = 0x0;
   *stack0-- = 0x0;
 
-  // mm_page_map((uint_32) f->mem_start, task_dir, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
   //Copio la pila de usuario como está //Innecesario, ya lo hace el fork
-  // mm_copy_vf((uint_32*)STACK_3_VIRTUAL, (uint_32)task_stack3, PAGE_SIZE);
+  mm_copy_vf((uint_32*)STACK_3_VIRTUAL, (uint_32)task_stack3, PAGE_SIZE);
 
   mm_page_free(KERNEL_TEMP_PAGE, (mm_page*) old_cr3);
   tlbflush();
