@@ -197,20 +197,17 @@ void* mm_page_free(uint_32 virtual, mm_page* cr3) {
 }
 
 uint_32 mm_times_mapped(uint_32 physical_addr, int dir_index, int table_index ){
-  printf("times de pag: %x", physical_addr);
   int i, times=0;
   uint_32 *desc_dir, *desc_table;
   for(i=0; i < MAX_PID; i++){
-    printf(" task[%d].cr3 = %x", i, task_table[i].cr3);
     if(task_table[i].cr3 != NULL ){
       desc_dir    = (uint_32 *) (( ( (uint_32) ((int)task_table[i].cr3) & ~0xFFF)) + (dir_index * 4));
-      printf(" desc_dir = %x", desc_dir);
       desc_table  = (uint_32 *) (((*desc_dir & ~0xFFF) + (table_index *4)));
-      printf(" desc_table = %x", desc_table);
       if( physical_addr == (*desc_table & ~0xFFF))
         times++;
     }
   }
+  printf("times de pag: %x = %d" , physical_addr, times);
   return times;
 }
 
@@ -286,6 +283,7 @@ int mm_copy_vf(uint_32* virtual, uint_32 fisica, uint_32 cant) {
   int i;
   char* addr_to_copy = (char*) KERNEL_TEMP_PAGE;
   char* addr_from_copy = (char*) virtual;
+//  breakpoint();
   //Si copiando desde 'virtual' me voy a pasar del límite de la página
   if (((uint_32) virtual / PAGE_SIZE) != (((uint_32) virtual + cant - 1) / PAGE_SIZE))
     return MM_ERROR_NOTALIGNED; //Devuelvo error
@@ -297,6 +295,8 @@ int mm_copy_vf(uint_32* virtual, uint_32 fisica, uint_32 cant) {
 
   mm_page_free(KERNEL_TEMP_PAGE, (mm_page*) rcr3());
   tlbflush();
+  printf("termine mmcopyvf");
+//  breakpoint();
   return 0;
 }
 
@@ -384,14 +384,14 @@ int mm_copy_on_write_page(mm_page *page, uint_32 dir_index, uint_32 table_index)
     // (*page).base = dest_page.base;
     uint_32 *tmp = (uint_32 *) dest_page;
     uint_32 *tmp2 = (uint_32 *) page;
-    *tmp = ((uint_32) tmp & ~0xFFF) | ( *tmp2 & 0xFFF);
-    printf("alejandro page = %x   *%x", page, *page);
+    *tmp2 = ((uint_32) tmp & ~0xFFF) | USR_STD_ATTR | 1;
+    *tmp2 |= USR_STD_ATTR | 1;
     // (*page).base = dest_page.base;
     // (*page).base = (uint_32) dest_page & ~0xFFF | ;
 //    breakpoint();
   }
 
-  breakpoint();
+//  breakpoint();
   return 0;
 }
 

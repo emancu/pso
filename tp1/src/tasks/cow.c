@@ -14,16 +14,16 @@ int main(void) {
   int pid = fork();
 
   if(pid == 0){
-    breakpoint();
     global = 12;
     *p = 4;
     breakpoint();
   }else{
-    breakpoint();
     global = 5;
     *p= 9;
     breakpoint();
   }
+
+  breakpoint();
 
   exit();
   return 0;
