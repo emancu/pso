@@ -43,9 +43,9 @@ int main(void) {
 		i += 5;
 	}
 
-  // breakpoint();
-  while(1) ;
-	// void* p = palloc();
-	exit();
+  if (pid)
+    read(fd, buf, 1);
+
+  exit();
 	return 0;
 }
