@@ -29,6 +29,8 @@ int main(void) {
     read(fd, &msg, 1);
     if (msg == '\n') {
       run_command(command, fd, ps1);
+      for (idx = 0; idx < 100; idx++) 
+        command[idx] = '\0';
       idx = 0;
     } else {
       write(fd, &msg, 1);
