@@ -66,14 +66,17 @@ void mm_table_free(mm_page* d) {
   char* dest;
   for (i = 0; i < TABLE_ENTRY_NUM; i++) {
     if (d[i].attr & MM_ATTR_P) { // La página está mappeada
+      //Llenamos la memoria de 0s (MAL, para poner en 0 hay que llenar la memoria virtual)
+      // dest = (char*) (d[i].base << 12);
+      dest = (int)dest & ~0xfff;
+      // for (j = 0; j < PAGE_SIZE; j++) {
+        // breakpoint();
+        // dest[j] = 0x0;
+      // }
+
       mm_mem_free((mm_page*) (d[i].base << 12));
       //        d[i].attr &= ~MM_ATTR_P;
       //
-      //Llenamos la memoria de 0s
-      dest = (char*) (d[i].base << 12);
-      dest = (int)dest & ~0xfff;
-      for (j = 0; j < PAGE_SIZE; j++)
-        dest[j] = 0x0;
     }
   }
 }
@@ -399,7 +402,7 @@ void isr_page_fault_c(uint_32 error_code) {
 
 extern void* _end; // Puntero al fin del c'odigo del kernel.bin (definido por LD).
 void mm_init(void) {
-  idt_register(0x0e, &isr_page_fault, 0);
+  // idt_register(0x0e, &sr_page_fault, 0);
   int i = 0;
   //    printf("Initializing memory managment unit...\n");
   usr_pf_limit = (uint_32) memory_detect((uint_32*) USR_MEM_START, PAGE_SIZE);

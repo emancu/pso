@@ -29,6 +29,7 @@ int main(void) {
 
 	// fork();
 	int pid = fork();
+  breakpoint();
 	while (i < 50) {
 		if (pid) {
 			read(file, buf, 5);
@@ -42,6 +43,7 @@ int main(void) {
 		i += 5;
 	}
 
+  while(1) ;
 	// void* p = palloc();
 	exit();
 	return 0;

@@ -152,7 +152,7 @@ void loader_unqueue(int* cola) {
 
 void loader_exit(void) {
   device_release_devices(cur_pid);
-  // mm_dir_free((mm_page*) task_table[cur_pid].cr3);
+  mm_dir_free((mm_page*) task_table[cur_pid].cr3);
   free_pid(cur_pid);
   tasks_running--;
 
@@ -184,16 +184,20 @@ uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
 
   //pido un directorio para la nueva tarea
   void* new_cr3 = mm_dir_fork((mm_page*) old_cr3);
-  if (new_cr3 == NULL) //No pudo hacerse fork de la estrucutra de paginación
+  if (new_cr3 == NULL) { //No pudo hacerse fork de la estrucutra de paginación
+    printf("! >sys_fork: no se pudo crear el directorio de la nueva tarea");
     return -1;
+  }
 
+  printf(" >sys_fork: new_cr3 = %x", new_cr3);
    //stacks de anillo 3 y 0 para la tarea
   void* task_stack3 = mm_mem_alloc();
   void* task_stack0 = mm_mem_alloc();
+  printf(" >sys_fork: paginas stack_ kernel %x | usr %x", task_stack0, task_stack3);
 
   //ver esto donde van mapeados los stacks
-  mm_page_map(STACK_3_VIRTUAL, new_cr3, (uint_32) task_stack3, 0, USR_STD_ATTR);
-  mm_page_map(STACK_0_VIRTUAL, new_cr3, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
+  // mm_page_map(STACK_3_VIRTUAL, new_cr3, (uint_32) task_stack3, 0, USR_STD_ATTR);
+  // mm_page_map(STACK_0_VIRTUAL, new_cr3, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
 
   //TODO ver estas direcciones temporales donde ponerlas
   mm_page_map(KERNEL_TEMP_PAGE,(mm_page *) old_cr3, (uint_32) task_stack0, 0, MM_ATTR_RW | MM_ATTR_US_S);
@@ -213,8 +217,8 @@ uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
   *stack0-- = 0x0;
 
   // mm_page_map((uint_32) f->mem_start, task_dir, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
-  //Copio la pila de usuario como está
-  mm_copy_vf((uint_32*)STACK_3_VIRTUAL, (uint_32)task_stack3, PAGE_SIZE);
+  //Copio la pila de usuario como está //Innecesario, ya lo hace el fork
+  // mm_copy_vf((uint_32*)STACK_3_VIRTUAL, (uint_32)task_stack3, PAGE_SIZE);
 
   mm_page_free(KERNEL_TEMP_PAGE, (mm_page*) old_cr3);
   tlbflush();
@@ -230,6 +234,7 @@ uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
   // esto esta mal.. tiene q decidir q numero devolver creo q necesitamos un semaforo!
   sched_load(requested_pid);
 
+  printf(" >sys_fork: forkeo finalizado en pid %d", requested_pid);
   return requested_pid;
 }
 
