@@ -152,7 +152,7 @@ void loader_unqueue(int* cola) {
 
 void loader_exit(void) {
   device_release_devices(cur_pid);
-  mm_dir_free((mm_page*) task_table[cur_pid].cr3);
+//  mm_dir_free((mm_page*) task_table[cur_pid].cr3);
   free_pid(cur_pid);
   task_table[cur_pid].cr3 = NULL;
   tasks_running--;

@@ -85,14 +85,14 @@ void* mm_mem_alloc();
 void* mm_mem_kalloc();
 void mm_mem_free(void* page);
 
-void mm_table_free(mm_page* t, int dir_index);
+void mm_table_free(uint_32* t, int dir_index);
 uint_32 mm_times_mapped(uint_32 physical_addr, int dir_index, int table_index);
 
 extern void isr_page_fault();
 
 /* Manejador de directorios de página */
 mm_page* mm_dir_new(void);
-void mm_dir_free(mm_page* d);
+void mm_dir_free(uint_32* d);
 
 /* Syscalls */
 void* palloc(void);
