@@ -181,6 +181,7 @@ uint_32 sys_getpid(void) {
 uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
   //me guardo el cr3 viejo.
   uint_32 old_cr3 = rcr3();
+  printf(" >sys_fork: org_eip (%x), org_esp (%x)", org_eip, org_esp);
 
   //pido un directorio para la nueva tarea
   void* new_cr3 = mm_dir_fork((mm_page*) old_cr3);

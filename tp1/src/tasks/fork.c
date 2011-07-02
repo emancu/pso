@@ -27,7 +27,7 @@ int main(void) {
 		exit();
 	}
 
-	// fork();
+  breakpoint();
 	int pid = fork();
   breakpoint();
 	while (i < 50) {
@@ -43,6 +43,7 @@ int main(void) {
 		i += 5;
 	}
 
+  breakpoint();
   while(1) ;
 	// void* p = palloc();
 	exit();
