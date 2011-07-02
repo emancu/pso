@@ -23,6 +23,8 @@ void loader_init(void) {
   //NOTE: Deberiamos contar la IDLE Task?
   tasks_running = tasks_blocked = 0;
 
+  for(i=0; i < MAX_PID; i++)
+    task_table[i].cr3 = NULL;
   //hay que generar la tarea actual.. que dps se convierte en idle
   task_table[0].cr3 = rcr3();
 
@@ -33,6 +35,8 @@ void loader_init(void) {
 }
 
 pid loader_load(pso_file* f, int pl) {
+
+
   //me guardo el cr3 viejo.
   uint_32 old_cr3 = rcr3();
 
@@ -77,6 +81,7 @@ pid loader_load(pso_file* f, int pl) {
   mm_page_map((uint_32) KERNEL_TEMP_PAGE,(mm_page *) old_cr3, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
   tlbflush();
 
+
   //copio la tarea desde donde esta a la pagina que acabo de mapear.
   uint_8* addr_to_copy = (uint_8*) KERNEL_TEMP_PAGE;
   uint_8* task_to_copy = (uint_8*) f;
@@ -88,6 +93,7 @@ pid loader_load(pso_file* f, int pl) {
   for (i = 0; i < cant_to_copy; i++) {
     *addr_to_copy++ = *task_to_copy++;
   }
+
 
   //tengo que armar la estreuctura
   uint_32 requested_pid = get_new_pid();
@@ -154,6 +160,7 @@ void loader_exit(void) {
   device_release_devices(cur_pid);
   mm_dir_free((mm_page*) task_table[cur_pid].cr3);
   free_pid(cur_pid);
+  task_table[cur_pid].cr3 = NULL;
   tasks_running--;
 
   loader_switchto(sched_exit());
@@ -220,8 +227,10 @@ uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
   //Copio la pila de usuario como está //Innecesario, ya lo hace el fork
   mm_copy_vf((uint_32*)STACK_3_VIRTUAL, (uint_32)task_stack3, PAGE_SIZE);
 
+
   mm_page_free(KERNEL_TEMP_PAGE, (mm_page*) old_cr3);
   tlbflush();
+
 
   //tengo que armar la estructura de proceso
   uint_32 requested_pid = get_new_pid();
@@ -230,6 +239,7 @@ uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
 
   //Duplico los file descriptor actualizando referencias
   device_fork_descriptors(cur_pid, requested_pid);
+
 
   // esto esta mal.. tiene q decidir q numero devolver creo q necesitamos un semaforo!
   sched_load(requested_pid);
