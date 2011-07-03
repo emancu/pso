@@ -409,16 +409,19 @@ void isr_page_fault_c(uint_32 error_code) {
       usr_page = mm_mem_alloc();
       if (usr_page == NULL)
         sys_exit(); // No pude obtener una nueva página de usuario
-
+      
+      printf(" >isr_page_fault: no está presente y es requerida la PDE");
       kernel_page = mm_page_map(page_fault_address, (mm_page*) cr3, (uint_32) usr_page, 0, USR_STD_ATTR);
       if (kernel_page == NULL) { // Falló el prceso de mapeo a causa de falta de páginas de kernel
         mm_mem_free(usr_page); //Rollbackeo el proceso, devuelvo la página de usuario
         sys_exit();
       }
     } else {
+      printf(" >isr_page_fault: no presente y no requerida la PDE");
       // no esta presente y no es requerido (por ahi las otras cosas que queria martin)
     }
   } else {
+    printf(" >isr_page_fault: PDE presente");
     //el PDE estaba presente
 
   }
@@ -435,6 +438,7 @@ void isr_page_fault_c(uint_32 error_code) {
       printf("new page (was previous requested) %x", (uint_32) usr_page);
       mm_page_map(page_fault_address, (mm_page*) cr3, (uint_32) usr_page, 0, USR_STD_ATTR);
     } else {
+      printf(" >isr_page_fault: PTE no presente y no requerida");
       //la pagina no estaba presente
     }
   } else {
