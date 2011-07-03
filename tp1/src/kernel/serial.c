@@ -117,6 +117,7 @@ sint_32 serial_write(chardev* this, const void* buf, uint_32 size) {
   uint_32 i;
   int port = ((chardev_serial*) this)->port;
   char * buff = (char *) buf;
+  uint_16 flags = reflags();
 
   cli(); //FIXME: Fix MUY choto para el race condition
   for(i=0; i< size;i++){
@@ -127,7 +128,9 @@ sint_32 serial_write(chardev* this, const void* buf, uint_32 size) {
   size = i % 16; //NOTE: Envío espacios para completar el fifo (revisar)
   for (i=0; i < size; i++) 
     outb(port + PORT_DATA, 0x20); 
-  sti();
+
+  if (CHECK_BIT(flags, 9)) //Reviso como estaba el IF antes de setearlo
+    sti();
 
   return i;
 }
