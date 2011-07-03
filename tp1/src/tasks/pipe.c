@@ -9,6 +9,7 @@ int main(void) {
   int con = open("/console", 0x3);
   char* texto = "Puto el que lee...";
   int i;
+  char* buf[3];
 
   //breakpoint();
   pipe(pipes);
@@ -20,7 +21,6 @@ int main(void) {
     }
   } else { //Soy el hijo (leo)
     close(pipes[1]); //Ciero escritura
-    char* buf[3];
     for (i = 0; i < 18; i++) {
       pid = read(pipes[0], buf, 5);
       write(con, buf, pid);
@@ -29,7 +29,9 @@ int main(void) {
   }
   //breakpoint();
 
-  while(1);
+  if (pid)
+    read(con, buf, 1);
+
   exit();
   return 0;
 }

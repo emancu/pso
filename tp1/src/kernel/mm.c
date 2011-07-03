@@ -450,7 +450,7 @@ void isr_page_fault_c(uint_32 error_code) {
 
 extern void* _end; // Puntero al fin del c'odigo del kernel.bin (definido por LD).
 void mm_init(void) {
-  // idt_register(0x0e, &sr_page_fault, 0);
+  idt_register(0x0e, &isr_page_fault, 0);
   int i = 0;
 
   usr_pf_limit = (uint_32) memory_detect((uint_32*) USR_MEM_START, PAGE_SIZE);
