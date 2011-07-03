@@ -243,6 +243,7 @@ uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
 
   // esto esta mal.. tiene q decidir q numero devolver creo q necesitamos un semaforo!
   sched_load(requested_pid);
+  tasks_running++;
 
   printf(" >sys_fork: forkeo finalizado en pid %d", requested_pid);
   return requested_pid;
