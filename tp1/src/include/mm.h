@@ -106,6 +106,8 @@ void mm_dir_free(uint_32* d);
 void* palloc(void);
 sint_32 share_page(void* page);
 
+void* mm_page_erase(uint_32 fisica);
+
 /* Funciones de inicio de memoria */
 
 // Esta función devuelve el puntero de la última posición de memoria válida contigua.

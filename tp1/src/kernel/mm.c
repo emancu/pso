@@ -76,8 +76,10 @@ void mm_dir_free(uint_32* d) {
       (*((mm_page *) d[i])).attr &= ~MM_ATTR_P; // La marco como no presente (al pedo?)
       mm_mem_free((void*) (d[i] & ~0xFFF)); // Marco como libre el page frame donde estaba la tabla
     }
+    d[i] = 0x0;
   }
-  // d[0].attr &= ~MM_ATTR_P;
+  // d[0] &= ~MM_ATTR_P;
+  d[0] = 0x0;
   mm_mem_free((void*) ((int) d & ~0xFFF)); // Marco como libre el page frame donde está este directorio
   tlbflush();
   sem_signaln(&dir_free_sem); //Acá termina la sección crítica del borrado
@@ -91,9 +93,11 @@ void mm_table_free(uint_32* t, int dir_index) {
         if(mm_times_mapped((t[table_index] & ~0xFFF), dir_index, table_index ) > 1)
           continue; // Alguien mas la esta usando, no hay que borrarla
 
+      mm_page_erase(t[table_index] & ~0xFFF);
       mm_mem_free((uint_32*) (t[table_index] & ~0xFFF));
-      // t[i].attr &= ~MM_ATTR_P;
+      // t[table_index] &= ~MM_ATTR_P;
     }
+    t[table_index] = 0x0;
   }
 }
 
@@ -197,6 +201,21 @@ void* mm_page_free(uint_32 virtual, mm_page* cr3) {
     return NULL;
 }
 
+void* mm_page_erase(uint_32 fisica) {
+  int i;
+  char* addr_to_copy = (char*) KERNEL_TEMP_PAGE;
+  //Si copiando desde 'virtual' me voy a pasar del límite de la página
+
+  mm_page_map(KERNEL_TEMP_PAGE, (mm_page*) rcr3(), fisica, 0, MM_ATTR_RW | MM_ATTR_US_S);
+  tlbflush();
+  for (i = 0; i < 1024; i++)
+    addr_to_copy[i] = 0x0;
+
+  mm_page_free(KERNEL_TEMP_PAGE, (mm_page*) rcr3());
+  tlbflush();
+  return 0;
+}
+
 uint_32 mm_times_mapped(uint_32 physical_addr, int dir_index, int table_index ){
   int i, times=0;
   uint_32 *desc_dir, *desc_table;
@@ -248,6 +267,7 @@ void* mm_page_fork(uint_32 dir_entry, uint_32* page_table, uint_32* new_table) {
 mm_page* mm_dir_fork(mm_page* cr3) {
   uint_32* old_cr3 = (uint_32*) cr3;
   uint_32* new_cr3 = (uint_32*) mm_dir_new(); //Obtengo un nuevo directorio
+  breakpoint();
   printf("new cr3 = %x" , new_cr3);
   if (new_cr3 == NULL) //No pudo tener un nuevo directorio, fallé
     return NULL;
