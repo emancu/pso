@@ -55,14 +55,6 @@ void kernel_init(void) {
   // clear_screen();
    loader_load(&task_taskinit_pso, 0);
 
-//  loader_load(&task_task2_pso, 0);
-  //  int i = 0;
-  //  int j;
-  //  for (i = 0; i < 18000000; i++) {
-  //    j++;
-  //  }
-  //  loader_load(&task_task2_pso, 0);
-
   return;
 }
 

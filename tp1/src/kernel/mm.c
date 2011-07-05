@@ -34,14 +34,20 @@ void* mm_mem_alloc() {
   return page_frame_info_alloc(usr_pf_info, usr_pf_limit, USR_MEM_START);
 }
 void* mm_mem_kalloc() {
-  return page_frame_info_alloc(kernel_pf_info, sizeof(kernel_pf_info), KRN_MEM_START);
+  int i;
+  uint_32* page = page_frame_info_alloc(kernel_pf_info, sizeof(kernel_pf_info), KRN_MEM_START);
+
+  // Clean before map
+  for(i=0;i<1024;i++)
+    page[i] = 0;
+  return page;
 }
 
 mm_page* mm_dir_new(void) {
   mm_page* cr3 = (mm_page*) mm_mem_kalloc();
   if (cr3 == NULL)
     return NULL;
-  mm_page_erase((uint_32)cr3);
+
   mm_page_map(0x0, cr3, 0x0, 1, USR_STD_ATTR);
   return cr3;
 }
@@ -75,8 +81,7 @@ void mm_dir_free(uint_32* d) {
   for (i = 1; i < TABLE_ENTRY_NUM; i++) {
     if ( is_present(d[i]) ){
       mm_table_free((void*) (d[i] & ~0xFFF), i); // Libero las tablas
-      // FIXME: en el branch de exit venia este, pero en master no... hay q ponerlo ?
-      (*((mm_page *) d[i])).attr &= ~MM_ATTR_P; // La marco como no presente (al pedo?)
+      d[i] &= ~MM_ATTR_P;
       mm_mem_free((void*) (d[i] & ~0xFFF)); // Marco como libre el page frame donde estaba la tabla
     }
     d[i] = 0x0;
@@ -174,20 +179,18 @@ void* mm_page_map(uint_32 virtual, mm_page* cr3, uint_32 fisica, uint_32 page_si
     *desc_dir = ((fisica & ~0xFFFFF) & (attr & 0x1FFF)) | (MM_ATTR_SZ_4M | 1);
     return (void*) desc_dir;
   }
-  if (!(*desc_dir & 1)) { //Vemos si no esta presente
+  if( !is_present(*desc_dir)){
     new_dir = mm_mem_kalloc();
     if (!new_dir)
       return NULL;
-		//mm_page_erase((uint_32)new_dir);
+
     *desc_dir = (int) new_dir & ~0xFFF;
     *desc_dir |= attr | 1;
     // *((uint_32 *)(base_dir + (ind_td*4))) = desc_dir;
   }
   uint_32* ptr_desc_tabla = (uint_32*) (((*desc_dir & ~0xFFF) + (ind_tp * 4)));
   *ptr_desc_tabla = base_tabla | attr | 1; //!!Preguntar si hay que poner otros atributos
-  // printf("desc_dir = %x, *desc_dir = %x", desc_dir, *desc_dir);
-  // printf("desc_tabla = %x, *desc_tabla = %x", ptr_desc_tabla, *ptr_desc_tabla);
-  // return (void*)(*desc_dir & ~0xFFF);
+
   return (void*) (ptr_desc_tabla);
 }
 
@@ -208,21 +211,6 @@ void* mm_page_free(uint_32 virtual, mm_page* cr3) {
     return (void*) (*ptr_desc_tabla & ~0xFFF);
   } else
     return NULL;
-}
-
-void* mm_page_erase(uint_32 fisica) {
-  int i;
-  char* addr_to_copy = (char*) KERNEL_TEMP_PAGE;
-  //Si copiando desde 'virtual' me voy a pasar del límite de la página
-
-  mm_page_map(KERNEL_TEMP_PAGE, (mm_page*) rcr3(), fisica, 0, MM_ATTR_RW | MM_ATTR_US_S);
-  tlbflush();
-  for (i = 0; i < 1024; i++)
-    addr_to_copy[i] = 0x0;
-
-  mm_page_free(KERNEL_TEMP_PAGE, (mm_page*) rcr3());
-  tlbflush();
-  return 0;
 }
 
 uint_32 mm_times_mapped(uint_32 physical_addr, int dir_index, int table_index ){
@@ -371,6 +359,9 @@ void* sys_palloc() {
 }
 
 sint_32 mm_share_page(void* page) {
+// Preguntar si esta presente o requested. Si esta req, hay que pedirla!
+// Checkear que page > 4mb
+
   uint_32 cr3 = rcr3();
   printf("page to share: %x", (uint_32) page);
   uint_32 base_dir = ((int) cr3) & ~0xFFF;
@@ -379,8 +370,6 @@ sint_32 mm_share_page(void* page) {
   uint_32 ind_td = page_to_share >> 22;
   uint_32 ind_tp = (page_to_share << 10) >> 22;
   uint_32* desc_dir = (uint_32 *) (base_dir + (ind_td * 4));
-
-  //!todo ver temas privilegio (y ver si esta presente y eso)
 
   //obtengo el PTE
   uint_32* ptr_desc_tabla = (uint_32*) (((*desc_dir & ~0xFFF) + (ind_tp * 4)));
@@ -415,9 +404,11 @@ int mm_copy_on_write_page(uint_32 *page, uint_32 dir_index, uint_32 table_index)
   return 0;
 }
 
-void isr_page_fault_c(uint_32 error_code) {
+// void isr_page_fault_c(uint_32 error_code) {
+void isr_page_fault_c(const uint_32* stack, const exp_state* expst) {
   void* usr_page;
   void* kernel_page;
+  uint_32 error_code = expst->errcode;
   printf("error code = %x | %d", error_code, error_code);
   uint_32 cr3 = rcr3();
   uint_32 base_dir = ((int) cr3) & ~0xFFF;
@@ -447,7 +438,7 @@ void isr_page_fault_c(uint_32 error_code) {
       }
     } else {
       printf(" >isr_page_fault: no presente y no requerida la PDE");
-      debug_kernelpanic(&error_code, NULL);
+      debug_kernelpanic(stack, expst);
       breakpoint();
       // no esta presente y no es requerido (por ahi las otras cosas que queria martin)
     }
