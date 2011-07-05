@@ -100,12 +100,17 @@ loader_switchto_exit:
     mul ebx
     lea eax, [task_table+eax+12]  ; new ESP
 
-    mov esp, [eax]
-    mov [cur_pid], esi
+    mov esp, [eax]        ; Cambiamos e pila
+    xchg [cur_pid], esi
 
     push edi
     call mm_dir_free
-    pop edi
+    add esp, 4
+    
+    mov ebx, 16
+    mov eax, esi
+    mul ebx
+    mov DWORD [task_table+eax+8], 0   ; old cr3 := 0
 
     pop edi
     pop esi

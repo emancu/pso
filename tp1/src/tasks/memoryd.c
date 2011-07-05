@@ -2,6 +2,7 @@
 #include <tipos.h>
 #include <fs.h>
 #include <i386.h>
+#include <mm.h>
 
 
 int main(void) {

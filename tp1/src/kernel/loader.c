@@ -24,7 +24,7 @@ void loader_init(void) {
   tasks_running = tasks_blocked = 0;
 
   for(i=0; i < MAX_PID; i++)
-    task_table[i].cr3 = NULL;
+    task_table[i].cr3 = 0;
   //hay que generar la tarea actual.. que dps se convierte en idle
   task_table[0].cr3 = rcr3();
 
@@ -43,7 +43,6 @@ pid loader_load(pso_file* f, int pl) {
   //pido un directorio para la nueva tarea
   void* task_dir = mm_dir_new();
   printf(" >loader_load: task_dir = %x", task_dir);
-  breakpoint();
 
   //TODO VER CUANTA MEMORIA NECESITA REALMENTE
   void* puntero_page_tarea = mm_mem_alloc();
@@ -157,13 +156,15 @@ void loader_unqueue(int* cola) {
   }
 }
 
+void loader_switchto_exit(uint_32 pid, uint_32 cr3);
+
 void loader_exit(void) {
   cli();
   uint_32 old_cr3 = task_table[cur_pid].cr3;
   device_release_devices(cur_pid);
   // mm_dir_free((mm_page*) task_table[cur_pid].cr3);
   free_pid(cur_pid);
-  task_table[cur_pid].cr3 = NULL;
+  // task_table[cur_pid].cr3 = 0;
   tasks_running--;
 
   loader_switchto_exit(sched_exit(), old_cr3);
@@ -249,6 +250,7 @@ uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
   tasks_running++;
 
   printf(" >sys_fork: forkeo finalizado en pid %d", requested_pid);
+  mm_dump();
   return requested_pid;
 }
 

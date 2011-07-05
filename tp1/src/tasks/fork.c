@@ -27,7 +27,7 @@ int main(void) {
     exit();
   }
 
-  // breakpoint();
+  breakpoint();
   int pid = fork();
   breakpoint();
   while (i < 50) {

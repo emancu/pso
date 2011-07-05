@@ -98,6 +98,8 @@ uint_32 mm_times_mapped(uint_32 physical_addr, int dir_index, int table_index);
 
 extern void isr_page_fault();
 
+void mm_dump(void);
+
 /* Manejador de directorios de página */
 mm_page* mm_dir_new(void);
 void mm_dir_free(uint_32* d);

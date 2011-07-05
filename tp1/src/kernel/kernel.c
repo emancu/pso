@@ -16,6 +16,7 @@
 #include <pit.h>
 #include <serial.h>
 #include <fat12.h>
+#include <pipe.h>
 
 #include "klib_machine.h"
 #include "scheduler_test.c"
@@ -39,10 +40,13 @@ void kernel_init(void) {
   serial_init();
   logger_init();
   pit_init();
+  sched_init();
   loader_init();
   device_init();
   con_init();
+
   sti();
+
   fdd_init();
   fat12_init();
   fs_init();

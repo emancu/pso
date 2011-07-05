@@ -38,7 +38,7 @@ isr_dkp_e isr_13_XM, 19
 [EXTERN syscall_list]
 [GLOBAL isr_syscall]
 isr_syscall:
-  sti ;FIXME: Necesario??
+  cli ; puto el que lee
   ;xchg bx, bx
   ;con esto se puede pasar hasta 4 parametros en las syscalls
   push edi

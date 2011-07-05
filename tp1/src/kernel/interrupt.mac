@@ -33,6 +33,7 @@
 [GLOBAL %1]
 [EXTERN %2]
   %1:
+    xchg bx,bx
     cli
     pop edi ;me guardo el error code TODO REVISAR ESTE MANEJO DEL ERROR CODE
     pushad

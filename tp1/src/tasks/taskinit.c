@@ -6,7 +6,6 @@
 int idx;
 
 int main(void) {
-  breakpoint();
   char command[15] = "run console.pso";
   run(command);
   // void* p = palloc();

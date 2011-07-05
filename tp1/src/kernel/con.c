@@ -261,7 +261,7 @@ void console_keyPressed(sint_16 tecla) {
 		if (current_console->buff_cant >= current_console->read_expected && current_console->busy != 0) {
 			// Despertar a la tarea que estaba esperando.
 			current_console->busy = 0;
-			sem_signaln(&current_console->sem);
+			sem_signal(&current_console->sem);
 		}
 	}
 }
