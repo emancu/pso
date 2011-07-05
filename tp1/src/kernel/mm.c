@@ -31,7 +31,8 @@ void* page_frame_info_alloc(page_frame_info* pfi, uint_32 limit, uint_32 mem_off
 }
 
 void* mm_mem_alloc() {
-  return page_frame_info_alloc(usr_pf_info, usr_pf_limit, USR_MEM_START);
+  void* res = page_frame_info_alloc(usr_pf_info, usr_pf_limit, USR_MEM_START);
+  return res;
 }
 void* mm_mem_kalloc() {
   int i;
@@ -76,7 +77,8 @@ bool is_copy_on_write(uint_32 page){
 void mm_dir_free(uint_32* d) {
   printf("entre a dir_free");
   mm_dump();
-  sem_wait(&dir_free_sem); //Acá empieza la sección crítica del borrado
+  // sem_wait(&dir_free_sem); //Acá empieza la sección crítica del borrado
+  cli();
   int i;
   for (i = 1; i < TABLE_ENTRY_NUM; i++) {
     if ( is_present(d[i]) ){
@@ -91,7 +93,7 @@ void mm_dir_free(uint_32* d) {
   mm_mem_free((void*) ((int) d & ~0xFFF)); // Marco como libre el page frame donde está este directorio
   tlbflush();
   breakpoint();
-  sem_signal(&dir_free_sem); //Acá termina la sección crítica del borrado
+  // sem_signal(&dir_free_sem); //Acá termina la sección crítica del borrado
   mm_dump();
 }
 
