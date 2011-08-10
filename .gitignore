@@ -26,4 +26,4 @@ tp1/src/bin/*
 snapshot.txt
 *.elf
 *.pso
-
+*.pdf
