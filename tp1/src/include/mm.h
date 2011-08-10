@@ -4,9 +4,12 @@
 #include <tipos.h>
 #include <vga.h>
 #include <syscalls.h>
+#include <loader.h>
+#include <sem.h>
 
 #define MM_ATTR_REQ    0x002 // Requested
-#define MM_ATTR_SH     0x200 // Requested
+#define MM_ATTR_SH     0x200 // Shared
+#define MM_ATTR_COW    0x400 // Copy on write
 
 
 #define MM_ATTR_P     0x001 // Present
@@ -27,32 +30,35 @@
 #define MM_ATTR_G     0x100 // Global (ignored for Directory)
 #define MM_ATTR_USR   0xE00 // bits for kernel
 /* Control Register flags */
-#define CR0_PE		0x00000001	// Protection Enable
-#define CR0_MP		0x00000002	// Monitor coProcessor
-#define CR0_EM		0x00000004	// Emulation
-#define CR0_TS		0x00000008	// Task Switched
-#define CR0_ET		0x00000010	// Extension Type
-#define CR0_NE		0x00000020	// Numeric Errror
-#define CR0_WP		0x00010000	// Write Protect
-#define CR0_AM		0x00040000	// Alignment Mask
-#define CR0_NW		0x20000000	// Not Writethrough
-#define CR0_CD		0x40000000	// Cache Disable
-#define CR0_PG		0x80000000	// Paging
-#define CR4_PCE		0x00000100	// Performance counter enable
-#define CR4_MCE		0x00000040	// Machine Check Enable
-#define CR4_PSE		0x00000010	// Page Size Extensions
-#define CR4_DE		0x00000008	// Debugging Extensions
-#define CR4_TSD		0x00000004	// Time Stamp Disable
-#define CR4_PVI		0x00000002	// Protected-Mode Virtual Interrupts
-#define CR4_VME		0x00000001	// V86 Mode Extensions
+#define CR0_PE    0x00000001  // Protection Enable
+#define CR0_MP    0x00000002  // Monitor coProcessor
+#define CR0_EM    0x00000004  // Emulation
+#define CR0_TS    0x00000008  // Task Switched
+#define CR0_ET    0x00000010  // Extension Type
+#define CR0_NE    0x00000020  // Numeric Errror
+#define CR0_WP    0x00010000  // Write Protect
+#define CR0_AM    0x00040000  // Alignment Mask
+#define CR0_NW    0x20000000  // Not Writethrough
+#define CR0_CD    0x40000000  // Cache Disable
+#define CR0_PG    0x80000000  // Paging
+#define CR4_PCE   0x00000100  // Performance counter enable
+#define CR4_MCE   0x00000040  // Machine Check Enable
+#define CR4_PSE   0x00000010  // Page Size Extensions
+#define CR4_DE    0x00000008  // Debugging Extensions
+#define CR4_TSD   0x00000004  // Time Stamp Disable
+#define CR4_PVI   0x00000002  // Protected-Mode Virtual Interrupts
+#define CR4_VME   0x00000001  // V86 Mode Extensions
 #define KERNEL_TEMP_PAGE 0xFFFFF000
 
 /* Errores */
 #define MM_ERROR_NOTALIGNED -5
 
+//TODO: Este era el error, no ?? no encuentro el libre
+#define PF_ERROR_READ_ONLY 7
+
 typedef struct str_mm_page {
-	uint_32 attr :12;
-	uint_32 base :20;
+  uint_32 attr :12;
+  uint_32 base :20;
 }__attribute__((__packed__, aligned (4))) mm_page;
 
 //Este tipo es el conjunto de bits usados para saber si un page_frame
@@ -65,7 +71,7 @@ typedef uint_32 page_frame_info;
 
 #define PAGE_SIZE 4096
 #define TABLE_ENTRY_NUM 1024
-#define DIR_SIZE (PAGE_SIZE*TABLE_ENTRY_NUM) 
+#define DIR_SIZE (PAGE_SIZE*TABLE_ENTRY_NUM)
 #define MAGIC_NUMBER 0x4D324432
 #define USR_MEM_START 4194304
 #define KRN_MEM_START 1048576
@@ -84,11 +90,14 @@ void* mm_mem_alloc();
 void* mm_mem_kalloc();
 void mm_mem_free(void* page);
 
+void mm_table_free(uint_32* t, int dir_index);
+uint_32 mm_times_mapped(uint_32 physical_addr, int dir_index, int table_index);
+
 extern void isr_page_fault();
 
 /* Manejador de directorios de página */
 mm_page* mm_dir_new(void);
-void mm_dir_free(mm_page* d);
+void mm_dir_free(uint_32* d);
 
 /* Syscalls */
 void* palloc(void);
@@ -121,7 +130,7 @@ void mm_dir_unmap(uint_32 virtual, mm_page* cr3);
 
 /* Esta función se encarga de copiar la paginación de 'old_cr3'. Devuelve el la dirección del 'cr3'
  * nuevo con las páginas copiadas. La función se encarga de mantener los atributos del mapeo,
- * reasginar los mapeos a nuevas páginas físicas y devolver el cotenido. 
+ * reasginar los mapeos a nuevas páginas físicas y devolver el cotenido.
  * En caso de error devuelve NULL. Un error puede producirse por no alcanzar las páginas físicas
  * disponibles para copiar todo. */
 mm_page* mm_dir_fork(mm_page* old_cr3);
@@ -134,8 +143,8 @@ mm_page* mm_dir_fork(mm_page* old_cr3);
 void* mm_page_fork(uint_32 dir_entry, uint_32* page_table, uint_32* new_table);
 
 /* Copia 'cant' bytes desde la dirección virtual 'virtual' a la dirección
- * física 'fisica', mapeando esta temporalmente en KERNEL_TEMP_PAGE. 
- * Nota: 'virtual' + 'cant' no deben superar el límite de una página. 
+ * física 'fisica', mapeando esta temporalmente en KERNEL_TEMP_PAGE.
+ * Nota: 'virtual' + 'cant' no deben superar el límite de una página.
  * Se devuelve error si esto sucede (MM_ERROR_NOTALIGNED). */
 int mm_copy_vf(uint_32* virtual, uint_32 fisica, uint_32 cant);
 

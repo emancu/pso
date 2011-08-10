@@ -4,22 +4,27 @@
 #include <i386.h>
 
 
+int global = 31;
+
 int main(void) {
-  // char buff[10];
-  int tmp = 1026;
   int* p;
-  for (tmp = 1026; tmp < 1027; tmp++) {
-     p = (int *) palloc();
-    *p = 0;
+  p = (int *) 0x400f00;
+//  *p=10;
     share_page(p);
-  }
+    breakpoint();
   int pid = fork();
 
   if(pid == 0){
-    *p += 3;
+    global = 12;
+    *p = 4;
+    breakpoint();
   }else{
-    *p += 32;
+    global = 5;
+    *p= 9;
+    breakpoint();
   }
+
+  breakpoint();
 
   exit();
   return 0;
