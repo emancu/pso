@@ -64,7 +64,7 @@ typedef struct str_mm_page {
 //Este tipo es el conjunto de bits usados para saber si un page_frame
 //está ocupado o no.
 typedef uint_32 page_frame_info;
-#define pfi_size (sizeof(page_frame_info)*8)
+#define pfi_size (sizeof(page_frame_info)*8) //Tamaño en bits de page_frame_info
 
 #define make_mm_entry(base, attr) (mm_page){(uint_32)(attr), (uint_32)(base)}
 #define make_mm_entry_addr(addr, attr) (mm_page){(uint_32)(attr), (uint_32)(addr) >> 12}
@@ -73,8 +73,8 @@ typedef uint_32 page_frame_info;
 #define TABLE_ENTRY_NUM 1024
 #define DIR_SIZE (PAGE_SIZE*TABLE_ENTRY_NUM)
 #define MAGIC_NUMBER 0x4D324432
-#define USR_MEM_START 4194304
-#define KRN_MEM_START 1048576
+#define USR_MEM_START 4194304 //4mb (Inicio de páginas de usuario)
+#define KRN_MEM_START 1048576 //1mb (Inicio de páginas de kernel)
 #define PFI_OCCUPIED 0xFFFFFFFF
 
 #define SECTOR_SIZE 512
@@ -84,6 +84,9 @@ typedef uint_32 page_frame_info;
 #define UNSET_BIT(var, pos) ((var) &= (~(1<<(pos))))
 
 #define USR_STD_ATTR MM_ATTR_RW | MM_ATTR_US_U
+
+extern page_frame_info kernel_pf_info[24];
+extern page_frame_info usr_pf_info[32736];
 
 void mm_init(void);
 void* mm_mem_alloc();
@@ -95,6 +98,8 @@ uint_32 mm_times_mapped(uint_32 physical_addr, int dir_index, int table_index);
 
 extern void isr_page_fault();
 
+void mm_dump(void);
+
 /* Manejador de directorios de página */
 mm_page* mm_dir_new(void);
 void mm_dir_free(uint_32* d);
@@ -102,6 +107,8 @@ void mm_dir_free(uint_32* d);
 /* Syscalls */
 void* palloc(void);
 sint_32 share_page(void* page);
+
+void* mm_page_erase(uint_32 fisica);
 
 /* Funciones de inicio de memoria */
 

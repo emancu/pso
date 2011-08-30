@@ -31,16 +31,24 @@ void* page_frame_info_alloc(page_frame_info* pfi, uint_32 limit, uint_32 mem_off
 }
 
 void* mm_mem_alloc() {
-  return page_frame_info_alloc(usr_pf_info, usr_pf_limit, USR_MEM_START);
+  void* res = page_frame_info_alloc(usr_pf_info, usr_pf_limit, USR_MEM_START);
+  return res;
 }
 void* mm_mem_kalloc() {
-  return page_frame_info_alloc(kernel_pf_info, sizeof(kernel_pf_info), KRN_MEM_START);
+  int i;
+  uint_32* page = page_frame_info_alloc(kernel_pf_info, sizeof(kernel_pf_info), KRN_MEM_START);
+
+  // Clean before map
+  for(i=0;i<1024;i++)
+    page[i] = 0;
+  return page;
 }
 
 mm_page* mm_dir_new(void) {
   mm_page* cr3 = (mm_page*) mm_mem_kalloc();
   if (cr3 == NULL)
     return NULL;
+
   mm_page_map(0x0, cr3, 0x0, 1, USR_STD_ATTR);
   return cr3;
 }
@@ -67,32 +75,44 @@ bool is_copy_on_write(uint_32 page){
  * del kernel). Los page frames en kernel son los usados para guardar las tablas de
  * páginas. Estos son apuntados por las direcciones en la tabla de directorios. */
 void mm_dir_free(uint_32* d) {
-  sem_wait(&dir_free_sem); //Acá empieza la sección crítica del borrado
+  printf("entre a dir_free");
+  mm_dump();
+  // sem_wait(&dir_free_sem); //Acá empieza la sección crítica del borrado
+  cli();
   int i;
   for (i = 1; i < TABLE_ENTRY_NUM; i++) {
     if ( is_present(d[i]) ){
       mm_table_free((void*) (d[i] & ~0xFFF), i); // Libero las tablas
-      //      d[i].attr &= ~MM_ATTR_P; // La marco como no presente (al pedo?)
+      d[i] &= ~MM_ATTR_P;
       mm_mem_free((void*) (d[i] & ~0xFFF)); // Marco como libre el page frame donde estaba la tabla
     }
+    d[i] = 0x0;
   }
-  //  d[0].attr &= ~MM_ATTR_P;
+  // d[0] &= ~MM_ATTR_P;
+  d[0] = 0x0;
   mm_mem_free((void*) ((int) d & ~0xFFF)); // Marco como libre el page frame donde está este directorio
   tlbflush();
-  sem_signaln(&dir_free_sem); //Acá termina la sección crítica del borrado
+  breakpoint();
+  // sem_signal(&dir_free_sem); //Acá termina la sección crítica del borrado
+  mm_dump();
 }
 
 void mm_table_free(uint_32* t, int dir_index) {
   int table_index;
   for (table_index = 0; table_index < TABLE_ENTRY_NUM; table_index++) {
     if ( is_present( t[table_index])) {
-      if ( is_shared( t[table_index]) || is_copy_on_write( t[table_index]))
+      if ( is_shared( t[table_index]) || is_copy_on_write( t[table_index])) {
         if(mm_times_mapped((t[table_index] & ~0xFFF), dir_index, table_index ) > 1)
           continue; // Alguien mas la esta usando, no hay que borrarla
+      }
 
+      printf("mm_times_mapped((t[table_index] & ~0xFFF) = %x", mm_times_mapped((t[table_index] & ~0xFFF), dir_index, table_index));
+      printf("!! mm_page_erase(%x)", t[table_index] & ~0xFFF);
+      //mm_page_erase(t[table_index] & ~0xFFF);
       mm_mem_free((uint_32*) (t[table_index] & ~0xFFF));
-      // t[i].attr &= ~MM_ATTR_P;
+      // t[table_index] &= ~MM_ATTR_P;
     }
+    t[table_index] = 0x0;
   }
 }
 
@@ -161,19 +181,18 @@ void* mm_page_map(uint_32 virtual, mm_page* cr3, uint_32 fisica, uint_32 page_si
     *desc_dir = ((fisica & ~0xFFFFF) & (attr & 0x1FFF)) | (MM_ATTR_SZ_4M | 1);
     return (void*) desc_dir;
   }
-  if (!(*desc_dir & 1)) { //Vemos si no esta presente
+  if( !is_present(*desc_dir)){
     new_dir = mm_mem_kalloc();
     if (!new_dir)
       return NULL;
+
     *desc_dir = (int) new_dir & ~0xFFF;
     *desc_dir |= attr | 1;
     // *((uint_32 *)(base_dir + (ind_td*4))) = desc_dir;
   }
   uint_32* ptr_desc_tabla = (uint_32*) (((*desc_dir & ~0xFFF) + (ind_tp * 4)));
   *ptr_desc_tabla = base_tabla | attr | 1; //!!Preguntar si hay que poner otros atributos
-  // printf("desc_dir = %x, *desc_dir = %x", desc_dir, *desc_dir);
-  // printf("desc_tabla = %x, *desc_tabla = %x", ptr_desc_tabla, *ptr_desc_tabla);
-  // return (void*)(*desc_dir & ~0xFFF);
+
   return (void*) (ptr_desc_tabla);
 }
 
@@ -248,6 +267,7 @@ mm_page* mm_dir_fork(mm_page* cr3) {
   uint_32* old_cr3 = (uint_32*) cr3;
   uint_32* new_cr3 = (uint_32*) mm_dir_new(); //Obtengo un nuevo directorio
   printf("new cr3 = %x" , new_cr3);
+  breakpoint();
   if (new_cr3 == NULL) //No pudo tener un nuevo directorio, fallé
     return NULL;
 
@@ -341,6 +361,9 @@ void* sys_palloc() {
 }
 
 sint_32 mm_share_page(void* page) {
+// Preguntar si esta presente o requested. Si esta req, hay que pedirla!
+// Checkear que page > 4mb
+
   uint_32 cr3 = rcr3();
   printf("page to share: %x", (uint_32) page);
   uint_32 base_dir = ((int) cr3) & ~0xFFF;
@@ -349,8 +372,6 @@ sint_32 mm_share_page(void* page) {
   uint_32 ind_td = page_to_share >> 22;
   uint_32 ind_tp = (page_to_share << 10) >> 22;
   uint_32* desc_dir = (uint_32 *) (base_dir + (ind_td * 4));
-
-  //!todo ver temas privilegio (y ver si esta presente y eso)
 
   //obtengo el PTE
   uint_32* ptr_desc_tabla = (uint_32*) (((*desc_dir & ~0xFFF) + (ind_tp * 4)));
@@ -385,9 +406,11 @@ int mm_copy_on_write_page(uint_32 *page, uint_32 dir_index, uint_32 table_index)
   return 0;
 }
 
-void isr_page_fault_c(uint_32 error_code) {
+// void isr_page_fault_c(uint_32 error_code) {
+void isr_page_fault_c(const uint_32* stack, const exp_state* expst) {
   void* usr_page;
   void* kernel_page;
+  uint_32 error_code = expst->errcode;
   printf("error code = %x | %d", error_code, error_code);
   uint_32 cr3 = rcr3();
   uint_32 base_dir = ((int) cr3) & ~0xFFF;
@@ -409,15 +432,20 @@ void isr_page_fault_c(uint_32 error_code) {
       if (usr_page == NULL)
         sys_exit(); // No pude obtener una nueva página de usuario
 
+      printf(" >isr_page_fault: no está presente y es requerida la PDE");
       kernel_page = mm_page_map(page_fault_address, (mm_page*) cr3, (uint_32) usr_page, 0, USR_STD_ATTR);
       if (kernel_page == NULL) { // Falló el prceso de mapeo a causa de falta de páginas de kernel
         mm_mem_free(usr_page); //Rollbackeo el proceso, devuelvo la página de usuario
         sys_exit();
       }
     } else {
+      printf(" >isr_page_fault: no presente y no requerida la PDE");
+      debug_kernelpanic(stack, expst);
+      breakpoint();
       // no esta presente y no es requerido (por ahi las otras cosas que queria martin)
     }
   } else {
+    printf(" >isr_page_fault: PDE presente");
     //el PDE estaba presente
 
   }
@@ -434,6 +462,8 @@ void isr_page_fault_c(uint_32 error_code) {
       printf("new page (was previous requested) %x", (uint_32) usr_page);
       mm_page_map(page_fault_address, (mm_page*) cr3, (uint_32) usr_page, 0, USR_STD_ATTR);
     } else {
+      printf(" >isr_page_fault: PTE no presente y no requerida");
+      breakpoint();
       //la pagina no estaba presente
     }
   } else {
@@ -445,6 +475,29 @@ void isr_page_fault_c(uint_32 error_code) {
   }
 
   outb(0x20, 0x20);
+}
+
+void mm_dump(void) {
+  int i, j, k;
+  printf("---- DUMP MM ----");
+  for(i=0; i<MAX_PID; ++i) {
+    if (!task_table[i].cr3) {
+      printf("TASK %d: CR3 NULL", i);
+    } else {
+      printf("TASK %d: CR3 = %x", i, task_table[i].cr3);
+      for (j=1; j <1024; ++j) {
+        uint_32* r = (void*)(task_table[i].cr3);
+        if (r[j] & 1) {
+          printf(" >> TABLE %x at virtual %x", r[j], j << 22);
+          uint_32 *t = (void*)(r[j]&~0xFFF);
+          for(k=0; k<1024; ++k) if (t[k]&1) {
+            printf("  PAGE %x at virtual %x", t[k], (j<<22)+(k<<12));
+          }
+        }
+      }
+      printf("");
+    }
+  }
 }
 
 extern void* _end; // Puntero al fin del c'odigo del kernel.bin (definido por LD).

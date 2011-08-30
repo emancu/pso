@@ -18,7 +18,7 @@ typedef struct str_sem_t {
 void sem_init();
 
 void sem_wait(sem_t* s);
-void sem_signaln(sem_t* s);
+void sem_signal(sem_t* s);
 void sem_broadcast(sem_t* s);
 
 #endif

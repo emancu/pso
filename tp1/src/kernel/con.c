@@ -121,70 +121,71 @@ void write_in_console(chardev_console* this_console, const char* msg, uint_8 sty
 }
 
 uint_32 con_flush(chardev* this) {
-	if (this->refcount != 0) {
-		this->refcount--;
-		return 0;
-	}
-	chardev_console* console_to_close = (chardev_console*) this;
+  if (this->refcount > 1) {
+    this->refcount--; //NOTE: Como es la política? Device cambia los refcount o cada módulo?
+    return 0;
+  }
+  chardev_console* console_to_close = (chardev_console*) this;
 
-	if (console_to_close->next != console_to_close) {
-		console_to_close->next->prev = console_to_close->prev;
-		console_to_close->prev->next = console_to_close->next;
-	}
+  if (console_to_close->next != console_to_close) {
+    console_to_close->next->prev = console_to_close->prev;
+    console_to_close->prev->next = console_to_close->next;
+  }
 
-	if (current_console == ((chardev_console*) this)) {
-		if (console_to_close->next == console_to_close)
-			move_to_empty_console();
-		else
-			move_to_right_console();
-	}
+  if (current_console == ((chardev_console*) this)) {
+    if (console_to_close->next == console_to_close)
+      move_to_empty_console();
+    else
+      move_to_right_console();
+  }
 
-	mm_mem_free((uint_32*) this);
-	return 0;
+  mm_mem_free((uint_32*) this);
+  return 0;
 }
 
 chardev* con_open(void) {
-	// Pedimos pagina nueva del kernel para la consola y la inicializamos
-	chardev_console* new_chardev_console = (chardev_console *) mm_mem_kalloc();
-	new_chardev_console->dev.clase = DEV_ID_CHAR_CON;
-	new_chardev_console->fila = 0;
-	new_chardev_console->columna = 0;
-	new_chardev_console->last_ps1_fila = 0;
-	new_chardev_console->ps1_width = 12; //!todo alemata esto esta cableado. ver cuando se puede setear
-	new_chardev_console->buff_index_start = 0;
-	new_chardev_console->buff_index_end = 0;
-	new_chardev_console->buff_cant = 0;
-	new_chardev_console->sem = SEM_NEW(0);
-	new_chardev_console->dev.read = &con_read;
-	new_chardev_console->dev.write = &con_write;
-	new_chardev_console->dev.flush = &con_flush;
-	new_chardev_console->style = CONSOLE_STYLE_DEFAULT;
+  // Pedimos pagina nueva del kernel para la consola y la inicializamos
+  chardev_console* new_chardev_console = (chardev_console *) mm_mem_kalloc();
+  new_chardev_console->dev.clase = DEV_ID_CHAR_CON;
+  new_chardev_console->dev.refcount = 0;
+  new_chardev_console->fila = 0;
+  new_chardev_console->columna = 0;
+  new_chardev_console->last_ps1_fila = 0;
+  new_chardev_console->ps1_width = 12; //!todo alemata esto esta cableado. ver cuando se puede setear
+  new_chardev_console->buff_index_start = 0;
+  new_chardev_console->buff_index_end = 0;
+  new_chardev_console->buff_cant = 0;
+  new_chardev_console->sem = SEM_NEW(0);
+  new_chardev_console->dev.read = &con_read;
+  new_chardev_console->dev.write = &con_write;
+  new_chardev_console->dev.flush = &con_flush;
+  new_chardev_console->style = CONSOLE_STYLE_DEFAULT;
 
-	// Inicializamos Screen
-	int i;
-	for (i = 0; i < 4000; i += 2) {
-		new_chardev_console->console_screen[i] = 0x0;
-		new_chardev_console->console_screen[i + 1] = CONSOLE_STYLE_DEFAULT;
-	}
+  // Inicializamos Screen
+  int i;
+  for (i = 0; i < 4000; i += 2) {
+    new_chardev_console->console_screen[i] = 0x0;
+    new_chardev_console->console_screen[i + 1] = CONSOLE_STYLE_DEFAULT;
+  }
 
-	//actualizo para swichear
-	if (current_console == 0x0) {
-		new_chardev_console->next = new_chardev_console;
-		new_chardev_console->prev = new_chardev_console;
-	} else {
-		new_chardev_console->next = current_console->next;
-		new_chardev_console->prev = current_console;
-		(current_console->next)->prev = new_chardev_console;
-		current_console->next = new_chardev_console;
-	}
+  //actualizo para swichear
+  if (current_console == 0x0) {
+    new_chardev_console->next = new_chardev_console;
+    new_chardev_console->prev = new_chardev_console;
+  } else {
+    new_chardev_console->next = current_console->next;
+    new_chardev_console->prev = current_console;
+    (current_console->next)->prev = new_chardev_console;
+    current_console->next = new_chardev_console;
+  }
 
-	copy_screen_to_memory((uint_8*) current_console->console_screen);
-	current_console = new_chardev_console;
-	copy_memory_to_screen((uint_8*) current_console->console_screen);
-	return (chardev*) new_chardev_console;
+  copy_screen_to_memory((uint_8*) current_console->console_screen);
+  current_console = new_chardev_console;
+  copy_memory_to_screen((uint_8*) current_console->console_screen);
+  return (chardev*) new_chardev_console;
 
-	//TODO: Manejar errores
-	return NULL;
+  //TODO: Manejar errores
+  return NULL;
 }
 
 extern pso_file task_task1_pso;
@@ -204,10 +205,10 @@ sint_32 sys_run(const char* archivo) {
     str_into_string(fileFullPath, &i, archivo + 4);
     str_convert_to_mayus(fileFullPath, 6, strlen(fileFullPath));
     chardev_file* file_char_dev = (chardev_file*) fs_open(fileFullPath, 0x3);
-    printf("filename = %s", fileFullPath);
+    printf(" >sys_run: filename = %s", fileFullPath);
     if (file_char_dev != NULL) {
       char * dir = ((char *) file_char_dev) + 0x200;
-      return loader_load((pso_file *) dir, 0);
+      return loader_load((pso_file *) dir, 3);
     }
   }
   return -1;
@@ -260,7 +261,7 @@ void console_keyPressed(sint_16 tecla) {
 		if (current_console->buff_cant >= current_console->read_expected && current_console->busy != 0) {
 			// Despertar a la tarea que estaba esperando.
 			current_console->busy = 0;
-			sem_signaln(&current_console->sem);
+			sem_signal(&current_console->sem);
 		}
 	}
 }

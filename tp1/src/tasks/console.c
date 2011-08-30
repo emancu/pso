@@ -5,6 +5,18 @@
 
 void run_command(const char*, int, const char*);
 
+int strncmp(const char* p, const char* q, unsigned int n) {
+	for (; n && *p && *q && *p == *q; p++, q++, n--)
+		;
+	return n ? (*p ? (*q ? (int) *p - (int) *q : 1) : *q ? -1 : 0) : 0;
+}
+
+int strcmp(const char* p, const char* q) {
+	for (; *p && *q && *p == *q; p++, q++)
+		;
+	return *p ? (*q ? (int) *p - (int) *q : 1) : *q ? -1 : 0;
+}
+
 int main(void) {
   char command[100], msg;
   char* ps1 = "console@pso: ";
@@ -17,6 +29,8 @@ int main(void) {
     read(fd, &msg, 1);
     if (msg == '\n') {
       run_command(command, fd, ps1);
+      for (idx = 0; idx < 100; idx++) 
+        command[idx] = '\0';
       idx = 0;
     } else {
       write(fd, &msg, 1);
@@ -35,6 +49,11 @@ int main(void) {
 
 void run_command(const char* command, int fd, const char* ps1){
   char* invalidCommand = "command not found";
+  char* exit_cmd = "exit";
+
+  if (!strcmp(command, exit_cmd)) {
+    exit();
+  }
 
   if (run(command) < 0) {
     write(fd, "\n", 1);

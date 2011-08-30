@@ -62,6 +62,7 @@ LS_INLINE void hlt(void);
 /*Registers*/
 LS_INLINE uint_32 resp(void);
 LS_INLINE uint_32 rebp(void);
+LS_INLINE uint_32 reflags(void);
 
 /* TLB */
 LS_INLINE void tlbflush(void);
@@ -330,9 +331,17 @@ LS_INLINE uint_32 resp(void) {
   __asm __volatile("movl %%esp,%0" : "=r" (val));
   return val;
 }
+
 LS_INLINE uint_32 rebp(void) {
   uint_32 val;
   __asm __volatile("movl %%ebp,%0" : "=r" (val));
+  return val;
+}
+
+LS_INLINE uint_32 reflags(void) {
+  uint_16 val;
+  __asm __volatile("pushf");
+  __asm __volatile("pop %0" : "=r" (val));
   return val;
 }
 

@@ -1,6 +1,6 @@
 #include <tipos.h>
 #include <i386.h>
-#include <fdd.h>
+  #include <fdd.h>
 #include <debug.h>
 #include <loader.h>
 #include <sem.h>
@@ -92,6 +92,9 @@
 /* Semáforo que regula todas las comunicaciones con el fdc. */
 sem_t fdc_sem;
 
+/* Cola de espera del dispositivo */
+sem_t floppy_sem = SEM_NEW(0);
+
 /* Variable utilizada para guardar el estado del FDC. */
 fdc_stat fdc;
 
@@ -158,7 +161,7 @@ sint_32 fdd_block_read(blockdev* this, uint_32 pos, void* buf, uint_32 size) {
   }
 
 
-  sem_signaln(&fdc_sem); //Acá termina la sección crítica del trabajo con fdc
+  sem_signal(&fdc_sem); //Acá termina la sección crítica del trabajo con fdc
 	return 0;
 }
 
@@ -173,7 +176,7 @@ sint_32 fdd_block_write(blockdev* this, uint_32 pos, const void* buf, uint_32 si
 
   sem_wait(&fdc_sem); //Inicia la sección crítica de trabajo con el fdc
 
-  sem_signaln(&fdc_sem); //Finaliza la sección crítica
+  sem_signal(&fdc_sem); //Finaliza la sección crítica
 	return 0;
 }
 
@@ -316,6 +319,7 @@ char fdd_int_recv = 0;
 void isr_fdd_c() {
 //  printf("* FDD: interrupt! (%d)", error_num);
   fdd_int_recv = 1;
+  sem_signal(&floppy_sem);
   outb(0x20, 0x20);
   // //breakpoint();
   return;
@@ -324,8 +328,12 @@ void isr_fdd_c() {
 //TODO: Puede ser necesario implementarlo con bloqueo del timer tick
 void fdd_wait_for_interrupt(uint_32 timeout) {
   //TODO: implementar timeout
-  while(fdd_int_recv == 0); //TODO: implementar con sleep
-  fdd_int_recv = 0;
+  if (sys_getpid() == 0) {
+    /* Aprend'e a codear hijo de puta */ 
+    while(fdd_int_recv == 0); //TODO: implementar con sleep
+    fdd_int_recv = 0;
+  }
+  sem_wait(&floppy_sem);
 }
 
 /**************************************************/

@@ -80,12 +80,12 @@ void device_fork_descriptors(uint_32 pid1, uint_32 pid2) {
   }
 }
 
-void device_release_devices(uint_32 pid) {
+void device_release_devices() {
   int i;
   chardev* dev;
   for(i = 0; i < MAX_FD; i++) {
-    dev = char_devices[pid][i];
+    dev = char_devices[cur_pid][i];
     if (dev != 0)
-      dev->flush(dev);
+      sys_close(i);
   }
 }

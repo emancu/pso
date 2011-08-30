@@ -24,7 +24,7 @@ void loader_init(void) {
   tasks_running = tasks_blocked = 0;
 
   for(i=0; i < MAX_PID; i++)
-    task_table[i].cr3 = NULL;
+    task_table[i].cr3 = 0;
   //hay que generar la tarea actual.. que dps se convierte en idle
   task_table[0].cr3 = rcr3();
 
@@ -42,14 +42,17 @@ pid loader_load(pso_file* f, int pl) {
 
   //pido un directorio para la nueva tarea
   void* task_dir = mm_dir_new();
+  printf(" >loader_load: task_dir = %x", task_dir);
 
   //TODO VER CUANTA MEMORIA NECESITA REALMENTE
   void* puntero_page_tarea = mm_mem_alloc();
-  printf("puntero page tarea : %x", (uint_32) puntero_page_tarea);
+  printf(" >loader_load: puntero page tarea : %x", (uint_32) puntero_page_tarea);
 
   //stacks de anillo 3 y 0 para la tarea
   void* task_stack3 = mm_mem_alloc();
   void* task_stack0 = mm_mem_alloc();
+
+  printf(" >loader_load: pfi after allocs: kernel = %x | usr = %x", *kernel_pf_info, *usr_pf_info);
 
   //ver esto donde van mapeados los stacks
   mm_page_map(STACK_3_VIRTUAL, task_dir, (uint_32) task_stack3, 0, USR_STD_ATTR);
@@ -64,7 +67,7 @@ pid loader_load(pso_file* f, int pl) {
   *stack0-- = 0x23;
   *stack0-- = STACK_3_VIRTUAL + 0x1000;
   *stack0-- = 0x202;
-  *stack0-- = 0x1B;
+  *stack0-- = (pl)? 0x1B : 0x08; //Elijo el selector de segmento según el privilegio de la tarea
   *stack0-- = (uint_32) f->_main;
   *stack0-- = (uint_32) &task_ret;
   *stack0-- = resp();
@@ -85,6 +88,8 @@ pid loader_load(pso_file* f, int pl) {
   uint_32 cant_to_copy = f->mem_end_disk - f->mem_start;
   int i;
 
+  printf(" >loader_load: task_to_copy = %x", task_to_copy);
+
   for (i = 0; i < cant_to_copy; i++) {
     *addr_to_copy++ = *task_to_copy++;
   }
@@ -101,6 +106,7 @@ pid loader_load(pso_file* f, int pl) {
   sched_load(requested_pid);
 
   tasks_running++;
+  printf(" >loader_load: finished loading to new pid %d", requested_pid);
   return requested_pid;
 }
 
@@ -150,14 +156,18 @@ void loader_unqueue(int* cola) {
   }
 }
 
+void loader_switchto_exit(uint_32 pid, uint_32 cr3);
+
 void loader_exit(void) {
+  cli();
+  uint_32 old_cr3 = task_table[cur_pid].cr3;
   device_release_devices(cur_pid);
-//  mm_dir_free((mm_page*) task_table[cur_pid].cr3);
+  // mm_dir_free((mm_page*) task_table[cur_pid].cr3);
   free_pid(cur_pid);
-  task_table[cur_pid].cr3 = NULL;
+  // task_table[cur_pid].cr3 = 0;
   tasks_running--;
 
-  loader_switchto(sched_exit());
+  loader_switchto_exit(sched_exit(), old_cr3);
 }
 
 uint_32 get_new_pid(void) {
@@ -176,21 +186,26 @@ void free_pid(uint_32 pid) {
  */
 
 uint_32 sys_getpid(void) {
-	return cur_pid;
+  return cur_pid;
 }
 
 uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
   //me guardo el cr3 viejo.
   uint_32 old_cr3 = rcr3();
+  printf(" >sys_fork: org_eip (%x), org_esp (%x)", org_eip, org_esp);
 
   //pido un directorio para la nueva tarea
   void* new_cr3 = mm_dir_fork((mm_page*) old_cr3);
-  if (new_cr3 == NULL) //No pudo hacerse fork de la estrucutra de paginación
+  if (new_cr3 == NULL) { //No pudo hacerse fork de la estrucutra de paginación
+    printf("! >sys_fork: no se pudo crear el directorio de la nueva tarea");
     return -1;
+  }
 
+  printf(" >sys_fork: new_cr3 = %x", new_cr3);
    //stacks de anillo 3 y 0 para la tarea
   void* task_stack3 = mm_mem_alloc();
   void* task_stack0 = mm_mem_alloc();
+  printf(" >sys_fork: paginas stack_ kernel %x | usr %x", task_stack0, task_stack3);
 
   //ver esto donde van mapeados los stacks
   mm_page_map(STACK_3_VIRTUAL, new_cr3, (uint_32) task_stack3, 0, USR_STD_ATTR);
@@ -213,13 +228,12 @@ uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
   *stack0-- = 0x0;
   *stack0-- = 0x0;
 
-  // mm_page_map((uint_32) f->mem_start, task_dir, (uint_32) puntero_page_tarea, 0, USR_STD_ATTR);
-  //Copio la pila de usuario como está
+  //Copio la pila de usuario como está //Innecesario, ya lo hace el fork
   mm_copy_vf((uint_32*)STACK_3_VIRTUAL, (uint_32)task_stack3, PAGE_SIZE);
 
 
-	mm_page_free(KERNEL_TEMP_PAGE, (mm_page*) old_cr3);
-	tlbflush();
+  mm_page_free(KERNEL_TEMP_PAGE, (mm_page*) old_cr3);
+  tlbflush();
 
 
   //tengo que armar la estructura de proceso
@@ -227,17 +241,20 @@ uint_32 sys_fork(uint_32 org_eip, uint_32 org_esp) {
   task_table[requested_pid].cr3 = (uint_32) new_cr3;
   task_table[requested_pid].esp0 = STACK_0_VIRTUAL + 0xFD8;
 
-	//Duplico los file descriptor actualizando referencias
-	device_fork_descriptors(cur_pid, requested_pid);
+  //Duplico los file descriptor actualizando referencias
+  device_fork_descriptors(cur_pid, requested_pid);
 
 
   // esto esta mal.. tiene q decidir q numero devolver creo q necesitamos un semaforo!
   sched_load(requested_pid);
+  tasks_running++;
 
+  printf(" >sys_fork: forkeo finalizado en pid %d", requested_pid);
+  mm_dump();
   return requested_pid;
 }
 
 void sys_exit(void) {
-	loader_exit();
+  loader_exit();
 }
 

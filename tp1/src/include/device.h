@@ -124,7 +124,7 @@ void do_free_file_descriptor(uint_32);
 void device_fork_descriptors(uint_32 pid1, uint_32 pid2);
 
 /* Esta función libera los dispositivos ocupados por el
- * proceso 'pid'. Para eso llama a flush de todos los
- * devices que posee. */
-void device_release_devices(uint_32 pid);
+ * proceso 'cur_pid'. Para eso llama a sys_close de todos los
+ * fd que posee. */
+void device_release_devices();
 #endif
