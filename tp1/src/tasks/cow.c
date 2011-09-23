@@ -4,7 +4,6 @@
 #include <i386.h>
 #include <mm.h>
 
-
 int global = 31;
 
 int main(void) {
@@ -21,7 +20,6 @@ int main(void) {
     global = 5;
     *p= 9;
   }
-
 
   exit();
   return 0;

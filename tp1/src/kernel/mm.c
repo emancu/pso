@@ -34,6 +34,7 @@ void* mm_mem_alloc() {
   void* res = page_frame_info_alloc(usr_pf_info, usr_pf_limit, USR_MEM_START);
   return res;
 }
+
 void* mm_mem_kalloc() {
   int i;
   uint_32* page = page_frame_info_alloc(kernel_pf_info, sizeof(kernel_pf_info), KRN_MEM_START);
@@ -76,7 +77,7 @@ bool is_copy_on_write(uint_32 page){
  * páginas. Estos son apuntados por las direcciones en la tabla de directorios. */
 void mm_dir_free(uint_32* d) {
   printf("entre a dir_free");
-  mm_dump();
+  // mm_dump(); FIXME que onda con el semaforo
   // sem_wait(&dir_free_sem); //Acá empieza la sección crítica del borrado
   cli();
   int i;
@@ -92,9 +93,9 @@ void mm_dir_free(uint_32* d) {
   d[0] = 0x0;
   mm_mem_free((void*) ((int) d & ~0xFFF)); // Marco como libre el page frame donde está este directorio
   tlbflush();
-  breakpoint();
+
   // sem_signal(&dir_free_sem); //Acá termina la sección crítica del borrado
-  mm_dump();
+  // mm_dump();
 }
 
 void mm_table_free(uint_32* t, int dir_index) {
@@ -325,17 +326,17 @@ void* sys_palloc() {
   mm_page* table;
   int i, j, virtual;
 
-  //  if (usr_page == NULL)
-  //    return NULL; // No pude obtener una nueva página de usuario
   for (i = 1; i < TABLE_ENTRY_NUM; i++) { //Recorro el directorio sin contar la primer entrada (identity mapping)
     // printf("sys_palloc - recorro dir - i = %d", i);
     if (dir[i].attr & MM_ATTR_P) {
       // printf("sys_palloc - dir[%d] = %x | presente",i,  (dir[i]));
-      if (!(dir[i].attr & MM_ATTR_SZ_4M)) { //Si la entrada está ocupada y no es de 4mb, recorro la tabla inferior
+      if (!(dir[i].attr & MM_ATTR_SZ_4M)) {
+        //Si la entrada está ocupada y no es de 4mb, recorro la tabla inferior
         table = (mm_page*) (dir[i].base << 12);
         for (j = 0; j < TABLE_ENTRY_NUM; j++) {
           // printf("sys_palloc - recorro tabla - j = %d - table[%d] & MM_ATTR_P = %x", j, j, table[j].attr & MM_ATTR_P);
-          if (!(table[j].attr & MM_ATTR_P) && !(table[j].attr & MM_ATTR_REQ)) {//Si encuentro una entrada en la taba libre, allí mapeo la página nueva
+          if (!(table[j].attr & MM_ATTR_P) && !(table[j].attr & MM_ATTR_REQ)) {
+            //Si encuentro una entrada en la taba libre, allí mapeo la página nueva
             //Armo la dirección virtual a partir de los índices en el directorio y en la tabla de páginas.
             //El índice de directorio me dice cuandos bloques de 4mb avancé, el de la tabla me dice cuantos de 4kb
             table[j].attr = MM_ATTR_REQ;

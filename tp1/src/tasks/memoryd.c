@@ -6,7 +6,6 @@
 
 
 int main(void) {
-  // char buff[10];
   int tmp = 1026;
   int* p;
   for (tmp = 1026; tmp < 1027; tmp++) {

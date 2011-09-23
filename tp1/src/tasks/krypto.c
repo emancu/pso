@@ -91,9 +91,9 @@ int main(void) {
     exit();
   }
 
-  write(fd, "Archivo y serial abiertos satisfactoriamente...", 47);
+  write(fd, "Archivo y serial abiertos satisfactoriamente, presione una tecla. \n", 47);
   read(fd, buf, 1);
-  write(fd, "Continuamos...", 12);
+  write(fd, "Continuamos...\n", 12);
 
   pipe(pipeRE);
 
