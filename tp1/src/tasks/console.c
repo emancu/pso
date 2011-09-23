@@ -18,12 +18,14 @@ int strcmp(const char* p, const char* q) {
 }
 
 int main(void) {
+  breakpoint();
   char command[100], msg;
   char* ps1 = "console@pso: ";
   int idx = 0;
 
   int fd = open("/console", 0x3);
   write(fd, ps1, 13);
+  breakpoint();
 
   while (1) {
     read(fd, &msg, 1);

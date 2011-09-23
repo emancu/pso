@@ -43,7 +43,7 @@ chardev_serial* log_chardev;
 
 uint_32* obtain_prev_func(uint_32* ebp) {
   uint_32* old_ebp_dir = (uint_32*)(*ebp);
-  uint_32* old_eip_dir = (uint_32*)(*ebp + 4); 
+  uint_32* old_eip_dir = (uint_32*)(*ebp + 4);
   *ebp = *old_ebp_dir;
   return (uint_32*)*old_eip_dir;
 }
@@ -55,7 +55,7 @@ char* find_function_name(uint_32 eip) {
   uint_32 closest_dir = 0x7FFFFFFF, ret;
   unsigned int dir;
   //Busco el máximo número de función que no sea más grande que la pasada
-  while (kernel_sym < kernel_sym_end) {     
+  while (kernel_sym < kernel_sym_end) {
     ret = str_into_hex(kernel_sym, 0, &dir);
     // printf("dir = %x | kernel_sym = %x | closest_name = %x", dir, kernel_sym, closest_name);
 
@@ -64,7 +64,7 @@ char* find_function_name(uint_32 eip) {
       // closest_dir = dir;
     // }
     if (ret < 0) break;
-    kernel_sym += ret; 
+    kernel_sym += ret;
     //Luego avanzo más allá de los caracteres buscando un espacio o \n
     while (isDigit(*kernel_sym)) {
       kernel_sym++;
@@ -82,7 +82,7 @@ char* find_function_name(uint_32 eip) {
     while(!isSpace(*kernel_sym)) kernel_sym++;
     while (!isDigit(*kernel_sym)) kernel_sym++;
   }
-  
+
   // printf("*ffn: %x, %x, %x  ", kernel_sym, closest_name, closest_dir);
   kernel_sym = closest_name; //NOTE: Trucho, muy trucho
   while (isCharacter(*kernel_sym) || *kernel_sym == '_') kernel_sym++;
@@ -90,7 +90,7 @@ char* find_function_name(uint_32 eip) {
   return closest_name;
 }
 
-void print_backtrace(uint_32 f, uint_32 c, uint_32 level, uint_32 params, const uint_32 ebp, const uint_32 last_eip){ 
+void print_backtrace(uint_32 f, uint_32 c, uint_32 level, uint_32 params, const uint_32 ebp, const uint_32 last_eip){
   uint_32 ebp_hold = ebp;
   uint_32 i, j, func_name_len;
   char* func_name;
@@ -238,9 +238,9 @@ void logs(const char* buff, uint_32 size){
 }
 
 void isr_keyboard_c() {
-    sint_16 tecla=0;
-    __asm__ __volatile__("inb $0x60, %%al" : "=a" (tecla));
-    console_keyPressed(tecla);
-    outb(0x20,0x20);
+  sint_16 tecla=0;
+  __asm__ __volatile__("inb $0x60, %%al" : "=a" (tecla));
+  console_keyPressed(tecla);
+  outb(0x20,0x20);
 }
 
