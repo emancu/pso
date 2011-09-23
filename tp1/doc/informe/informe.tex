@@ -204,30 +204,38 @@ A fines prácticos, entonces, si bien los módulos \func{floppy driver} y \func{
  \item Número de dispositivo 
  \item La geometría del disco en el dispositivo, necesaria para hacer la conversión del número de sector a formato CHS.
  \item Buffer de transferencias. Este buffer (de 512 bytes de tamaño), es necesario ya que la comunicación entre el \func{fdc} y el cpu se hace mediante \func{DMA}, el cuál es solo capaz de acceder el primer MB de memoria física. 
- \item Información de estado del dispositivo. 
+\item Información de estado del dispositivo. 
  \item \emph{otros...}
 \end{itemize}
 
 Por las particularidades del los dispositivos, estos solo pueden ser accedidos uno a la vez. De igual manera, el fdc solo puede ejecutar una operacin a la vez. Esto plantea la necesidad de bloquear los accesos a las funciones formando seccionea críticas. 
 
 \subsection{Filesystem drivers}
+El driver implementado para el filesystem fue un driver controlador del floppy disk mediante el \func{fdc}. El driver fue implementado en el archvo \file{fdd.c}. Allí hay una serie de funciones que hacen de interfaz contra el \func{fdc} las cuales son utilizadas por otras funciones para leer sectores del diskette. El driver exporta un block device representativo del floppy que apenas inicializado permite leer el primer sector. Para leer el resto de los sectores es necesario utilizar la función \func{ioctl} y configurar el dispositivo con la información geométrica. Luego la interfaz de lectura (\func{read}) permite leer por número de sector. La lectura se a memoria de usuario leyendo un bloque del diskette a un buffer en kernel y luego copiándolo a la memoria de usuario. 
 
 \subsection{Filesystem module}
+Para el filesystem se utilizó fat12. El módulo está implementado en el archivo \file{fat12.c}. Este módulo exporta la función \func{fat12_open} que busca un archivo en el filesystem (con un driver de un dispositivo de bloque ya creado y configurado) y devuelve el char device relacionado. En este momento solo obtiene el primer bloque del archivo (512kb), pero la implementación está pensada para ser greedy y que solo obtenga bloques del block device subyacente de ser necesario. 
 
-\section{Devices}
+\section{Devices}
 
-\subsection{Block Device}
 \subsection{Char Device}
 
 
 
 \section{TP 3 }
 
+\subsection{fork}
+Fork es la llamada a sistema que permite generar una nueva tarea a partir de una previa ya existente. La función de la llamada al sistema está implementada en \file{loader.c}. La función se encarga de copiar con propiedad todas las estructuras que hacen a una tarea (tablas de páginas, páginas de stacks, páginas de memoria usadas, registros de memoria) y crear el PCB relacionado con la nueva tarea. 
+
+Esta llamada a sistema está testeada en el programa \file{fork.pso} que abre un archivo del diskette y una consola, forkea la tarea y hace cada tarea vaya escribiendo una parte del archivo, donde uno de ellos escribe el texto entre $*$.
+
+
 \subsection{pipes}
+Los pipes fueron implementados en los archivos \file{pipe.h} y \file{pipe.c}. El pipe se representa con 2 estrucutras, una genérica del pipe y dos char devices, uno para cada extremo del pipe. La estrucutra mayor posee simplemente la información de los dos char devices. Las estructuras menores contienen información sobre si están esperando para leer o escribir, si son extremo de lectura o escritura, el cursor del buffer del pipe a leer y un puntero al otro char_dev. Esto úlitmo es porque entre ambos deben señalizar semáforos para sincronizar las lecturas y escrituras. La implementación del pipe está pensada (y testeada) para soportar que el lector pueda leer más caracteres que el buffer, o más caracteres de lo que está escrito, y a su vez el escritor puede escribir más caracteres que el buffer o más de lo que ha de leerse. Esto puede llevar a una situación de lock: el lector quiere leer más del lo que está escrito pero el escritor no puede escribir porque el buffer está lleno. Esto se resuelve desbloqueando al lector dejándole leer menos de lo que pidió (e informándole esto mediante el int resultado de \func{read}) si la situación es tal que el escritor no puede escribir más, o transfiriendo del buffer del pipe al buffer del lector gradualmente para liberale espacio al escritor para que siga escribiendo. Es por que que hay un semáforo para cada extremo, de manera que puedan despertarse constantemente y se eviten los deadlocks.
+
+El testeo de los pipes se hace mediante el programa \file{pipe.pso}, que crea un pipe, luego forkea y el hijo abre una consola en la que escribe cosas que leyó del pipe enviadas por el padre. Además si se modifica el tamaño del buffer del pipe en \file{pipe.h} se pueden testear los casos bordes de escritura y lectura explicados anteriormente.
 
 \subsection{loader}
-
-\subsection{fork}
 
 \subsection{MM - Memory on Demand}
 
