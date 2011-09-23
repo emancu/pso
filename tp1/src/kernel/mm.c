@@ -76,10 +76,9 @@ bool is_copy_on_write(uint_32 page){
  * del kernel). Los page frames en kernel son los usados para guardar las tablas de
  * páginas. Estos son apuntados por las direcciones en la tabla de directorios. */
 void mm_dir_free(uint_32* d) {
-  printf("entre a dir_free");
-  // mm_dump(); FIXME que onda con el semaforo
-  // sem_wait(&dir_free_sem); //Acá empieza la sección crítica del borrado
-  cli();
+  // El semaforo es para evitar que procesos con la misma pagina compartida no
+  // entren en conflicto a la hora de contar la cantidad de referencias
+  sem_wait(&dir_free_sem); //Acá empieza la sección crítica del borrado
   int i;
   for (i = 1; i < TABLE_ENTRY_NUM; i++) {
     if ( is_present(d[i]) ){
@@ -87,15 +86,14 @@ void mm_dir_free(uint_32* d) {
       d[i] &= ~MM_ATTR_P;
       mm_mem_free((void*) (d[i] & ~0xFFF)); // Marco como libre el page frame donde estaba la tabla
     }
-    d[i] = 0x0;
+    // d[i] = 0x0; DELETEME
   }
-  // d[0] &= ~MM_ATTR_P;
-  d[0] = 0x0;
+  d[0] &= ~MM_ATTR_P;
+  // d[0] = 0x0; DELETEME
   mm_mem_free((void*) ((int) d & ~0xFFF)); // Marco como libre el page frame donde está este directorio
   tlbflush();
 
-  // sem_signal(&dir_free_sem); //Acá termina la sección crítica del borrado
-  // mm_dump();
+  sem_signal(&dir_free_sem); //Acá termina la sección crítica del borrado
 }
 
 void mm_table_free(uint_32* t, int dir_index) {
@@ -108,12 +106,10 @@ void mm_table_free(uint_32* t, int dir_index) {
       }
 
       printf("mm_times_mapped((t[table_index] & ~0xFFF) = %x", mm_times_mapped((t[table_index] & ~0xFFF), dir_index, table_index));
-      printf("!! mm_page_erase(%x)", t[table_index] & ~0xFFF);
-      //mm_page_erase(t[table_index] & ~0xFFF);
       mm_mem_free((uint_32*) (t[table_index] & ~0xFFF));
-      // t[table_index] &= ~MM_ATTR_P;
+      t[table_index] &= ~MM_ATTR_P;
     }
-    t[table_index] = 0x0;
+    // t[table_index] = 0x0; DELETEME
   }
 }
 
@@ -268,7 +264,7 @@ mm_page* mm_dir_fork(mm_page* cr3) {
   uint_32* old_cr3 = (uint_32*) cr3;
   uint_32* new_cr3 = (uint_32*) mm_dir_new(); //Obtengo un nuevo directorio
   printf("new cr3 = %x" , new_cr3);
-  breakpoint();
+
   if (new_cr3 == NULL) //No pudo tener un nuevo directorio, fallé
     return NULL;
 
@@ -358,7 +354,6 @@ void* sys_palloc() {
     }
   }
   return NULL; // Se llega aquí si el mapa de memoria del cr3 actual está completo
-  //printf("LLAMARON A PALLOC");
 }
 
 sint_32 mm_share_page(void* page) {
@@ -392,7 +387,7 @@ int mm_copy_on_write_page(uint_32 *page, uint_32 dir_index, uint_32 table_index)
     printf("cambie attr por %x", *page);
   }else{
     //pedir una nueva
-  uint_32* dest_page = mm_mem_alloc();
+    uint_32* dest_page = mm_mem_alloc();
     printf("nueva pagina forkeada = %x", dest_page);
     if (dest_page == NULL) //No hay más páginas
       return -1;
