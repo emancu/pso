@@ -80,8 +80,8 @@ int main(void) {
     read(fd, buf, 1);
     exit();
   }
-  
-  
+
+
   serial = open("/serial0", 0x3);
   if (serial < 0) {
     write(fd, error, 30);
@@ -101,8 +101,8 @@ int main(void) {
   if (pid) { //READER
     close(serial);
     reader();
-  } else { 
-    close(pipeRE[1]); 
+  } else {
+    close(pipeRE[1]);
     close(file);
     encrpyt();
     pid = 5;
@@ -113,12 +113,9 @@ int main(void) {
       // writer();
     }
   }
-  breakpoint(); 
-    
+
   write(fd, "Finished!", 9);
-  breakpoint();
   // read(fd, buf, 1);
-  breakpoint();
 
   while(1);
   // exit();

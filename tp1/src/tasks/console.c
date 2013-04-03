@@ -6,32 +6,30 @@
 void run_command(const char*, int, const char*);
 
 int strncmp(const char* p, const char* q, unsigned int n) {
-	for (; n && *p && *q && *p == *q; p++, q++, n--)
-		;
-	return n ? (*p ? (*q ? (int) *p - (int) *q : 1) : *q ? -1 : 0) : 0;
+  for (; n && *p && *q && *p == *q; p++, q++, n--)
+    ;
+  return n ? (*p ? (*q ? (int) *p - (int) *q : 1) : *q ? -1 : 0) : 0;
 }
 
 int strcmp(const char* p, const char* q) {
-	for (; *p && *q && *p == *q; p++, q++)
-		;
-	return *p ? (*q ? (int) *p - (int) *q : 1) : *q ? -1 : 0;
+  for (; *p && *q && *p == *q; p++, q++)
+    ;
+  return *p ? (*q ? (int) *p - (int) *q : 1) : *q ? -1 : 0;
 }
 
 int main(void) {
-  breakpoint();
   char command[100], msg;
   char* ps1 = "console@pso: ";
   int idx = 0;
 
   int fd = open("/console", 0x3);
   write(fd, ps1, 13);
-  breakpoint();
 
   while (1) {
     read(fd, &msg, 1);
     if (msg == '\n') {
       run_command(command, fd, ps1);
-      for (idx = 0; idx < 100; idx++) 
+      for (idx = 0; idx < 100; idx++)
         command[idx] = '\0';
       idx = 0;
     } else {
