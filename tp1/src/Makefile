@@ -8,7 +8,7 @@ MKFS=/sbin/mkfs.vfat
 
 # Parámetros de programas
 NASMFLAGS=-I include/ -g -ggdb -D__KERNEL__
-CFLAGS=-m32 -g -ggdb -Wall  -Werror  -O0 -I include/ \
+CFLAGS=-m32 -g -ggdb -Wall  -O0 -I include/ \
   -fno-zero-initialized-in-bss -fno-stack-protector -fno-strict-aliasing -ffreestanding -D__KERNEL__
 CXXFLAGS=-O2
 LDFLAGS=-static -m elf_i386 -nostdlib
@@ -48,7 +48,7 @@ IMG_FLOPPY=$(DIROUT)floppy.img
 
 .PHONY: all clean
 
-all: $(SYM_KERN) $(IMG_FLOPPY) $(DUMP_KERN)
+all: refsym $(SYM_KERN) $(IMG_FLOPPY) $(DUMP_KERN)
 
 # Bootloader - disk
 ### TODO ###
@@ -111,11 +111,11 @@ $(IMG_FLOPPY): $(BIN_BOOT) $(BIN_KERN) $(IMG_BASE)
 
 # Otros
 refsym:
+	touch bin/kernel.sym
 	touch kernel/kernel_sym.asm
-	make
 
 clean:
-	rm -f $(BIN_KERN) $(IMG_FLOPPY) $(IMG_BASE) $(OBJS_KERN) $(DUMP_KERN) $(OBJS_TASKS) $(TASKS) $(TASKS:.pso=.elf)
+	rm -f $(SYM_KERN) $(BIN_KERN) $(IMG_FLOPPY) $(IMG_BASE) $(OBJS_KERN) $(DUMP_KERN) $(OBJS_TASKS) $(TASKS) $(TASKS:.pso=.elf)
 #	rm -f $(BIN_KERN) $(IMG_FLOPPY) $(IMG_BASE) $(OBJS_KERN) $(DUMP_KERN) $(SYM_KERN) $(OBJS_TASKS) $(TASKS) $(TASKS:.pso=.elf)
 	#rm -f deps
 
