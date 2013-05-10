@@ -8,6 +8,29 @@ Integrantes
  * Emiliano  Mancuso
  * Martin     Miguel
 
+Instalacion
+-----------
+
+```bash
+sudo apt-get install build-essential nasm libgtk2.0-dev
+``
+
+Descargar `bochs-2.4.6.tar.gz` de
+
+`http://sourceforge.net/projects/bochs/files/bochs/2.4.6/`
+
+Luego hacer
+
+```bash
+tar -xvzf bochs-2.4.6.tar.gz
+
+cd bochs-2.4.6
+
+./configure --enable-debugger --enable-disasm --disable-docbook LIBS="-lpthread"
+make
+sudo make install
+
+``
 
 Punteo para el desarrollo
 -------------------------
