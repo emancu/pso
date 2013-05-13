@@ -13,7 +13,7 @@ Instalacion
 
 ```bash
 sudo apt-get install build-essential nasm libgtk2.0-dev
-``
+```
 
 Descargar `bochs-2.4.6.tar.gz` de
 
@@ -30,7 +30,7 @@ cd bochs-2.4.6
 make
 sudo make install
 
-``
+```
 
 Punteo para el desarrollo
 -------------------------
