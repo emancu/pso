@@ -53,8 +53,8 @@ Punteo para el desarrollo
 
 ###sched
 
-* **estructuras**: posee dos listas circulares de pids para representar los estados. Se manejan dos estados: *running* y *blocked*. Debe saber cual es el pid de ejecucion actual. Estas estructuras mantienen otra informacion util para el scheduler como la cantidad de quantums consumidos por la tarea actual. 
+* **estructuras**: posee dos listas circulares de pids para representar los estados. Se manejan dos estados: *running* y *blocked*. Debe saber cual es el pid de ejecucion actual. Estas estructuras mantienen otra informacion util para el scheduler como la cantidad de _quantums_ consumidos por la tarea actual. 
 
-* **funciones de cambio de estado**: *sched_load()* y *sched_unblock()* son funciones cuyo unico proposito es actualizar el estado de las tareas en las extrucutras internas del scheduler. 
+* **funciones de cambio de estado**: *sched_load()* y *sched_unblock()* son funciones cuyo unico proposito es actualizar el estado de las tareas en las estrucutras internas del scheduler. 
 
 * **funciones de siguiente tarea**: *sched_tick()*, *sched_block()* y *sched_exit()* actualizan las estructuras internas para repersentar el evento y ademas deben devolver el pid de la tarea a ejecutar a continuacion. 
