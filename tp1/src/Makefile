@@ -35,7 +35,6 @@ OBJS_KERN=kernel/kinit.o kernel/a20.o kernel/kernel.o kernel/gdt.o kernel/idt.o 
 BIN_KERN=$(DIROUT)kernel.bin
 DUMP_KERN=$(DIROUT)kernel.bin.asm $(DIROUT)kernel.bin.elf $(DIROUT)kernel.bin.dbg
 SYM_KERN=$(DIROUT)kernel.sym
-SCHED_FILE=$(DIRKERN)sched.c
 
 # Tareas
 TASKS=tasks/console.pso tasks/taskinit.pso tasks/fork.pso tasks/memoryd.pso tasks/pipe.pso tasks/cow.pso tasks/exit.pso tasks/krypto.pso
@@ -121,8 +120,17 @@ refsym:
 
 clean:
 	rm -f $(SYM_KERN) $(BIN_KERN) $(IMG_FLOPPY) $(IMG_BASE) $(OBJS_KERN) $(DUMP_KERN) $(OBJS_TASKS) $(TASKS) $(TASKS:.pso=.elf)
-#	rm -f $(BIN_KERN) $(IMG_FLOPPY) $(IMG_BASE) $(OBJS_KERN) $(DUMP_KERN) $(SYM_KERN) $(OBJS_TASKS) $(TASKS) $(TASKS:.pso=.elf)
+	#rm -f $(BIN_KERN) $(IMG_FLOPPY) $(IMG_BASE) $(OBJS_KERN) $(DUMP_KERN) $(SYM_KERN) $(OBJS_TASKS) $(TASKS) $(TASKS:.pso=.elf)
 	#rm -f deps
+
+sched_mq:
+	cp schedulers/mq_sched.c kernel/sched.c
+	cp schedulers/mq_sched.h include/sched.h
+
+sched_rr:
+	cp schedulers/rr_sched.c kernel/sched.c
+	cp schedulers/rr_sched.h include/sched.h
+
 
 # Dependencias
 deps: Makefile

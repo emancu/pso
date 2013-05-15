@@ -38,7 +38,7 @@ void kernel_init(void) {
   debug_init();
   mm_init();
   serial_init();
-  logger_init();
+  // logger_init();
   pit_init();
   sched_init();
   loader_init();

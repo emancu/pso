@@ -1,5 +1,5 @@
-#ifndef __MQ_SCHED_H__
-#define __MQ_SCHED_H__
+#ifndef __SCHED_H__
+#define __SCHED_H__
 
 #include <idt.h>
 #include <vga.h>
@@ -39,4 +39,4 @@ bool sched_test_status(pid, int);
 bool sched_test_node(pid , pid , pid );
 
 #endif
-#endif /* MQ_SCHED_H_ */
+#endif /* SCHED_H_ */

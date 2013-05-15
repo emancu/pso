@@ -1,4 +1,4 @@
-#include <mq_sched.h>
+#include <sched.h>
 
 #define STATE_RUNNING   0
 #define STATE_BLOCKED   1
@@ -29,7 +29,8 @@ static pid next_pid[2];
 
 
 void sched_init(void) {
-  next_pid[TYPE_REALTIME], next_pid[TYPE_LOW] = 0; // Cola vacia
+  next_pid[TYPE_REALTIME] = 0;
+  next_pid[TYPE_LOW] = 0; // Cola vacia
   current_pid = 0; // IDLE task
 }
 
@@ -136,7 +137,7 @@ void update_current_pid() {
   current_pid = next_pid[TYPE_REALTIME];
 
   // Avanzamos el puntero al next_pid
-  next_pid[TYPE_REALTIME] = tasks[current_pid].next
+  next_pid[TYPE_REALTIME] = tasks[current_pid].next;
 
   // Si no hay tareas en REALTIME, corremos las de LOW o la IDDLE.
   if (current_pid == 0) {
@@ -159,13 +160,13 @@ void showTasks(){
     show_task_structure(i);
   }
   printf("current pid: %d", current_pid);
-  printf("last: %d", last);
+  printf("next RT: %d | next LOW: %d", next_pid[TYPE_REALTIME], next_pid[TYPE_LOW]);
 }
 
 
 void show_task_structure(pid pd){
   printf("----------");
-  printf("mi pid: %d estado: %s next: %d prev: %d " , pd, states[tasks[pd].state], tasks[pd].next, tasks[pd].prev);
+  printf("mi pid: %d estado: %s next: %d prev: %d ", pd, states[tasks[pd].state], tasks[pd].next, tasks[pd].prev);
 }
 
 
