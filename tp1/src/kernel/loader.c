@@ -11,7 +11,7 @@ static int next_free;
 
 void loader_init(void) {
   int i;
-  // Inicializamos la cola de peeds libres
+  // Inicializamos la cola de pids libres
   free_pids[0] = -1; // La IDLE ocupa la 0, nadie deberia apuntar a la 0
   for (i = 1; i < MAX_PID - 1; i++)
     free_pids[i] = i + 1;
@@ -35,8 +35,6 @@ void loader_init(void) {
 }
 
 pid loader_load(pso_file* f, int pl) {
-
-
   //me guardo el cr3 viejo.
   uint_32 old_cr3 = rcr3();
 

@@ -32,11 +32,12 @@ void showTasks();
 
 
 // Testing
-bool sched_test_size(int);
-bool sched_test_last(pid);
+bool sched_test_size(int, int);
+bool sched_test_next_pud(int, pid);
 bool sched_test_current(pid);
 bool sched_test_status(pid, int);
-bool sched_test_node(pid , pid , pid );
+bool sched_test_type(pid, int);
+bool sched_test_node(pid, pid, pid);
 
 #endif
 #endif /* SCHED_H_ */

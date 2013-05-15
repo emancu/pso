@@ -53,10 +53,6 @@ all: refsym $(SYM_KERN) $(IMG_FLOPPY) $(DUMP_KERN)
 # Bootloader - disk
 ### TODO ###
 
-# Scheduler
-kernel/sched.o: $(SCHED_FILE)
-	$(CC) $(CFLAGS) -c -o $@ $<
-
 # Kernel
 kernel/%.o: kernel/%.asm
 	nasm $(NASMFLAGS) -felf32 -I $(DIRKERN) -o $@ $<

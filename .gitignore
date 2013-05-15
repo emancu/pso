@@ -23,6 +23,8 @@ entregable.zip
 tp1/doc/informe/informe.tex.backup
 entregable.zip
 tp1/src/bin/*
+tp1/src/kernel/sched.c
+tp1/src/include/sched.h
 snapshot.txt
 *.elf
 *.pso

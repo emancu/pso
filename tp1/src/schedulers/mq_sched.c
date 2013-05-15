@@ -174,29 +174,29 @@ void show_task_structure(pid pd){
  * Testing
  */
 
-bool sched_test_size(int expected_size){
+bool sched_test_size(int type, int expected_size){
   int size;
-  if (last == 0){
-    size =0;
+  if (next_pid[type] == 0){
+    size = 0;
   }else{
-    pid aux = last;
+    pid aux = next_pid[type];
     size = 1;
-    while(tasks[aux].next != last){
+    while(tasks[aux].next != next_pid[type]){
       size++;
       aux = tasks[aux].next;
     }
   }
 
   if( expected_size != size){
-    printf("Size %d, expected %d",size, expected_size);
+    printf("Size %d, expected %d", size, expected_size);
     return 0;
   }
   return 1;
 }
 
-bool sched_test_last(pid expected_pid){
-  if( last != expected_pid){
-    printf("Last = %d, expected %d",last, expected_pid);
+bool sched_test_next_pid(int type, pid expected_pid){
+  if( next_pid[type] != expected_pid){
+    printf("Last = %d, expected %d", next_pid[type], expected_pid);
     return 0;
   }
   return 1;
@@ -204,7 +204,7 @@ bool sched_test_last(pid expected_pid){
 
 bool sched_test_current(pid expected_current_pid){
   if( current_pid != expected_current_pid){
-    printf("Current pid = %d, expected %d",current_pid, expected_current_pid);
+    printf("Current pid = %d, expected %d", current_pid, expected_current_pid);
     return 0;
   }
   return 1;
@@ -212,7 +212,15 @@ bool sched_test_current(pid expected_current_pid){
 
 bool sched_test_status(pid task_pid, int expected_state){
   if (tasks[task_pid].state != expected_state){
-    printf("State of %d is %d, expected %d",task_pid, tasks[task_pid].state, expected_state);
+    printf("State of %d is %d, expected %d", task_pid, tasks[task_pid].state, expected_state);
+    return 0;
+  }
+  return 1;
+}
+
+bool sched_test_type(pid task_pid, int expected_type){
+  if (tasks[task_pid].type != expected_type){
+    printf("Type of %d is %d, expected %d", task_pid, tasks[task_pid].type, expected_type);
     return 0;
   }
   return 1;

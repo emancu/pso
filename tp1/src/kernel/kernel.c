@@ -19,7 +19,7 @@
 #include <pipe.h>
 
 #include "klib_machine.h"
-#include "scheduler_test.c"
+// #include "scheduler_test.c"
 
 extern void* _end;
 
