@@ -35,6 +35,7 @@ OBJS_KERN=kernel/kinit.o kernel/a20.o kernel/kernel.o kernel/gdt.o kernel/idt.o 
 BIN_KERN=$(DIROUT)kernel.bin
 DUMP_KERN=$(DIROUT)kernel.bin.asm $(DIROUT)kernel.bin.elf $(DIROUT)kernel.bin.dbg
 SYM_KERN=$(DIROUT)kernel.sym
+SCHED_FILE=$(DIRKERN)sched.c
 
 # Tareas
 TASKS=tasks/console.pso tasks/taskinit.pso tasks/fork.pso tasks/memoryd.pso tasks/pipe.pso tasks/cow.pso tasks/exit.pso tasks/krypto.pso
@@ -52,6 +53,10 @@ all: refsym $(SYM_KERN) $(IMG_FLOPPY) $(DUMP_KERN)
 
 # Bootloader - disk
 ### TODO ###
+
+# Scheduler
+kernel/sched.o: $(SCHED_FILE)
+  $(CC) $(CFLAGS) -c -o $@ $<
 
 # Kernel
 kernel/%.o: kernel/%.asm
