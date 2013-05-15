@@ -56,7 +56,7 @@ all: refsym $(SYM_KERN) $(IMG_FLOPPY) $(DUMP_KERN)
 
 # Scheduler
 kernel/sched.o: $(SCHED_FILE)
-  $(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 # Kernel
 kernel/%.o: kernel/%.asm
