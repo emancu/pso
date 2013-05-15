@@ -4,11 +4,12 @@
 #define STATE_BLOCKED   1
 #define STATE_FINISHED  2
 
-#define TYPE_NONE     -1
-#define TYPE_REALTIME  0
-#define TYPE_LOW       1
+#define TYPE_NONE      -1
+#define TYPE_REALTIME   0
+#define TYPE_LOW        1
 
-#define QUANTUM 2
+#define LOW_QUANTUM     2
+#define RT_QUANTUM      2
 
 char* states[] = {"running", "blocked", "finished"};
 
@@ -34,32 +35,12 @@ void sched_init(void) {
 
 // Todas las tareas comienzan por ser de baja prioridad
 void sched_load(pid pd) {
-  int next = pd;
-  int prev = pd;
-
-  if (next_pid[TYPE_LOW] != 0) {
-    next = next_pid[TYPE_LOW];
-    prev = tasks[next].prev;
-  }
-
-  enqueue(pd, TYPE_LOW, next, prev);
-  // Sigue apuntando al next, a menos que este vacia. En ese caso apunta a si misma
-  next_pid[TYPE_LOW] = tasks[pd].next;
+  enqueue(pd, TYPE_LOW);
 }
 
 // Si una tarea se desbloquea, pasa a tener alta prioridad
 void sched_unblock(pid pd) {
-  int next = pd;
-  int prev = pd;
-
-  if(next_pid[TYPE_REALTIME] != 0){
-    next = next_pid[TYPE_REALTIME];
-    prev = tasks[next].prev;
-  }
-
-  enqueue(pd, TYPE_REALTIME, next, prev);
-  // Sigue apuntando al next, a menos que este vacia. En ese caso apunta a si misma
-  next_pid[TYPE_REALTIME] = tasks[pd].next;
+  enqueue(pd, TYPE_REALTIME);
 
   // Si esta IDLE salto inmediatamente a la nueva tarea
   // VER SI SE LO AGREGO AL SCHED_LOAD
@@ -77,44 +58,26 @@ int sched_block() {
   return dequeue(STATE_BLOCKED);
 }
 
+/*
+ * IDLE task      => devolvemos la siguiente.
+ * Task Y Quantum => seguimos corriendo.
+ * Fin Quantum    => movemos de cola y ejecutamos la siguiente.
+ */
 int sched_tick() {
-  // si es el IDLE task devolvemos inmediatamente la que sigue
-  if (current_pid == 0) {
-    quantum = QUANTUM;
+  if (current_pid > 0 && --quantum > 0)
+    return current_pid;
 
-    if (next_pid[TYPE_REALTIME] != 0)
-      current_pid = next_pid[TYPE_REALTIME];
-    else
-      current_pid = next_pid[TYPE_LOW];
-
-  } else {  // Si no es IDLE Task
-    if (--quantum == 0){
-      pid tmp_pid = current_pid;
-
-      quantum = QUANTUM;
-      dequeue(STATE_RUNNING); // VER QUE ESTADO LE CORRESPONDE
-      // Se excedio en tiempo de ejecucion, la bajamos.
-      int next = tmp_pid;
-      int prev = tmp_pid;
-
-      if (next_pid[TYPE_LOW] != 0) {
-        next = next_pid[TYPE_LOW];
-        prev = tasks[next].prev;
-      }
-
-      enqueue(tmp_pid, TYPE_LOW, next, prev);
-      // Sigue apuntando al next, a menos que este vacia. En ese caso apunta a si misma
-      next_pid[TYPE_LOW] = tasks[pd].next;
-
-      current_pid = next_pid[TYPE_REALTIME];
-      // SALTEAR NEXT.next para la prox ejecucion
-      if (current_pid == 0)
-        current_pid = next_pid[TYPE_LOW];
-    }
+  if (quantum == 0) {
+    pid tmp_pid = current_pid;
+    dequeue(STATE_RUNNING);
+    // Se excedio en tiempo de ejecucion, la bajamos.
+    enqueue(tmp_pid, TYPE_LOW);
   }
+
+  update_current_pid();
+
   return current_pid;
 }
-
 
 /*
  * Private
@@ -127,37 +90,63 @@ void configure_task(pid pd, int type, int state, pid next, pid prev){
   tasks[pd].prev  = prev;
 }
 
-void enqueue(pid pd, int type, pid next, pid prev) {
+void enqueue(pid pd, int type) {
+  pid next = pd;
+  pid prev = pd;
+
+  if (next_pid[type] != 0) {
+    next = next_pid[type];
+    prev = tasks[next].prev;
+  }
+
   configure_task(pd, type, STATE_RUNNING, next, prev);
 
   tasks[next].prev = pd;
   tasks[prev].next = pd;
+
+  // Sigue apuntando al mismo next, a menos que este vacia. En ese caso apunta a si misma
+  next_pid[type] = tasks[pd].next;
 }
 
-// Makes the transition to a specified state.
-// BLOCKED or FINISHED
+// Quita la tarea current_pid de la cola, y le cambia el estado.
 pid dequeue(int state) {
-  quantum = QUANTUM;
+  pid next = tasks[current_pid].next;
+  pid prev = tasks[current_pid].prev;
 
   // Es el ultimo elemento en la cola
-  if (tasks[current_pid].next == current_pid) {
-    last = 0;
-    // Como se desencola, no pertenece a ninguna cola
-    configure_task(current_pid, TYPE_NONE, state, -1, -1);
-    current_pid = 0;
+  if (next == current_pid) {
+    next_pid[tasks[current_pid].type] = 0;
   }else{
-    int next = tasks[current_pid].next;
-    int prev = tasks[current_pid].prev;
     tasks[next].prev = prev;
     tasks[prev].next = next;
-    last = prev;
-    // Como se desencola, no pertenece a ninguna cola
-    configure_task(current_pid, TYPE_NONE, state, -1, -1);
-    current_pid = next;
+    next_pid[tasks[current_pid].type] = next;
   }
+
+  // Como se desencola, no pertenece a ninguna cola
+  configure_task(current_pid, TYPE_NONE, state, -1, -1);
+  update_current_pid();
+
   return current_pid;
 }
 
+// Updates the current_pid based on priorities and set the quantum
+void update_current_pid() {
+  quantum = RT_QUANTUM;
+  // Pasamos a la proxima tarea de REALTIME
+  current_pid = next_pid[TYPE_REALTIME];
+
+  // Avanzamos el puntero al next_pid
+  next_pid[TYPE_REALTIME] = tasks[current_pid].next
+
+  // Si no hay tareas en REALTIME, corremos las de LOW o la IDDLE.
+  if (current_pid == 0) {
+    quantum = LOW_QUANTUM;
+    current_pid = next_pid[TYPE_LOW];
+
+    // Avanzamos el puntero al next_pid
+    next_pid[TYPE_LOW] = tasks[current_pid].next;
+  }
+}
 
 /*
  * END Private
