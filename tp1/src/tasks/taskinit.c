@@ -12,6 +12,7 @@ int main(void) {
   while(1) {
     hlt();
   }
-  // exit();
+
+  exit();
   return 0;
 }

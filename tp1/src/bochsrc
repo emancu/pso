@@ -445,7 +445,7 @@ debug: action=ignore
 #=======================================================================
 #debugger_log: /dev/null
 #debugger_log: debugger.out
-debugger_log: -
+debugger_log: log/debugger.out
 
 #=======================================================================
 # COM1, COM2, COM3, COM4:

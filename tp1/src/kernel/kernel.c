@@ -19,7 +19,7 @@
 #include <pipe.h>
 
 #include "klib_machine.h"
-// #include "scheduler_test.c"
+// #include "mq_scheduler_test.c"
 
 extern void* _end;
 
@@ -38,14 +38,14 @@ void kernel_init(void) {
   debug_init();
   mm_init();
   serial_init();
-  // logger_init();
+  logger_init();
   pit_init();
   sched_init();
   loader_init();
   device_init();
   con_init();
 
-  sti();
+  sti(); // commentar para el test_scheduler
 
   fdd_init();
   fat12_init();

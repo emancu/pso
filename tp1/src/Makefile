@@ -37,7 +37,9 @@ DUMP_KERN=$(DIROUT)kernel.bin.asm $(DIROUT)kernel.bin.elf $(DIROUT)kernel.bin.db
 SYM_KERN=$(DIROUT)kernel.sym
 
 # Tareas
-TASKS=tasks/console.pso tasks/taskinit.pso tasks/fork.pso tasks/memoryd.pso tasks/pipe.pso tasks/cow.pso tasks/exit.pso tasks/krypto.pso
+TASKS=tasks/console.pso tasks/taskinit.pso tasks/loop.pso tasks/block.pso \
+  tasks/fork.pso tasks/memoryd.pso tasks/pipe.pso tasks/cow.pso tasks/exit.pso \
+  tasks/krypto.pso tasks/file.pso
 TASKS_ELF:=$(TASKS:.pso=.elf)
 OBJS_TASKS:=$(TASKS:.pso=.o) tasks/pso_head.o tasks/pso_tail.o tasks/syscalls.o
 
@@ -48,7 +50,7 @@ IMG_FLOPPY=$(DIROUT)floppy.img
 
 .PHONY: all clean
 
-all: refsym $(SYM_KERN) $(IMG_FLOPPY) $(DUMP_KERN)
+all: $(SYM_KERN) $(IMG_FLOPPY) $(DUMP_KERN)
 
 # Bootloader - disk
 ### TODO ###
@@ -59,7 +61,7 @@ kernel/%.o: kernel/%.asm
 
 kernel/tasks.o: kernel/tasks.asm $(TASKS) $(TASKS_ELF)
 	nasm $(NASMFLAGS) -felf32 -I $(DIRKERN) -o $@ $<
-	
+
 kernel/kernel_sym.o: kernel/kernel_sym.asm
 	nasm $(NASMFLAGS) -felf32 -I $(DIRKERN) -o $@ $<
 
