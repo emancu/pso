@@ -240,6 +240,7 @@ void move_to_empty_console() {
  */
 int altPressed = 0;
 int shiftPressed = 0;
+int ctrlPressed = 0;
 
 void console_keyPressed(sint_16 tecla) {
 	if (altPressed == 1 && shiftPressed == 1) {
@@ -248,6 +249,24 @@ void console_keyPressed(sint_16 tecla) {
 		} else if (tecla == 0x4b) {
 			move_to_left_console();
 		}
+	} else if ( ctrlPressed == 1 && tecla == 0x26){
+		//me guardo la linea en la que estoy
+
+		// Inicializamos Screen
+		int i;
+		for (i = 0; i < 4000; i += 2) {
+		current_console->console_screen[i] = 0x0;
+		current_console->console_screen[i + 1] = CONSOLE_STYLE_DEFAULT;
+		}
+		copy_memory_to_screen((uint_8 *) current_console->console_screen);
+		current_console->fila = 0;
+		current_console->columna = 0;
+		char* ps1 = "console@pso: ";
+		con_write(current_console, ps1,12);
+
+
+		return;
+
 	}
 
 	// Siempre se escribe en la consola actual
@@ -372,9 +391,14 @@ uint_8 getc(uint_16 scan_code) {
 	case 0x2a + 0x80:
 		shiftPressed = 0;
 		return 0;
+	case 0x1D:
+		ctrlPressed = 1;
+		return 0;
+	case 0x1D + 0x80:
+		ctrlPressed = 0;
+		return 0;
 
 	default: // F1-F12 or unknown
 		return ((scan_code >= 0x3b && scan_code <= 0x44) || (scan_code >= 0x57 && scan_code <= 0x58)) ? '_' : 0;
 	}
 }
-
