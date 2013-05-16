@@ -9,7 +9,7 @@
 #define TYPE_LOW        1
 
 #define LOW_QUANTUM     2
-#define RT_QUANTUM      2
+#define RT_QUANTUM      4
 
 char* states[] = {"running", "blocked", "finished"};
 
@@ -29,9 +29,9 @@ static pid next_pid[2];
 
 
 void sched_init(void) {
-  next_pid[TYPE_REALTIME] = 0;
-  next_pid[TYPE_LOW] = 0; // Cola vacia
+  next_pid[TYPE_REALTIME] = next_pid[TYPE_LOW] = 0; // Cola vacia
   current_pid = 0; // IDLE task
+  quantum = LOW_QUANTUM;
 }
 
 // Todas las tareas comienzan por ser de baja prioridad
@@ -52,11 +52,13 @@ void sched_unblock(pid pd) {
 }
 
 int sched_exit() {
-  return dequeue(STATE_FINISHED);
+  dequeue(STATE_FINISHED);
+  return update_current_pid();
 }
 
 int sched_block() {
-  return dequeue(STATE_BLOCKED);
+  dequeue(STATE_BLOCKED);
+  return update_current_pid();
 }
 
 /*
@@ -75,9 +77,7 @@ int sched_tick() {
     enqueue(tmp_pid, TYPE_LOW);
   }
 
-  update_current_pid();
-
-  return current_pid;
+  return update_current_pid();
 }
 
 /*
@@ -125,13 +125,12 @@ pid dequeue(int state) {
 
   // Como se desencola, no pertenece a ninguna cola
   configure_task(current_pid, TYPE_NONE, state, -1, -1);
-  update_current_pid();
 
   return current_pid;
 }
 
 // Updates the current_pid based on priorities and set the quantum
-void update_current_pid() {
+pid update_current_pid() {
   quantum = RT_QUANTUM;
   // Pasamos a la proxima tarea de REALTIME
   current_pid = next_pid[TYPE_REALTIME];
@@ -140,13 +139,15 @@ void update_current_pid() {
   next_pid[TYPE_REALTIME] = tasks[current_pid].next;
 
   // Si no hay tareas en REALTIME, corremos las de LOW o la IDDLE.
-  if (current_pid == 0) {
+  if (current_pid <= 0) {
     quantum = LOW_QUANTUM;
     current_pid = next_pid[TYPE_LOW];
 
     // Avanzamos el puntero al next_pid
     next_pid[TYPE_LOW] = tasks[current_pid].next;
   }
+
+  return current_pid;
 }
 
 /*
@@ -165,8 +166,9 @@ void showTasks(){
 
 
 void show_task_structure(pid pd){
-  printf("----------");
-  printf("mi pid: %d estado: %s next: %d prev: %d ", pd, states[tasks[pd].state], tasks[pd].next, tasks[pd].prev);
+  sched_task task = tasks[pd];
+
+  printf("  %d > State: %s | Type: %d | Next: %d | Prev: %d |", pd, states[task.state], task.type, task.next, task.prev);
 }
 
 
@@ -189,6 +191,7 @@ bool sched_test_size(int type, int expected_size){
 
   if( expected_size != size){
     printf("Size %d, expected %d", size, expected_size);
+    hlt();
     return 0;
   }
   return 1;
@@ -196,7 +199,8 @@ bool sched_test_size(int type, int expected_size){
 
 bool sched_test_next_pid(int type, pid expected_pid){
   if( next_pid[type] != expected_pid){
-    printf("Last = %d, expected %d", next_pid[type], expected_pid);
+    printf("Next pid[%d] = %d, expected %d", type, next_pid[type], expected_pid);
+    hlt();
     return 0;
   }
   return 1;
@@ -205,6 +209,7 @@ bool sched_test_next_pid(int type, pid expected_pid){
 bool sched_test_current(pid expected_current_pid){
   if( current_pid != expected_current_pid){
     printf("Current pid = %d, expected %d", current_pid, expected_current_pid);
+    hlt();
     return 0;
   }
   return 1;
@@ -213,6 +218,7 @@ bool sched_test_current(pid expected_current_pid){
 bool sched_test_status(pid task_pid, int expected_state){
   if (tasks[task_pid].state != expected_state){
     printf("State of %d is %d, expected %d", task_pid, tasks[task_pid].state, expected_state);
+    hlt();
     return 0;
   }
   return 1;
@@ -221,6 +227,7 @@ bool sched_test_status(pid task_pid, int expected_state){
 bool sched_test_type(pid task_pid, int expected_type){
   if (tasks[task_pid].type != expected_type){
     printf("Type of %d is %d, expected %d", task_pid, tasks[task_pid].type, expected_type);
+    hlt();
     return 0;
   }
   return 1;
@@ -229,6 +236,7 @@ bool sched_test_type(pid task_pid, int expected_type){
 bool sched_test_node(pid node, pid expected_next, pid expected_prev){
   if((tasks[node].next != expected_next)||(tasks[node].prev != expected_prev)){
     printf("Node %d [next]=%d, [prev]=%d, expected [next]=%d, expected [prev]=%d",node, tasks[node].next, tasks[node].prev, expected_next, expected_prev);
+    hlt();
     return 0;
   }
   return 1;

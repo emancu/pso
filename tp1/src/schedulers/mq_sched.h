@@ -23,7 +23,7 @@ int sched_tick();
 void configure_task(pid, int, int, pid, pid);
 void enqueue(pid, int);
 pid dequeue(int);
-void update_current_pid();
+pid update_current_pid();
 
 
 // Show
