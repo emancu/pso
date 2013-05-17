@@ -8,7 +8,7 @@ int main(void) {
   // write(con, "Presiona una tecla para continuar!", 34);
   while(1) {
     i = 15000000;
-    write(con, "Presiona una tecla para continuar!", 34);
+    write(con, "Presiona una tecla para procesar!\n", 35);
     read(con, buf, 1);
     while( i > 0){
       i--;
@@ -17,4 +17,3 @@ int main(void) {
   exit();
   return 0;
 }
-

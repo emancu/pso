@@ -46,7 +46,7 @@ void sched_unblock(pid pd) {
   // Si esta IDLE salto inmediatamente a la nueva tarea
   // VER SI SE LO AGREGO AL SCHED_LOAD
   if( current_pid == 0){
-    current_pid = pd;
+    update_current_pid();
     loader_switchto(pd);
   }
 }
